@@ -8,6 +8,7 @@ import {
   XMarkIcon
 } from '@heroicons/vue/24/outline'
 import { colorFor } from '~/utils/hash-color'
+import { useInfiniteList } from '~/composables/useInfiniteList'
 
 interface TagRow {
   id: string
@@ -16,8 +17,13 @@ interface TagRow {
   last_seen: string | null
 }
 
-const { data, pending, refresh } = await useFetch<{ tags: TagRow[] }>('/api/tags')
-const tags = computed(() => data.value?.tags || [])
+const { items: tags, loading, loadingMore, hasMore, reset, sentinelRef } = useInfiniteList<TagRow>({
+  pageSize: 50,
+  async fetcher({ offset, limit }) {
+    const data = await $fetch<{ tags: TagRow[], hasMore: boolean }>('/api/tags', { query: { offset, limit } })
+    return { items: data.tags, hasMore: data.hasMore }
+  }
+})
 
 const createOpen = ref(false)
 function onCreated(entity: { id: string }) {
@@ -46,7 +52,7 @@ function openMerge() {
 async function onMerged() {
   selectedIds.value = new Set()
   multiEdit.value = false
-  await refresh()
+  await reset()
 }
 
 function formatDate(value: string | null | undefined, fallback = '') {
@@ -86,7 +92,7 @@ function formatDate(value: string | null | undefined, fallback = '') {
         <EntityCreateDialog v-model:open="createOpen" kind="tag" @created="onCreated" />
         <EntityMergeDialog v-model:open="mergeOpen" kind="tag" :candidates="selectedCandidates" @merged="onMerged" />
 
-        <p v-if="pending" class="muted">Loading…</p>
+        <p v-if="loading" class="muted">Loading…</p>
         <p v-else-if="!tags.length" class="muted">No tags yet.</p>
 
         <ul v-else class="doc-list entity-index-list" :class="{ 'is-multi-edit': multiEdit }">
@@ -124,6 +130,11 @@ function formatDate(value: string | null | undefined, fallback = '') {
             </div>
           </li>
         </ul>
+
+        <div ref="sentinelRef" class="infinite-sentinel" aria-hidden="true">
+          <span v-if="loadingMore" class="muted">Loading more…</span>
+          <span v-else-if="!hasMore && tags.length" class="muted">End of list</span>
+        </div>
       </section>
     </main>
   </div>

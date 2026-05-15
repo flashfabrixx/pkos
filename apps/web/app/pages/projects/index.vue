@@ -9,6 +9,7 @@ import {
   XMarkIcon
 } from '@heroicons/vue/24/outline'
 import { colorFor } from '~/utils/hash-color'
+import { useInfiniteList } from '~/composables/useInfiniteList'
 
 interface ProjectRow {
   id: string
@@ -19,8 +20,13 @@ interface ProjectRow {
   last_seen: string | null
 }
 
-const { data, pending, refresh } = await useFetch<{ projects: ProjectRow[] }>('/api/projects')
-const projects = computed(() => data.value?.projects || [])
+const { items: projects, loading, loadingMore, hasMore, reset, sentinelRef } = useInfiniteList<ProjectRow>({
+  pageSize: 50,
+  async fetcher({ offset, limit }) {
+    const data = await $fetch<{ projects: ProjectRow[], hasMore: boolean }>('/api/projects', { query: { offset, limit } })
+    return { items: data.projects, hasMore: data.hasMore }
+  }
+})
 
 const createOpen = ref(false)
 function onCreated(entity: { id: string }) {
@@ -49,7 +55,7 @@ function openMerge() {
 async function onMerged() {
   selectedIds.value = new Set()
   multiEdit.value = false
-  await refresh()
+  await reset()
 }
 
 function formatDate(value: string | null | undefined, fallback = '') {
@@ -89,7 +95,7 @@ function formatDate(value: string | null | undefined, fallback = '') {
         <EntityCreateDialog v-model:open="createOpen" kind="project" @created="onCreated" />
         <EntityMergeDialog v-model:open="mergeOpen" kind="project" :candidates="selectedCandidates" @merged="onMerged" />
 
-        <p v-if="pending" class="muted">Loading…</p>
+        <p v-if="loading" class="muted">Loading…</p>
         <p v-else-if="!projects.length" class="muted">No projects yet.</p>
 
         <ul v-else class="doc-list entity-index-list" :class="{ 'is-multi-edit': multiEdit }">
@@ -131,6 +137,11 @@ function formatDate(value: string | null | undefined, fallback = '') {
             </div>
           </li>
         </ul>
+
+        <div ref="sentinelRef" class="infinite-sentinel" aria-hidden="true">
+          <span v-if="loadingMore" class="muted">Loading more…</span>
+          <span v-else-if="!hasMore && projects.length" class="muted">End of list</span>
+        </div>
       </section>
     </main>
   </div>

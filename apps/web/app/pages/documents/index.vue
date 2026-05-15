@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import {
   ArrowPathIcon,
-  ExclamationTriangleIcon,
-  InboxIcon
+  ExclamationTriangleIcon
 } from '@heroicons/vue/24/outline'
 import { sourceTypeIcon } from '~/utils/source-type'
+import { useInfiniteList } from '~/composables/useInfiniteList'
 
 interface DocRow {
   id: string
@@ -17,8 +17,15 @@ interface DocRow {
   metadata: Record<string, unknown>
 }
 
-const { data, pending } = await useFetch<{ documents: DocRow[] }>('/api/documents')
-const documents = computed(() => data.value?.documents || [])
+const { items: documents, loading, loadingMore, hasMore, sentinelRef } = useInfiniteList<DocRow>({
+  pageSize: 50,
+  async fetcher({ offset, limit }) {
+    const data = await $fetch<{ documents: DocRow[], hasMore: boolean }>('/api/documents', {
+      query: { offset, limit }
+    })
+    return { items: data.documents, hasMore: data.hasMore }
+  }
+})
 
 const PROCESSING_STATES = new Set(['new', 'queued', 'processing'])
 function isProcessing(doc: DocRow) {
@@ -40,12 +47,12 @@ function formatDate(value: string | null | undefined, fallback = '') {
         <div class="section-head">
           <div>
             <p class="eyebrow">Inbox</p>
-            <h1>Documents</h1>
+            <h1>Captures</h1>
           </div>
         </div>
 
-        <p v-if="pending" class="muted">Loading…</p>
-        <p v-else-if="!documents.length" class="muted">No documents captured yet.</p>
+        <p v-if="loading" class="muted">Loading…</p>
+        <p v-else-if="!documents.length" class="muted">No captures yet.</p>
 
         <ul v-else class="doc-list inbox-list">
           <li v-for="doc in documents" :key="doc.id" class="doc-list-row inbox-row">
@@ -72,6 +79,11 @@ function formatDate(value: string | null | undefined, fallback = '') {
             </div>
           </li>
         </ul>
+
+        <div ref="sentinelRef" class="infinite-sentinel" aria-hidden="true">
+          <span v-if="loadingMore" class="muted">Loading more…</span>
+          <span v-else-if="!hasMore && documents.length" class="muted">End of list</span>
+        </div>
       </section>
     </main>
   </div>

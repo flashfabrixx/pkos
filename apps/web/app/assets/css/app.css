@@ -3698,3 +3698,12 @@ mark {
     padding: 14px;
   }
 }
+
+.infinite-sentinel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px 0 24px;
+  min-height: 32px;
+  font-size: 0.85rem;
+}

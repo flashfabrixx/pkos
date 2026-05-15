@@ -26,7 +26,7 @@ function openCommandPalette() {
 
 const navItems = [
   { to: '/', label: 'Capture', icon: PencilSquareIcon },
-  { to: '/documents', label: 'Documents', icon: InboxIcon },
+  { to: '/documents', label: 'Captures', icon: InboxIcon },
   { to: '/actions', label: 'Actions', icon: QueueListIcon, badge: () => openActions.value },
   { to: '/people', label: 'People', icon: UsersIcon },
   { to: '/projects', label: 'Projects', icon: FolderIcon },

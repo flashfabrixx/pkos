@@ -9,6 +9,7 @@ import {
   XMarkIcon
 } from '@heroicons/vue/24/outline'
 import { colorFor } from '~/utils/hash-color'
+import { useInfiniteList } from '~/composables/useInfiniteList'
 
 interface PersonRow {
   id: string
@@ -19,8 +20,13 @@ interface PersonRow {
   last_seen: string | null
 }
 
-const { data, pending, refresh } = await useFetch<{ people: PersonRow[] }>('/api/people')
-const people = computed(() => data.value?.people || [])
+const { items: people, loading, loadingMore, hasMore, reset, sentinelRef } = useInfiniteList<PersonRow>({
+  pageSize: 50,
+  async fetcher({ offset, limit }) {
+    const data = await $fetch<{ people: PersonRow[], hasMore: boolean }>('/api/people', { query: { offset, limit } })
+    return { items: data.people, hasMore: data.hasMore }
+  }
+})
 
 const createOpen = ref(false)
 function onCreated(entity: { id: string }) {
@@ -51,7 +57,7 @@ function openMerge() {
 async function onMerged() {
   selectedIds.value = new Set()
   multiEdit.value = false
-  await refresh()
+  await reset()
 }
 
 function initialsOf(name: string) {
@@ -111,7 +117,7 @@ function formatDate(value: string | null | undefined, fallback = '') {
           @merged="onMerged"
         />
 
-        <p v-if="pending" class="muted">Loading…</p>
+        <p v-if="loading" class="muted">Loading…</p>
         <p v-else-if="!people.length" class="muted">No people captured yet.</p>
 
         <ul v-else class="doc-list entity-index-list" :class="{ 'is-multi-edit': multiEdit }">
@@ -151,6 +157,11 @@ function formatDate(value: string | null | undefined, fallback = '') {
             </div>
           </li>
         </ul>
+
+        <div ref="sentinelRef" class="infinite-sentinel" aria-hidden="true">
+          <span v-if="loadingMore" class="muted">Loading more…</span>
+          <span v-else-if="!hasMore && people.length" class="muted">End of list</span>
+        </div>
       </section>
     </main>
   </div>
