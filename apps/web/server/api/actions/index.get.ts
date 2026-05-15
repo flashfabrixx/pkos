@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   const project = typeof params.project === 'string' ? params.project : 'all'
   const allowed = ['open', 'done', 'dismissed']
   const where: string[] = []
-  const values: string[] = []
+  const values: Array<string | number> = []
 
   if (allowed.includes(status)) {
     values.push(status)
@@ -22,6 +22,13 @@ export default defineEventHandler(async (event) => {
   }
 
   const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : ''
+
+  const limit = Math.min(Math.max(Number(params.limit) || 50, 1), 200)
+  const offset = Math.max(Number(params.offset) || 0, 0)
+  values.push(limit)
+  const limitIdx = values.length
+  values.push(offset)
+  const offsetIdx = values.length
 
   const result = await query(
     `SELECT
@@ -43,7 +50,8 @@ export default defineEventHandler(async (event) => {
      LEFT JOIN entities p ON p.id = a.person_id
      LEFT JOIN entities pr ON pr.id = a.project_id
      ${whereSql}
-     ORDER BY a.created_at DESC`,
+     ORDER BY a.created_at DESC
+     LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
     values
   )
 
@@ -55,5 +63,9 @@ export default defineEventHandler(async (event) => {
      ORDER BY pr.name`
   )
 
-  return { actions: result.rows, projects: projects.rows }
+  return {
+    actions: result.rows,
+    projects: projects.rows,
+    hasMore: result.rows.length === limit
+  }
 })

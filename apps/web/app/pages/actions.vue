@@ -4,6 +4,7 @@ import { AdjustmentsHorizontalIcon, CalendarDaysIcon, CheckCircleIcon, ChevronRi
 import { sourceTypeIcon } from '~/utils/source-type'
 import { colorFor } from '~/utils/hash-color'
 import { useSessionState } from '~/composables/useSessionState'
+import { useInfiniteList } from '~/composables/useInfiniteList'
 
 type ActionFilterStatus = ActionStatus | 'all'
 type EditableField = 'title' | 'dueDate' | null
@@ -28,18 +29,31 @@ const statusOptions: Array<{ value: ActionFilterStatus, label: string }> = [
   { value: 'dismissed', label: 'Dismissed' }
 ]
 
-const { data, refresh, pending } = await useFetch<{
-  actions: ActionItem[]
-  projects: Array<{ id: string, name: string }>
-}>('/api/actions', {
-  query: { status, project },
-  watch: [status, project]
+const projectsForFilter = ref<Array<{ id: string, name: string }>>([])
+const {
+  items: actions,
+  loading: pending,
+  loadingMore,
+  hasMore,
+  reset: refresh,
+  sentinelRef
+} = useInfiniteList<ActionItem>({
+  pageSize: 50,
+  watch: [status, project],
+  async fetcher({ offset, limit }) {
+    const data = await $fetch<{
+      actions: ActionItem[]
+      projects: Array<{ id: string, name: string }>
+      hasMore: boolean
+    }>('/api/actions', { query: { status: status.value, project: project.value, offset, limit } })
+    if (offset === 0) projectsForFilter.value = data.projects || []
+    return { items: data.actions, hasMore: data.hasMore }
+  }
 })
 
-const actions = computed(() => data.value?.actions || [])
 const projectOptions = computed(() => [
   { value: 'all', label: 'All projects' },
-  ...(data.value?.projects || []).map((item) => ({ value: item.id, label: item.name }))
+  ...projectsForFilter.value.map((item) => ({ value: item.id, label: item.name }))
 ])
 const actionById = computed(() => new Map(actions.value.map((action) => [action.id, action])))
 
@@ -411,6 +425,11 @@ onBeforeUnmount(() => {
 
           <p v-if="pending" class="muted p-4">Loading actions...</p>
           <p v-if="!pending && !actions.length" class="muted p-4">No actions match these filters.</p>
+        </div>
+
+        <div ref="sentinelRef" class="infinite-sentinel" aria-hidden="true">
+          <span v-if="loadingMore" class="muted">Loading more…</span>
+          <span v-else-if="!hasMore && actions.length" class="muted">End of list</span>
         </div>
       </section>
     </main>
