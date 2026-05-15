@@ -1,6 +1,7 @@
 import type pg from 'pg'
 import type { CaptureInput, EntityType, ExtractedKnowledge } from '@bkos/core'
 import { writeArchive } from './archive'
+import { detectLanguage } from './detect-language'
 import { embedTexts, vectorToPg } from './embedding'
 import { extractCapture } from './extractor'
 import { upsertEntity, writeKnowledgeGraph } from './graph'
@@ -16,10 +17,14 @@ export async function processDocument(client: pg.PoolClient, documentId: string,
     const extraction = await extractCapture(input)
     const preparedInput = extraction.input
     const extracted = extraction.extracted
+
+    // Detect the document's language from the richest text we have.
+    const detected = detectLanguage(`${preparedInput.title}\n\n${preparedInput.rawText}\n\n${extracted.summary}`)
+
     const people = await ensureEntities(client, 'person', extracted.people)
     const projects = await ensureEntities(client, 'project', extracted.projects)
     await writeExtractedRows(client, documentId, extracted, people[0]?.id, projects[0]?.id)
-    await writeChunks(client, documentId, preparedInput, extracted)
+    await writeChunks(client, documentId, preparedInput, extracted, detected.pgConfig)
     await writeKnowledgeGraph(client, documentId, preparedInput.title, extracted)
     const archivePath = await writeArchive(documentId, preparedInput, extracted)
 
@@ -29,18 +34,21 @@ export async function processDocument(client: pg.PoolClient, documentId: string,
            summary = $2,
            status = $3,
            archive_path = $4,
-           metadata = metadata || $5::jsonb,
+           language = $5,
+           metadata = metadata || $6::jsonb,
            updated_at = now()
-       WHERE id = $6`,
+       WHERE id = $7`,
       [
         preparedInput.title,
         extracted.summary,
         'processed',
         archivePath,
+        detected.code,
         JSON.stringify({
           participants: extracted.people.join(', ') || preparedInput.participants || '',
           project: extracted.projects[0] || preparedInput.project || '',
-          extractor_provider: extraction.provider
+          extractor_provider: extraction.provider,
+          language_pg_config: detected.pgConfig
         }),
         documentId
       ]
@@ -96,7 +104,7 @@ async function writeExtractedRows(
   // Tags now live exclusively in `entities` (type='tag') — created by writeKnowledgeGraph.
 }
 
-async function writeChunks(client: pg.PoolClient, documentId: string, input: CaptureInput, extracted: ExtractedKnowledge) {
+async function writeChunks(client: pg.PoolClient, documentId: string, input: CaptureInput, extracted: ExtractedKnowledge, pgConfig: string) {
   const chunks = [
     { type: 'summary', content: extracted.summary },
     { type: 'section', content: [input.title, extracted.summary, ...extracted.insights].join('\n\n') },
@@ -109,9 +117,9 @@ async function writeChunks(client: pg.PoolClient, documentId: string, input: Cap
   for (const [position, chunk] of chunks.entries()) {
     const vec = vectorToPg(embeddings[position]?.vector ?? null)
     await client.query(
-      `INSERT INTO chunks (document_id, chunk_type, content, position, embedding)
-       VALUES ($1, $2, $3, $4, $5::vector)`,
-      [documentId, chunk.type, chunk.content, position, vec]
+      `INSERT INTO chunks (document_id, chunk_type, content, position, embedding, search_vector)
+       VALUES ($1, $2, $3, $4, $5::vector, to_tsvector($6::regconfig, $3))`,
+      [documentId, chunk.type, chunk.content, position, vec, pgConfig]
     )
   }
 }

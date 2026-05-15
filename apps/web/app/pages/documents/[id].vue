@@ -12,6 +12,7 @@ import {
   FlagIcon,
   HashtagIcon,
   LightBulbIcon,
+  LanguageIcon,
   LockClosedIcon,
   QuestionMarkCircleIcon,
   ShieldExclamationIcon,
@@ -460,6 +461,10 @@ function searchLinkFor(term: string) {
             <span v-if="confidentiality" :class="['confidentiality', `confidentiality--${confidentiality}`]">
               <component :is="confidentialityIcon" class="size-4" aria-hidden="true" />
               <span>{{ confidentiality }}</span>
+            </span>
+            <span v-if="document.language" class="doc-language" :title="`Detected language: ${document.language.toUpperCase()}`">
+              <LanguageIcon class="size-4" aria-hidden="true" />
+              <span>{{ document.language.toUpperCase() }}</span>
             </span>
           </div>
         </header>

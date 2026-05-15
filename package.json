@@ -12,9 +12,11 @@
     "db:reset": "node scripts/reset-db.mjs",
     "setup:password": "node scripts/hash-password.mjs",
     "setup:reset-2fa": "node scripts/reset-2fa.mjs",
-    "db:embed": "node scripts/backfill-embeddings.mjs"
+    "db:embed": "node scripts/backfill-embeddings.mjs",
+    "db:detect-language": "node scripts/backfill-language.mjs"
   },
   "dependencies": {
+    "franc-min": "^6.2.0",
     "pg": "^8.16.3"
   },
   "devDependencies": {
