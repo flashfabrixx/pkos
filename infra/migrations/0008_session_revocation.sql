@@ -1,0 +1,2 @@
+ALTER TABLE auth_config
+  ADD COLUMN IF NOT EXISTS session_min_iat TIMESTAMPTZ NOT NULL DEFAULT 'epoch';

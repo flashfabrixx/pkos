@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   ChartBarSquareIcon,
+  Cog6ToothIcon,
   FolderIcon,
   HashtagIcon,
   InboxIcon,
@@ -30,7 +31,8 @@ const navItems = [
   { to: '/people', label: 'People', icon: UsersIcon },
   { to: '/projects', label: 'Projects', icon: FolderIcon },
   { to: '/tags', label: 'Tags', icon: HashtagIcon },
-  { to: '/graph', label: 'Graph', icon: ChartBarSquareIcon }
+  { to: '/graph', label: 'Graph', icon: ChartBarSquareIcon },
+  { to: '/settings', label: 'Settings', icon: Cog6ToothIcon }
 ] as const
 
 const route = useRoute()

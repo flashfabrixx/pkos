@@ -3214,6 +3214,170 @@ mark {
   padding: 24px;
 }
 
+.login-link {
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px;
+  text-align: center;
+}
+
+.login-link:hover {
+  color: var(--accent);
+  background: transparent;
+}
+
+.settings-section {
+  display: grid;
+  gap: 14px;
+  padding-top: 8px;
+}
+
+.settings-section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.settings-section-head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.settings-section-head p {
+  margin: 2px 0 0;
+}
+
+.settings-primary,
+.settings-secondary,
+.settings-danger {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 0;
+}
+
+.settings-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.settings-primary:hover {
+  background: var(--accent-strong);
+}
+
+.settings-primary:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.settings-secondary {
+  background: transparent;
+  border: 1px solid var(--panel-border);
+  color: var(--text);
+}
+
+.settings-secondary:hover {
+  background: #f8fafc;
+}
+
+.settings-danger {
+  background: #fef2f2;
+  color: var(--danger);
+  border: 1px solid #fecaca;
+}
+
+.settings-danger:hover {
+  background: #fee2e2;
+}
+
+.settings-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.settings-2fa-enabled {
+  display: grid;
+  gap: 12px;
+}
+
+.settings-2fa-enabled form {
+  display: grid;
+  gap: 10px;
+  max-width: 360px;
+}
+
+.settings-enroll {
+  display: grid;
+  gap: 16px;
+}
+
+.settings-enroll-steps {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 12px;
+}
+
+.settings-enroll-steps code {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.settings-otp-uri {
+  display: block;
+  margin: 6px 0;
+  padding: 8px 10px;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+.settings-enroll-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.settings-backup-codes {
+  display: grid;
+  gap: 12px;
+}
+
+.settings-backup-codes h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.settings-backup-list {
+  margin: 0;
+  padding: 14px;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 7px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  letter-spacing: 0.06em;
+}
+
 .login-panel {
   width: min(100%, 360px);
   display: grid;

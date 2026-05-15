@@ -6,8 +6,9 @@ export default defineNuxtConfig({
   css: ['~/assets/css/app.css'],
   runtimeConfig: {
     username: process.env.BKOS_USERNAME || 'marcel',
-    password: process.env.BKOS_PASSWORD || 'change-me',
-    sessionSecret: process.env.SESSION_SECRET || 'dev-secret-change-me',
+    password: process.env.BKOS_PASSWORD || '',
+    passwordHash: process.env.BKOS_PASSWORD_HASH || '',
+    sessionSecret: process.env.SESSION_SECRET || '',
     databaseUrl: process.env.DATABASE_URL || 'postgres://bkos:bkos@localhost:5433/bkos',
     vaultPath: process.env.BKOS_VAULT_PATH || '../../vault',
     extractorProvider: process.env.BKOS_EXTRACTOR_PROVIDER || 'placeholder',
