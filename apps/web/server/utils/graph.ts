@@ -1,5 +1,6 @@
 import type pg from 'pg'
 import type { EntityType, ExtractedKnowledge, RelationType } from '@bkos/core'
+import { embedTexts, vectorToPg } from './embedding'
 
 interface EntityRef {
   id: string
@@ -9,17 +10,40 @@ interface EntityRef {
 
 export async function upsertEntity(client: pg.PoolClient, type: EntityType, name: string, metadata: Record<string, unknown> = {}) {
   const canonicalName = canonicalize(name)
-  const result = await client.query<{ id: string }>(
+  const result = await client.query<{ id: string, embedding: string | null }>(
     `INSERT INTO entities (type, name, canonical_name, metadata)
      VALUES ($1, $2, $3, $4)
      ON CONFLICT (type, canonical_name)
      DO UPDATE SET name = EXCLUDED.name, metadata = entities.metadata || EXCLUDED.metadata, updated_at = now()
-     RETURNING id`,
+     RETURNING id, embedding::text AS embedding`,
     [type, name.trim(), canonicalName, metadata]
   )
   const row = result.rows[0]
   if (!row) throw new Error(`Failed to upsert entity ${type}:${name}`)
+
+  // Generate / refresh the entity embedding from its name. Fail-open: if the
+  // provider is unavailable, the entity stays without a vector.
+  if (!row.embedding) {
+    const [embedding] = await embedTexts([describeEntity(type, name, metadata)])
+    const vec = vectorToPg(embedding?.vector ?? null)
+    if (vec) {
+      await client.query(
+        `UPDATE entities
+         SET embedding = $1::vector,
+             embedding_source = $2,
+             embedding_updated_at = now()
+         WHERE id = $3`,
+        [vec, `${embedding!.provider}:${embedding!.model || 'unknown'}`, row.id]
+      )
+    }
+  }
+
   return { id: row.id, type, name: name.trim() } satisfies EntityRef
+}
+
+function describeEntity(type: EntityType, name: string, metadata: Record<string, unknown>): string {
+  const description = typeof metadata?.description === 'string' ? metadata.description : ''
+  return description ? `${type}: ${name}\n${description}` : `${type}: ${name}`
 }
 
 export async function addMention(

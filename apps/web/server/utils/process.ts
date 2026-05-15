@@ -1,6 +1,7 @@
 import type pg from 'pg'
 import type { CaptureInput, EntityType, ExtractedKnowledge } from '@bkos/core'
 import { writeArchive } from './archive'
+import { embedTexts, vectorToPg } from './embedding'
 import { extractCapture } from './extractor'
 import { upsertEntity, writeKnowledgeGraph } from './graph'
 
@@ -102,10 +103,15 @@ async function writeChunks(client: pg.PoolClient, documentId: string, input: Cap
     ...splitParagraphs(input.rawText).map((content) => ({ type: 'paragraph', content }))
   ]
 
+  // Embed in one batch so a single API/Ollama roundtrip covers the whole document.
+  const embeddings = await embedTexts(chunks.map((c) => c.content))
+
   for (const [position, chunk] of chunks.entries()) {
+    const vec = vectorToPg(embeddings[position]?.vector ?? null)
     await client.query(
-      'INSERT INTO chunks (document_id, chunk_type, content, position) VALUES ($1, $2, $3, $4)',
-      [documentId, chunk.type, chunk.content, position]
+      `INSERT INTO chunks (document_id, chunk_type, content, position, embedding)
+       VALUES ($1, $2, $3, $4, $5::vector)`,
+      [documentId, chunk.type, chunk.content, position, vec]
     )
   }
 }

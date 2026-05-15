@@ -138,4 +138,25 @@ BKOS also builds a first native knowledge graph:
 - graph API at `/api/graph`
 - graph view at `/graph`
 
+## Embeddings (semantic retrieval)
+
+`chunks.embedding` and `entities.embedding` are 1024-dimensional vectors
+stored via pgvector with an HNSW cosine index. They are populated by a
+pluggable provider:
+
+- `BKOS_EMBEDDING_PROVIDER=placeholder` (default) — no embeddings written
+- `BKOS_EMBEDDING_PROVIDER=ollama` — local, default model `bge-m3`
+  (multilingual; `ollama pull bge-m3` first)
+- `BKOS_EMBEDDING_PROVIDER=openai` — uses `text-embedding-3-small` with
+  `dimensions=1024`; `OPENAI_API_KEY` required
+
+The model chosen must produce 1024-dimensional vectors (or longer — they
+are truncated). All defaults are multilingual; no language detection is
+needed on our side, German and English notes co-exist in one vector
+space.
+
+Calls are fail-open: if the provider is unreachable, the record is stored
+without an embedding and a single warning is logged. Re-run
+`pnpm db:embed` after switching providers to backfill existing rows.
+
 The graph extractor is deterministic for now. LLM-based entity and relation extraction should be added behind the same schema later.
