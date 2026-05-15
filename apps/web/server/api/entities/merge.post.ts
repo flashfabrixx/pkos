@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { requireAuth } from '../../utils/auth'
 import { withTransaction } from '../../utils/db'
 import { canonicalize } from '../../utils/canonicalize'
+import { recordActivity } from '../../utils/entity-activity'
 
 const schema = z.object({
   primaryId: z.string().uuid(),
@@ -118,6 +119,15 @@ export default defineEventHandler(async (event) => {
         values
       )
     }
+
+    // Record a single activity on the survivor before the losers vanish.
+    const losers = rows.filter((row) => row.id !== body.primaryId)
+    await recordActivity({
+      client,
+      entityId: body.primaryId,
+      kind: 'received_merge_from',
+      payload: { merged: losers.map((row) => ({ id: row.id, name: row.name })) }
+    })
 
     // Delete the merged-out entities
     await client.query(`DELETE FROM entities WHERE id = ANY($1::uuid[])`, [body.mergeIds])

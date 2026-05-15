@@ -1,6 +1,7 @@
 import type pg from 'pg'
 import type { EntityType, ExtractedKnowledge, RelationType } from '@bkos/core'
 import { embedTexts, vectorToPg } from './embedding'
+import { recordActivity } from './entity-activity'
 
 interface EntityRef {
   id: string
@@ -10,16 +11,20 @@ interface EntityRef {
 
 export async function upsertEntity(client: pg.PoolClient, type: EntityType, name: string, metadata: Record<string, unknown> = {}) {
   const canonicalName = canonicalize(name)
-  const result = await client.query<{ id: string, embedding: string | null }>(
+  const result = await client.query<{ id: string, embedding: string | null, was_inserted: boolean }>(
     `INSERT INTO entities (type, name, canonical_name, metadata)
      VALUES ($1, $2, $3, $4)
      ON CONFLICT (type, canonical_name)
      DO UPDATE SET name = EXCLUDED.name, metadata = entities.metadata || EXCLUDED.metadata, updated_at = now()
-     RETURNING id, embedding::text AS embedding`,
+     RETURNING id, embedding::text AS embedding, (xmax = 0) AS was_inserted`,
     [type, name.trim(), canonicalName, metadata]
   )
   const row = result.rows[0]
   if (!row) throw new Error(`Failed to upsert entity ${type}:${name}`)
+
+  if (row.was_inserted && (type === 'person' || type === 'project' || type === 'tag')) {
+    await recordActivity({ client, entityId: row.id, kind: 'created', payload: { type, name: name.trim() } })
+  }
 
   // Generate / refresh the entity embedding from its name. Fail-open: if the
   // provider is unavailable, the entity stays without a vector.
@@ -53,12 +58,22 @@ export async function addMention(
   excerpt: string | null,
   confidence = 0.75
 ) {
-  await client.query(
+  const result = await client.query(
     `INSERT INTO entity_mentions (entity_id, document_id, excerpt, confidence)
      VALUES ($1, $2, $3, $4)
-     ON CONFLICT DO NOTHING`,
+     ON CONFLICT DO NOTHING
+     RETURNING id`,
     [entityId, documentId, excerpt, confidence]
   )
+  if (result.rowCount) {
+    await recordActivity({
+      client,
+      entityId,
+      kind: 'mentioned_in_document',
+      documentId,
+      payload: { excerpt: excerpt?.slice(0, 240) || null, confidence }
+    })
+  }
 }
 
 export async function addEdge(

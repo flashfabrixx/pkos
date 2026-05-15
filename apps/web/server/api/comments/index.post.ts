@@ -2,6 +2,7 @@ import { createError, readBody } from 'h3'
 import { z } from 'zod'
 import { requireAuth } from '../../utils/auth'
 import { query } from '../../utils/db'
+import { recordActivity } from '../../utils/entity-activity'
 
 const schema = z.object({
   entityId: z.string().uuid(),
@@ -21,5 +22,13 @@ export default defineEventHandler(async (event) => {
   )
   const comment = result.rows[0]
   if (!comment) throw createError({ statusCode: 500, statusMessage: 'Comment insert failed' })
+
+  await recordActivity({
+    entityId: data.entityId,
+    kind: 'commented',
+    documentId: data.documentId || null,
+    payload: { comment_id: comment.id, excerpt: data.body.slice(0, 240) }
+  })
+
   return { comment }
 })

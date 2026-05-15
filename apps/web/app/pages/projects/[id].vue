@@ -30,6 +30,7 @@ const project = computed(() => data.value?.project || null)
 const stats = computed(() => data.value?.stats || {})
 const documents = computed(() => data.value?.documents || [])
 const related = computed(() => data.value?.related || { people: [], projects: [], tags: [] })
+const activities = computed(() => data.value?.activities || [])
 
 const actions = ref<ActionRow[]>([])
 const comments = ref<CommentRow[]>([])
@@ -67,6 +68,7 @@ async function toggleAction(action: ActionRow) {
     :stats="stats"
     :related="related"
     :comments="comments"
+    :activities="activities"
     @update:entity="refresh"
     @update:comments="(value) => comments = value"
   >

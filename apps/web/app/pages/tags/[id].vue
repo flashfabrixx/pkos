@@ -18,6 +18,7 @@ const tag = computed(() => data.value?.tag || null)
 const stats = computed(() => data.value?.stats || {})
 const documents = computed(() => data.value?.documents || [])
 const related = computed(() => data.value?.related || { people: [], projects: [], tags: [] })
+const activities = computed(() => data.value?.activities || [])
 
 const comments = ref<CommentRow[]>([])
 watch(
@@ -39,6 +40,7 @@ const tagColor = computed(() => colorFor(tag.value?.name))
     :stats="stats"
     :related="related"
     :comments="comments"
+    :activities="activities"
     @update:entity="refresh"
     @update:comments="(value) => comments = value"
   >

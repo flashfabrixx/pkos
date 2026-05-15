@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { actionStatuses } from '@bkos/core'
 import { requireAuth } from '../../utils/auth'
 import { query, withTransaction } from '../../utils/db'
+import { recordActivity } from '../../utils/entity-activity'
 import { upsertEntity } from '../../utils/graph'
 
 const schema = z.object({
@@ -28,6 +29,14 @@ export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Missing id' })
   const body = schema.parse(await readBody(event))
+
+  // Snapshot the action before changes so we can diff for activity entries.
+  const beforeResult = await query<{ id: string, title: string, person_id: string | null, project_id: string | null, document_id: string }>(
+    `SELECT id, title, person_id, project_id, document_id FROM action_items WHERE id = $1`,
+    [id]
+  )
+  const before = beforeResult.rows[0]
+  if (!before) throw createError({ statusCode: 404, statusMessage: 'Action item not found' })
 
   const updates: string[] = []
   const values: Array<string | null> = []
@@ -84,5 +93,30 @@ export default defineEventHandler(async (event) => {
   )
 
   if (!result.rowCount) throw createError({ statusCode: 404, statusMessage: 'Action item not found' })
+
+  // Log assignment changes on the affected person entities.
+  if (nextPersonId !== undefined && nextPersonId !== before.person_id) {
+    const payload = {
+      action_id: id,
+      action_title: result.rows[0].title
+    }
+    if (before.person_id) {
+      await recordActivity({
+        entityId: before.person_id,
+        kind: 'unassigned_from_action',
+        documentId: before.document_id,
+        payload
+      })
+    }
+    if (nextPersonId) {
+      await recordActivity({
+        entityId: nextPersonId,
+        kind: 'assigned_to_action',
+        documentId: before.document_id,
+        payload
+      })
+    }
+  }
+
   return { action: result.rows[0] }
 })
