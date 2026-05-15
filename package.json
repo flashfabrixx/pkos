@@ -11,7 +11,8 @@
     "db:migrate": "node scripts/migrate.mjs",
     "db:reset": "node scripts/reset-db.mjs",
     "setup:password": "node scripts/hash-password.mjs",
-    "setup:reset-2fa": "node scripts/reset-2fa.mjs"
+    "setup:reset-2fa": "node scripts/reset-2fa.mjs",
+    "db:embed": "node scripts/backfill-embeddings.mjs"
   },
   "dependencies": {
     "pg": "^8.16.3"

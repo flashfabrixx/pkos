@@ -16,6 +16,9 @@ export default defineNuxtConfig({
     openRouterModel: process.env.OPENROUTER_MODEL || 'openai/gpt-4.1-mini',
     ollamaUrl: process.env.OLLAMA_URL || 'http://127.0.0.1:11434',
     ollamaModel: process.env.OLLAMA_MODEL || 'gemma4:e4b',
+    embeddingProvider: process.env.BKOS_EMBEDDING_PROVIDER || 'placeholder',
+    embeddingModel: process.env.BKOS_EMBEDDING_MODEL || '',
+    openAIApiKey: process.env.OPENAI_API_KEY || '',
     public: {
       appName: process.env.NUXT_PUBLIC_APP_NAME || 'BKOS'
     }
