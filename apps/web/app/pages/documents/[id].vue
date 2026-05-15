@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import {
   ArrowPathIcon,
   BuildingOfficeIcon,
@@ -6,6 +7,7 @@ import {
   ChatBubbleLeftIcon,
   CheckCircleIcon,
   CheckIcon,
+  ChevronDownIcon,
   ChevronRightIcon,
   ClipboardDocumentCheckIcon,
   ExclamationTriangleIcon,
@@ -26,6 +28,47 @@ import {
   SparklesIcon as SparklesSolid
 } from '@heroicons/vue/24/solid'
 import { sourceTypeIcon } from '~/utils/source-type'
+
+const LANGUAGE_OPTIONS: Array<{ code: string, label: string }> = [
+  { code: 'en', label: 'English' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'fr', label: 'Français' },
+  { code: 'es', label: 'Español' },
+  { code: 'it', label: 'Italiano' },
+  { code: 'nl', label: 'Nederlands' },
+  { code: 'pt', label: 'Português' },
+  { code: 'ru', label: 'Русский' },
+  { code: 'sv', label: 'Svenska' },
+  { code: 'da', label: 'Dansk' },
+  { code: 'fi', label: 'Suomi' },
+  { code: 'no', label: 'Norsk' },
+  { code: 'hu', label: 'Magyar' },
+  { code: 'ro', label: 'Română' },
+  { code: 'tr', label: 'Türkçe' }
+]
+
+const currentLanguageLabel = computed(() => {
+  const code = document.value?.language
+  if (!code) return 'Auto'
+  return LANGUAGE_OPTIONS.find((opt) => opt.code === code)?.label || code.toUpperCase()
+})
+const currentLanguageShort = computed(() => {
+  const code = document.value?.language
+  return code ? code.toUpperCase() : 'AUTO'
+})
+
+async function updateLanguage(code: string | null) {
+  if (!document.value) return
+  try {
+    await $fetch(`/api/documents/${document.value.id}`, {
+      method: 'PATCH',
+      body: { language: code }
+    })
+    await refresh()
+  } catch (error) {
+    console.error('Failed to update language', error)
+  }
+}
 import type { ActionStatus, OpenQuestionStatus } from '@bkos/core'
 
 interface ActionRow {
@@ -462,10 +505,34 @@ function searchLinkFor(term: string) {
               <component :is="confidentialityIcon" class="size-4" aria-hidden="true" />
               <span>{{ confidentiality }}</span>
             </span>
-            <span v-if="document.language" class="doc-language" :title="`Detected language: ${document.language.toUpperCase()}`">
-              <LanguageIcon class="size-4" aria-hidden="true" />
-              <span>{{ document.language.toUpperCase() }}</span>
-            </span>
+            <Menu as="span" class="doc-language-menu">
+              <MenuButton class="doc-language-trigger" :title="`Click to override (currently: ${currentLanguageLabel})`">
+                <LanguageIcon class="size-4" aria-hidden="true" />
+                <span>{{ currentLanguageShort }}</span>
+                <ChevronDownIcon class="size-3" aria-hidden="true" />
+              </MenuButton>
+              <MenuItems class="doc-language-menu-items">
+                <MenuItem v-slot="{ active }">
+                  <button
+                    type="button"
+                    class="doc-language-menu-item"
+                    :class="{ 'is-active': active, 'is-current': !document.language }"
+                    @click="updateLanguage(null)"
+                  >Auto · detect</button>
+                </MenuItem>
+                <MenuItem v-for="option in LANGUAGE_OPTIONS" :key="option.code" v-slot="{ active }">
+                  <button
+                    type="button"
+                    class="doc-language-menu-item"
+                    :class="{ 'is-active': active, 'is-current': document.language === option.code }"
+                    @click="updateLanguage(option.code)"
+                  >
+                    <span class="doc-language-menu-code">{{ option.code.toUpperCase() }}</span>
+                    <span>{{ option.label }}</span>
+                  </button>
+                </MenuItem>
+              </MenuItems>
+            </Menu>
           </div>
         </header>
 
