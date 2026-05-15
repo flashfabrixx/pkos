@@ -36,7 +36,16 @@ export default defineEventHandler(async (event) => {
     content: string
     rank: number | null
   }>(
-    `WITH ranked AS (
+    // The query is parsed under every common config and OR-ed together so a
+    // term like "Workshops" matches German-stemmed "workshop" or English
+    // "workshop" the same way. The doc was indexed in its own language; the
+    // query side covers the rest.
+    `WITH q AS (
+       SELECT
+         websearch_to_tsquery('simple', $1) AS q_simple,
+         websearch_to_tsquery('english', $1) AS q_en,
+         websearch_to_tsquery('german', $1) AS q_de
+     ), ranked AS (
        SELECT
          d.id AS document_id,
          d.title,
@@ -45,10 +54,16 @@ export default defineEventHandler(async (event) => {
          d.captured_at::text AS captured_at,
          d.created_at,
          c.content,
-         ts_rank(c.search_vector, websearch_to_tsquery('simple', $1)) AS rank
+         GREATEST(
+           ts_rank(c.search_vector, (SELECT q_simple FROM q)),
+           ts_rank(c.search_vector, (SELECT q_en FROM q)),
+           ts_rank(c.search_vector, (SELECT q_de FROM q))
+         ) AS rank
        FROM chunks c
        JOIN documents d ON d.id = c.document_id
-       WHERE c.search_vector @@ websearch_to_tsquery('simple', $1)
+       WHERE c.search_vector @@ (SELECT q_simple FROM q)
+          OR c.search_vector @@ (SELECT q_en FROM q)
+          OR c.search_vector @@ (SELECT q_de FROM q)
           OR c.content ILIKE '%' || $1 || '%'
           OR d.title ILIKE '%' || $1 || '%'
      )

@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
 
   const documentResult = await query(
     `SELECT d.id, d.title, d.source_type, d.raw_text, d.summary, d.status, d.metadata, d.archive_path,
-            d.captured_at::text AS captured_at, d.created_at, d.updated_at,
+            d.captured_at::text AS captured_at, d.created_at, d.updated_at, d.language,
             e.id AS entity_id
      FROM documents d
      LEFT JOIN entities e
