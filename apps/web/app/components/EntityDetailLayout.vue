@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import {
+  ArrowPathIcon,
   CalendarDaysIcon,
   ChatBubbleLeftIcon,
   ClipboardDocumentCheckIcon,
+  ClockIcon,
   DocumentTextIcon,
   EllipsisHorizontalIcon,
   FolderIcon,
   HashtagIcon,
+  SparklesIcon,
   TrashIcon,
   UsersIcon
 } from '@heroicons/vue/24/outline'
@@ -19,6 +22,9 @@ interface EntityBase {
   id: string
   name: string
   metadata: Record<string, unknown>
+  summary?: string | null
+  summary_state?: 'absent' | 'fresh' | 'stale' | 'generating' | 'failed' | null
+  summary_updated_at?: string | null
 }
 
 interface RelatedRow {
@@ -37,6 +43,15 @@ interface CommentRow {
   updated_at: string
 }
 
+interface ActivityRow {
+  id: string
+  kind: string
+  payload: Record<string, any>
+  occurred_at: string
+  source_document_id: string | null
+  source_document_title: string | null
+}
+
 interface Stats {
   document_count?: number
   actions_open?: number
@@ -52,6 +67,7 @@ const props = defineProps<{
   stats: Stats
   related: { people: RelatedRow[], projects: RelatedRow[], tags: RelatedRow[] }
   comments: CommentRow[]
+  activities?: ActivityRow[]
 }>()
 
 const emit = defineEmits<{
@@ -72,6 +88,22 @@ const tagsHeading = computed(() => (props.kind === 'tag' ? 'Related tags' : 'Tag
 
 function formatDate(value: string | null | undefined, fallback = '') {
   return formatBrowserDate(value, fallback)
+}
+
+function relativeTime(value: string | null | undefined): string {
+  if (!value) return ''
+  const then = new Date(value).getTime()
+  const diff = Date.now() - then
+  if (Number.isNaN(then)) return ''
+  const sec = Math.floor(diff / 1000)
+  if (sec < 60) return 'just now'
+  const min = Math.floor(sec / 60)
+  if (min < 60) return `${min}m ago`
+  const hr = Math.floor(min / 60)
+  if (hr < 24) return `${hr}h ago`
+  const day = Math.floor(hr / 24)
+  if (day < 7) return `${day}d ago`
+  return formatBrowserDate(value, '')
 }
 
 // ---------- Name editing ----------
@@ -135,7 +167,29 @@ async function commitEditDescription() {
   cancelEditDescription()
 }
 
-// ---------- Comments ----------
+// ---------- Summary ----------
+const summary = computed(() => props.entity.summary || null)
+const summaryState = computed(() => props.entity.summary_state || 'absent')
+const summaryUpdatedAt = computed(() => props.entity.summary_updated_at || null)
+const summaryWorking = ref(false)
+
+async function refreshSummary() {
+  if (summaryWorking.value) return
+  summaryWorking.value = true
+  try {
+    await $fetch(`/api/entities/${props.entity.id}/summarize`, { method: 'POST' })
+    emit('update:entity')
+  } catch (error) {
+    console.error('Failed to refresh summary', error)
+  } finally {
+    summaryWorking.value = false
+  }
+}
+
+// ---------- Comments / Activity tabs ----------
+const activityTab = ref<'comments' | 'activity'>('comments')
+const activities = computed<ActivityRow[]>(() => props.activities || [])
+
 const draftCommentBody = ref('')
 const postingComment = ref(false)
 
@@ -150,6 +204,7 @@ async function postComment() {
       body: { entityId: props.entity.id, body }
     })
     emit('update:comments', [...props.comments, result.comment])
+    emit('update:entity')
     draftCommentBody.value = ''
   } catch (error) {
     console.error('Failed to post comment', error)
@@ -203,6 +258,26 @@ async function deleteEntity() {
     deleting.value = false
   }
 }
+
+// ---------- Activity helpers ----------
+const ACTIVITY_LABEL: Record<string, (a: ActivityRow) => string> = {
+  created: () => 'was created',
+  mentioned_in_document: (a) => `mentioned in ${a.source_document_title || 'a document'}`,
+  assigned_to_action: (a) => `assigned to "${a.payload?.action_title || 'an action'}"`,
+  unassigned_from_action: (a) => `unassigned from "${a.payload?.action_title || 'an action'}"`,
+  linked_to_project: () => 'linked to a project',
+  unlinked_from_project: () => 'unlinked from a project',
+  renamed: (a) => `renamed from "${a.payload?.from}" to "${a.payload?.to}"`,
+  description_updated: () => 'description updated',
+  commented: () => 'received a comment',
+  merged_into: () => 'merged into another entity',
+  received_merge_from: (a) => `merged with ${(a.payload?.merged?.length || 0)} duplicate(s)`
+}
+
+function activityLabel(a: ActivityRow): string {
+  const fn = ACTIVITY_LABEL[a.kind]
+  return fn ? fn(a) : a.kind
+}
 </script>
 
 <template>
@@ -242,6 +317,18 @@ async function deleteEntity() {
                 <MenuItem v-slot="{ active }">
                   <button
                     type="button"
+                    class="entity-menu-item"
+                    :class="{ 'is-active': active }"
+                    :disabled="summaryWorking"
+                    @click="refreshSummary"
+                  >
+                    <SparklesIcon class="size-4" aria-hidden="true" />
+                    <span>{{ summaryWorking ? 'Summarising…' : 'Refresh summary' }}</span>
+                  </button>
+                </MenuItem>
+                <MenuItem v-slot="{ active }">
+                  <button
+                    type="button"
                     class="entity-menu-item entity-menu-item--danger"
                     :class="{ 'is-active': active }"
                     :disabled="deleting"
@@ -270,6 +357,31 @@ async function deleteEntity() {
             </span>
           </div>
         </header>
+
+        <section v-if="summary || summaryState !== 'absent'" class="doc-section entity-summary-section">
+          <div class="doc-section-head">
+            <div class="doc-section-title">
+              <SparklesIcon class="size-5 text-amber-500" aria-hidden="true" />
+              <h2>Summary</h2>
+              <span v-if="summaryState === 'stale'" class="entity-summary-badge entity-summary-badge--stale">stale</span>
+              <span v-if="summaryState === 'generating'" class="entity-summary-badge entity-summary-badge--working">refreshing…</span>
+              <span v-if="summaryState === 'failed'" class="entity-summary-badge entity-summary-badge--failed">failed</span>
+            </div>
+            <button
+              v-if="summaryState !== 'generating'"
+              type="button"
+              class="entity-summary-refresh"
+              :disabled="summaryWorking"
+              @click="refreshSummary"
+            >
+              <ArrowPathIcon class="size-3.5" :class="{ 'animate-spin': summaryWorking }" aria-hidden="true" />
+              <span>{{ summary ? 'Refresh' : 'Generate' }}</span>
+            </button>
+          </div>
+          <p v-if="summary" class="entity-summary-text">{{ summary }}</p>
+          <p v-else class="muted entity-summary-empty">No summary yet — click Generate to build one from the captured context.</p>
+          <p v-if="summaryUpdatedAt" class="entity-summary-meta">Updated {{ relativeTime(summaryUpdatedAt) }}</p>
+        </section>
 
         <section class="doc-section">
           <div class="doc-section-head">
@@ -303,48 +415,86 @@ async function deleteEntity() {
         <slot name="sections" />
 
         <section class="doc-section">
-          <div class="doc-section-head">
-            <div class="doc-section-title">
-              <ChatBubbleLeftIcon class="size-5 text-slate-500" aria-hidden="true" />
-              <h2>Comments</h2>
+          <div class="entity-tabs">
+            <button
+              type="button"
+              class="entity-tab"
+              :class="{ 'is-active': activityTab === 'comments' }"
+              @click="activityTab = 'comments'"
+            >
+              <ChatBubbleLeftIcon class="size-4" aria-hidden="true" />
+              <span>Comments</span>
               <span v-if="comments.length" class="count">{{ comments.length }}</span>
-            </div>
+            </button>
+            <button
+              type="button"
+              class="entity-tab"
+              :class="{ 'is-active': activityTab === 'activity' }"
+              @click="activityTab = 'activity'"
+            >
+              <ClockIcon class="size-4" aria-hidden="true" />
+              <span>Activity</span>
+              <span v-if="activities.length" class="count">{{ activities.length }}</span>
+            </button>
           </div>
-          <ul v-if="comments.length" class="doc-comment-list">
-            <li v-for="comment in comments" :key="comment.id" class="doc-comment">
-              <div class="doc-comment-body">{{ comment.body }}</div>
-              <div class="doc-comment-meta">
-                <span>{{ formatDate(comment.created_at) }}</span>
+
+          <div v-if="activityTab === 'comments'">
+            <ul v-if="comments.length" class="doc-comment-list">
+              <li v-for="comment in comments" :key="comment.id" class="doc-comment">
+                <div class="doc-comment-body">{{ comment.body }}</div>
+                <div class="doc-comment-meta">
+                  <span>{{ formatDate(comment.created_at) }}</span>
+                  <button
+                    type="button"
+                    class="doc-comment-delete"
+                    title="Delete comment"
+                    @click="deleteComment(comment)"
+                  >
+                    <TrashIcon class="size-3.5" aria-hidden="true" />
+                  </button>
+                </div>
+              </li>
+            </ul>
+            <div class="doc-comment-compose">
+              <textarea
+                v-model="draftCommentBody"
+                class="doc-comment-textarea"
+                rows="2"
+                :placeholder="commentPlaceholder"
+                @keydown="handleCommentKey"
+              />
+              <div class="doc-comment-compose-actions">
+                <span class="doc-comment-hint">Cmd/Ctrl+Enter to post</span>
                 <button
                   type="button"
-                  class="doc-comment-delete"
-                  title="Delete comment"
-                  @click="deleteComment(comment)"
+                  class="doc-comment-post"
+                  :disabled="!draftCommentBody.trim() || postingComment"
+                  @click="postComment"
                 >
-                  <TrashIcon class="size-3.5" aria-hidden="true" />
+                  {{ postingComment ? 'Posting…' : 'Post' }}
                 </button>
               </div>
-            </li>
-          </ul>
-          <div class="doc-comment-compose">
-            <textarea
-              v-model="draftCommentBody"
-              class="doc-comment-textarea"
-              rows="2"
-              :placeholder="commentPlaceholder"
-              @keydown="handleCommentKey"
-            />
-            <div class="doc-comment-compose-actions">
-              <span class="doc-comment-hint">Cmd/Ctrl+Enter to post</span>
-              <button
-                type="button"
-                class="doc-comment-post"
-                :disabled="!draftCommentBody.trim() || postingComment"
-                @click="postComment"
-              >
-                {{ postingComment ? 'Posting…' : 'Post' }}
-              </button>
             </div>
+          </div>
+
+          <div v-else class="entity-activity-feed">
+            <ol v-if="activities.length" class="entity-activity-list">
+              <li v-for="activity in activities" :key="activity.id" class="entity-activity-row">
+                <span class="entity-activity-dot" aria-hidden="true"></span>
+                <div class="entity-activity-body">
+                  <p class="entity-activity-text">{{ activityLabel(activity) }}</p>
+                  <p class="entity-activity-meta">
+                    <span>{{ relativeTime(activity.occurred_at) }}</span>
+                    <NuxtLink
+                      v-if="activity.source_document_id"
+                      :to="`/documents/${activity.source_document_id}`"
+                      class="entity-activity-source"
+                    >· {{ activity.source_document_title }}</NuxtLink>
+                  </p>
+                </div>
+              </li>
+            </ol>
+            <p v-else class="muted">No activity recorded yet.</p>
           </div>
         </section>
       </section>
