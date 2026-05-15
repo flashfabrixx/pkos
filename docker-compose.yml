@@ -3,15 +3,17 @@ services:
     image: pgvector/pgvector:pg16
     container_name: bkos-postgres
     environment:
-      POSTGRES_DB: bkos
-      POSTGRES_USER: bkos
-      POSTGRES_PASSWORD: bkos
+      POSTGRES_DB: ${POSTGRES_DB:-bkos}
+      POSTGRES_USER: ${POSTGRES_USER:-bkos}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
     ports:
-      - "5433:5432"
+      # Loopback only. To expose Postgres on a LAN/VM interface, change to
+      # "0.0.0.0:5433:5432" AFTER putting it behind a firewall.
+      - "127.0.0.1:5433:5432"
     volumes:
       - bkos_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bkos -d bkos"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-bkos} -d $${POSTGRES_DB:-bkos}"]
       interval: 10s
       timeout: 5s
       retries: 5

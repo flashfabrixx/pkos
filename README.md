@@ -18,8 +18,19 @@ The first version should stay narrow:
 
 ```bash
 cp .env.example .env
-docker compose up -d
+
+# Generate a session secret and put it in .env
+echo "SESSION_SECRET=$(openssl rand -base64 48)" >> .env
+
+# Pick a Postgres password
+echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)" >> .env
+
+# Generate a hashed login password
 pnpm install
+pnpm setup:password
+# paste the printed BKOS_PASSWORD_HASH=... line into .env
+
+docker compose up -d
 pnpm db:migrate
 pnpm dev
 ```
@@ -34,12 +45,10 @@ pnpm dev:portless
 
 Then open `http://bkos.localhost:1355`.
 
-Default development credentials come from `.env.example`:
+The default `BKOS_USERNAME` in `.env.example` is `marcel` — change it for your own setup.
 
-- username: `marcel`
-- password: `change-me`
-
-Change them in `.env` before deploying anywhere.
+For two-factor authentication, password recovery, and the full security
+posture, see [`docs/security.md`](docs/security.md).
 
 ## Repository Structure
 

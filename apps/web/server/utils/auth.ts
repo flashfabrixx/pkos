@@ -1,14 +1,41 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { createError, getCookie, setCookie, type H3Event } from 'h3'
+import { query } from './db'
 
 const cookieName = 'bkos_session'
 const maxAgeSeconds = 60 * 60 * 24 * 14
 
+interface SessionPayload {
+  u: string
+  iat: number
+  exp: number
+}
+
+// Module-scoped revocation checkpoint. Tokens with iat < minIatSeconds are
+// rejected. Populated on Nitro startup (server/plugins/security-boot-check.ts)
+// and updated on logout. Cheap, sync-readable, no per-request DB hit.
+let minIatSeconds = 0
+
+export function getMinIatSeconds() {
+  return minIatSeconds
+}
+
+export function setMinIatSecondsFromDb(seconds: number) {
+  minIatSeconds = seconds
+}
+
+export async function revokeAllSessions(): Promise<void> {
+  await query(`UPDATE auth_config SET session_min_iat = now(), updated_at = now() WHERE id = 1`)
+  minIatSeconds = Math.floor(Date.now() / 1000)
+}
+
 export function createSession(username: string, secret: string) {
+  const now = Math.floor(Date.now() / 1000)
   const payload = Buffer.from(JSON.stringify({
     u: username,
-    exp: Math.floor(Date.now() / 1000) + maxAgeSeconds
-  })).toString('base64url')
+    iat: now,
+    exp: now + maxAgeSeconds
+  } satisfies SessionPayload)).toString('base64url')
   const signature = sign(payload, secret)
   return `${payload}.${signature}`
 }
@@ -44,9 +71,10 @@ export function getSessionUser(event: H3Event) {
   }
 
   try {
-    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as { u: string, exp: number }
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as Partial<SessionPayload>
     if (!data.exp || data.exp < Math.floor(Date.now() / 1000)) return null
-    return data.u
+    if ((data.iat || 0) < minIatSeconds) return null
+    return data.u || null
   } catch {
     return null
   }
