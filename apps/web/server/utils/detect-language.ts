@@ -64,3 +64,30 @@ export function pgConfigFor(languageCode: string | null | undefined): string {
   if (!languageCode) return 'simple'
   return ISO1_TO_PG_CONFIG[languageCode] || 'simple'
 }
+
+export interface LanguageOption {
+  code: string
+  label: string
+}
+
+export const LANGUAGE_OPTIONS: LanguageOption[] = [
+  { code: 'en', label: 'English' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'fr', label: 'Français' },
+  { code: 'es', label: 'Español' },
+  { code: 'it', label: 'Italiano' },
+  { code: 'nl', label: 'Nederlands' },
+  { code: 'pt', label: 'Português' },
+  { code: 'ru', label: 'Русский' },
+  { code: 'sv', label: 'Svenska' },
+  { code: 'da', label: 'Dansk' },
+  { code: 'fi', label: 'Suomi' },
+  { code: 'no', label: 'Norsk' },
+  { code: 'hu', label: 'Magyar' },
+  { code: 'ro', label: 'Română' },
+  { code: 'tr', label: 'Türkçe' }
+]
+
+export function isSupportedLanguageCode(code: string): boolean {
+  return LANGUAGE_OPTIONS.some((option) => option.code === code)
+}
