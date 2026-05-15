@@ -1,0 +1,59 @@
+{
+  "conversations": [
+    {
+      "id": "0d32b6fd-8e64-4306-b025-ac189b440a22",
+      "title": "[Image #3]",
+      "description": "Let me look at the styling and capture the visual state of the page.",
+      "category": "task",
+      "status": "needs-input",
+      "lastMessage": "Ich nehme den Recovery-Punkt erstmal in die Task-Liste auf und stelle dann eine Frage bevor ich weiter editiere.",
+      "agents": [
+        {
+          "id": "claude-main",
+          "name": "Claude",
+          "avatar": "",
+          "isActive": true
+        }
+      ],
+      "gitBranch": "main",
+      "hasError": false,
+      "isInterrupted": false,
+      "hasQuestion": true,
+      "isRateLimited": false,
+      "referencedImage": "/Users/flashfabrixx/Desktop/Screenshot 2026-05-15 at 11.04.45.png",
+      "createdAt": "2026-05-15T08:21:34.942Z",
+      "updatedAt": "2026-05-15T15:40:20.157Z",
+      "filePath": "/Users/flashfabrixx/.claude/projects/-Users-flashfabrixx-Repositories-projects-bkos/0d32b6fd-8e64-4306-b025-ac189b440a22.jsonl",
+      "workspacePath": "/Users/flashfabrixx/Repositories/projects/bkos",
+      "previousStatus": "in-review"
+    },
+    {
+      "id": "6dfe23c8-315c-4786-ac1a-49686ad5e9f6",
+      "title": "[Image #3]",
+      "description": "Let me look at the styling and capture the visual state of the page.",
+      "category": "task",
+      "status": "in-review",
+      "lastMessage": "Sag, womit ich anfangen soll. Wenn du grünes Licht für „1-4 in einem Sprint\" gibst, kann ich das in einer Sitzung ums...",
+      "agents": [
+        {
+          "id": "claude-main",
+          "name": "Claude",
+          "avatar": "",
+          "isActive": false
+        }
+      ],
+      "gitBranch": "main",
+      "hasError": false,
+      "isInterrupted": false,
+      "hasQuestion": false,
+      "isRateLimited": false,
+      "referencedImage": "/Users/flashfabrixx/Desktop/Screenshot 2026-05-15 at 11.04.45.png",
+      "createdAt": "2026-05-15T08:21:34.942Z",
+      "updatedAt": "2026-05-15T13:59:47.076Z",
+      "filePath": "/Users/flashfabrixx/.claude/projects/-Users-flashfabrixx-Repositories-projects-bkos/6dfe23c8-315c-4786-ac1a-49686ad5e9f6.jsonl",
+      "workspacePath": "/Users/flashfabrixx/Repositories/projects/bkos",
+      "previousStatus": "in-review"
+    }
+  ],
+  "lastUpdated": "2026-05-15T15:40:20.708Z"
+}

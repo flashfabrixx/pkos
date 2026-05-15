@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: bkos-postgres
+    environment:
+      POSTGRES_DB: bkos
+      POSTGRES_USER: bkos
+      POSTGRES_PASSWORD: bkos
+    ports:
+      - "5433:5432"
+    volumes:
+      - bkos_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bkos -d bkos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  bkos_postgres_data:

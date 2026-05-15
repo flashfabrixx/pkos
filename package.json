@@ -1,0 +1,22 @@
+{
+  "name": "bkos",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.9.0",
+  "scripts": {
+    "dev": "pnpm --filter @bkos/web dev",
+    "dev:portless": "portless alias bkos 3000 --force",
+    "build": "pnpm --filter @bkos/web build",
+    "typecheck": "pnpm --filter @bkos/web typecheck",
+    "db:migrate": "node scripts/migrate.mjs",
+    "db:reset": "node scripts/reset-db.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.0",
+    "portless": "^0.13.0",
+    "tailwindcss": "^4.3.0"
+  }
+}
