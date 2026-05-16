@@ -5,6 +5,23 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
 
+### B4 — File uploads + extraction
+- Migration `0015_attachments.sql` adds `document_attachments` with sha256,
+  size, mime and storage path; cascades on document delete.
+- `apps/web/server/utils/storage.ts`: pluggable `FileStore` interface with a
+  local-disk implementation under `BKOS_FILES_PATH` (sharded by first two
+  hex chars of the file id).
+- `apps/web/server/utils/file-extract.ts`: best-effort text extraction —
+  text/* verbatim, PDF via `pdfjs-dist`, DOCX via `mammoth`. Falls back to
+  null rather than throwing so an upload still creates a capture.
+- `POST /api/v1/captures/upload`: multipart endpoint with max size guard
+  (default 25 MB) and mime allow-list (PDF, JSON, XML, DOCX, Markdown,
+  text, CSV, common images).
+- Capture page now routes single-file PDF drops through the upload
+  endpoint and navigates to the new capture; text formats keep the
+  existing client-side flow.
+- New env: `BKOS_FILES_PATH=./files`, `BKOS_MAX_UPLOAD_MB=25`.
+
 ### B3 — REST API v1 + API keys
 - Migration `0014_api_keys.sql` adds the `api_keys` table (`prefix`,
   scrypt-hashed secret, scopes, actor, last-used, revoked-at).

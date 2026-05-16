@@ -49,7 +49,7 @@ Sprints bauen auf dem Logger, Health-Endpoint und den API-Keys auf.
 Senkt die Hürde, etwas in BKOS reinzubekommen. Ab hier wird das Tool
 wirklich „Knowledge Capture" statt nur „Knowledge Viewer".
 
-### B4 — Datei-Uploads  `todo`
+### B4 — Datei-Uploads  `done`
 - `POST /api/v1/captures/upload` (multipart, max-size-config).
 - Storage-Abstraktion `apps/web/server/utils/storage.ts` (lokal +
   S3-Interface-stub für später).
