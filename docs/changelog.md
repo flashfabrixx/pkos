@@ -3,6 +3,42 @@
 All notable changes to BKOS that affect operators or users. Each entry is
 keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
+## Unreleased
+
+### Departments
+- New `department` entity type with optional hierarchy (`parent_id`)
+  and a `department_memberships` table for both person and project
+  memberships (`kind = 'person' | 'project'`, optional `role`,
+  `started_on`, `ended_on`). Migration `0021_departments.sql`.
+- REST endpoints: `GET /api/departments`, `GET /api/departments/:id`,
+  `POST /api/departments/:id/members`,
+  `DELETE /api/departments/:id/members/:memberId`. `POST /api/entities`
+  now accepts `type: 'department'` and optional `parent_id`.
+- Sidebar nav adds **Departments** between People and Projects.
+  `/departments` index lists each dept with member + project counts;
+  detail page shows parent, sub-departments, members and projects with
+  inline add/remove.
+- Entity merge + soft-delete + suggestions cover `department` like the
+  other movable types.
+
+### REST + Auth integration tests
+- New `apps/web/test/setup/nuxt-server.ts` spawns a real Nuxt dev
+  server against the testcontainer DB.
+- `apps/web/test/http/auth-rest-flow.test.ts` exercises wrong-creds →
+  401, login → /me, API-key issuance + Bearer use on /api/v1/captures
+  round-trip, and revoked-key → 401.
+
+### Interactive CLI setup
+- `pnpm setup` walks operator through choosing a username/password,
+  generates SESSION_SECRET + POSTGRES_PASSWORD, writes/merges `.env`,
+  brings Postgres up, applies migrations, and marks setup_state as
+  complete so the in-app wizard is skipped.
+
+### UI polish + theme
+- Theme + locale toggle controls moved from the sidebar footer into
+  dedicated Appearance + Language sections on the Settings page.
+- Sidebar entry renamed from "Capture" to "New capture" (de: "Neue Aufnahme").
+
 ## 0.1.0 — 2026-05-16
 
 First public self-hostable release. Single-user workspace covering

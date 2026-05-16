@@ -14,6 +14,7 @@
     "test:cov": "vitest run --coverage",
     "db:migrate": "node scripts/migrate.mjs",
     "db:reset": "node scripts/reset-db.mjs",
+    "setup": "node scripts/setup-cli.mjs",
     "setup:password": "node scripts/hash-password.mjs",
     "setup:reset-2fa": "node scripts/reset-2fa.mjs",
     "db:embed": "node scripts/backfill-embeddings.mjs",

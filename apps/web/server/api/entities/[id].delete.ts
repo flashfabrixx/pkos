@@ -3,7 +3,7 @@ import { requireAuth } from '../../utils/auth'
 import { recordAudit } from '../../utils/audit'
 import { query } from '../../utils/db'
 
-const DELETABLE_TYPES = new Set(['person', 'project', 'tag'])
+const DELETABLE_TYPES = new Set(['person', 'project', 'tag', 'department'])
 
 export default defineEventHandler(async (event) => {
   const actor = requireAuth(event)

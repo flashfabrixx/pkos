@@ -28,19 +28,17 @@ entity graph, action reminders and outbound webhooks.
 ```bash
 git clone https://github.com/your-org/bkos.git
 cd bkos
-cp .env.example .env
-echo "SESSION_SECRET=$(openssl rand -base64 48)" >> .env
-echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)" >> .env
-
 pnpm install
-pnpm setup:password   # paste output into BKOS_PASSWORD_HASH in .env
-docker compose up -d postgres
-pnpm db:migrate
+pnpm setup            # interactive: creates .env, password, secret;
+                      # starts Postgres; applies migrations.
 pnpm dev
 ```
 
-Visit <http://localhost:3000>, finish the `/setup` wizard, and you're
-ready to capture.
+Visit <http://localhost:3000> and log in with the credentials the
+setup tool printed.
+
+Want to do it by hand? `pnpm setup:password`, write `.env`,
+`docker compose up -d postgres`, `pnpm db:migrate`, `pnpm dev`.
 
 ## Production deployment
 
