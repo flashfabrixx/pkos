@@ -113,19 +113,19 @@ Aus dem rohen Tool wird ein benutzbares Produkt für Self-Hoster.
 - Optional: pro-Action „Remind me at…" Feld.
 - Settings-Page für Reminder-Präferenzen.
 
-### B11 — Internationalisierung DE/EN  `todo`
+### B11 — Internationalisierung DE/EN  `done`
 - `@nuxtjs/i18n` mit `en` und `de` Locale.
 - Alle UI-Strings nach `i18n/<locale>.json` extrahieren.
 - Locale-Switcher in der Sidebar; Default aus `navigator.language`.
 - Datumsformate konsistent ans Locale binden (`formatBrowserDate`-Util erweitern).
 
-### B12 — Responsive Pass  `todo`
+### B12 — Responsive Pass  `done`
 - Sidebar wird auf `<lg` zum Off-Canvas-Drawer.
 - Asana-Action-Table → vertikale Kartenliste auf `<640px`.
 - Capture-Detail: Sidebar als Bottom-Sheet auf Mobile.
 - Touch-Targets ≥ 40px, Tabellen horizontal scrollbar mit Fade.
 
-### B13 — Dark Mode  `todo`
+### B13 — Dark Mode  `done`
 - CSS-Tokens (`--bg`, `--fg`, `--surface`, …) in `app.css` einführen,
   alle hard-coded Grautöne ersetzen.
 - `prefers-color-scheme`-Default + manueller Toggle, Persistenz in
