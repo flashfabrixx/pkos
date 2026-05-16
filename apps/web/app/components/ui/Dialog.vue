@@ -45,7 +45,7 @@ function close() {
         leave-to="opacity-0"
         as="template"
       >
-        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" aria-hidden="true" />
+        <div class="fixed inset-0 bg-overlay backdrop-blur-sm" aria-hidden="true" />
       </TransitionChild>
 
       <div class="fixed inset-0 overflow-y-auto">

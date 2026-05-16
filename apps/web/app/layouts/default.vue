@@ -35,7 +35,7 @@ watch(() => route.fullPath, () => { mobileNavOpen.value = false })
 
     <div
       v-if="mobileNavOpen"
-      class="fixed inset-0 z-20 bg-slate-900/45 md:hidden"
+      class="fixed inset-0 z-20 bg-overlay md:hidden"
       aria-hidden="true"
       @click="mobileNavOpen = false"
     ></div>

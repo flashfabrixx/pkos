@@ -58,6 +58,9 @@
   --graph-person: #0f766e;
   --graph-project: #7c3aed;
 
+  /* Overlay (dialog/drawer backdrop) */
+  --overlay: rgba(15, 23, 42, 0.40);
+
   /* Shadows */
   --shadow-1: 0 1px 2px rgba(15, 23, 42, 0.04);
   --shadow-2: 0 14px 45px rgba(15, 23, 42, 0.07);
@@ -101,6 +104,8 @@
   --graph-person: #2dd4bf;
   --graph-project: #a78bfa;
 
+  --overlay: rgba(0, 0, 0, 0.55);
+
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-2: 0 14px 45px rgba(0, 0, 0, 0.45);
 }
@@ -138,6 +143,7 @@
     --confidential-strong: #bfdbfe;
     --graph-person: #2dd4bf;
     --graph-project: #a78bfa;
+    --overlay: rgba(0, 0, 0, 0.55);
     --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-2: 0 14px 45px rgba(0, 0, 0, 0.45);
   }
@@ -187,6 +193,8 @@
   --color-confidential-strong: var(--confidential-strong);
   --color-graph-person: var(--graph-person);
   --color-graph-project: var(--graph-project);
+
+  --color-overlay: var(--overlay);
 
   --radius-card: 8px;
 

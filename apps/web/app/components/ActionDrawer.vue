@@ -262,7 +262,7 @@ async function deleteAction() {
         leave-from="opacity-100"
         leave-to="opacity-0"
       >
-        <div class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm" />
+        <div class="fixed inset-0 bg-overlay backdrop-blur-sm" />
       </TransitionChild>
 
       <div class="fixed inset-y-0 right-0 flex max-w-full">

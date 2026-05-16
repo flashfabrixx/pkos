@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { cn } from '~/utils/cn'
+import Spinner from './Spinner.vue'
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
 type Size = 'sm' | 'md'
@@ -47,7 +48,7 @@ const classes = computed(() => cn(base, variantClasses[props.variant], sizeClass
     :disabled="disabled || loading"
     :aria-busy="loading || undefined"
   >
-    <UiSpinner v-if="loading" :size="size === 'sm' ? 'sm' : 'md'" />
+    <Spinner v-if="loading" :size="size === 'sm' ? 'sm' : 'md'" />
     <slot />
   </button>
 </template>

@@ -231,7 +231,7 @@ onBeforeUnmount(() => {
         leave-from="opacity-100"
         leave-to="opacity-0"
       >
-        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" />
+        <div class="fixed inset-0 bg-overlay backdrop-blur-sm transition-opacity" />
       </TransitionChild>
 
       <div class="fixed inset-0 z-50 w-screen overflow-y-auto p-4 sm:p-6 md:p-20">
