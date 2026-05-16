@@ -69,48 +69,64 @@ function backToPassword() {
 </script>
 
 <template>
-  <main class="login-shell">
-    <form v-if="step === 'password'" class="login-panel" @submit.prevent="submitPassword">
-      <div>
-        <p class="eyebrow">BKOS</p>
-        <h1>{{ t('login.title') }}</h1>
+  <main class="grid min-h-screen place-items-center bg-app p-6">
+    <form
+      v-if="step === 'password'"
+      class="grid w-full max-w-[360px] gap-4 rounded-card border border-panel-border bg-surface-1 p-6 shadow-card"
+      @submit.prevent="submitPassword"
+    >
+      <div class="space-y-1">
+        <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">BKOS</p>
+        <h1 class="text-xl font-semibold tracking-tight text-text-strong">{{ t('login.title') }}</h1>
       </div>
-      <label>
-        {{ t('login.username') }}
-        <input v-model="username" autocomplete="username" autofocus>
-      </label>
-      <label>
-        {{ t('login.password') }}
-        <input v-model="password" type="password" autocomplete="current-password">
-      </label>
-      <p v-if="error" class="error">{{ error }}</p>
-      <button type="submit" :disabled="pending">
+      <UiField :label="t('login.username')">
+        <template #default="{ id }">
+          <UiInput :id="id" v-model="username" autocomplete="username" autofocus />
+        </template>
+      </UiField>
+      <UiField :label="t('login.password')">
+        <template #default="{ id }">
+          <UiInput :id="id" v-model="password" type="password" autocomplete="current-password" />
+        </template>
+      </UiField>
+      <p v-if="error" class="text-xs text-danger" role="alert">{{ error }}</p>
+      <UiButton type="submit" :loading="pending" block>
         {{ pending ? t('login.submitting') : t('login.submit') }}
-      </button>
+      </UiButton>
     </form>
 
-    <form v-else class="login-panel" @submit.prevent="submitTotp">
-      <div>
-        <p class="eyebrow">BKOS · Step 2</p>
-        <h1>{{ t('login.twofa_code') }}</h1>
+    <form
+      v-else
+      class="grid w-full max-w-[360px] gap-4 rounded-card border border-panel-border bg-surface-1 p-6 shadow-card"
+      @submit.prevent="submitTotp"
+    >
+      <div class="space-y-1">
+        <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">BKOS · Step 2</p>
+        <h1 class="text-xl font-semibold tracking-tight text-text-strong">{{ t('login.twofa_code') }}</h1>
       </div>
-      <label>
-        {{ t('login.twofa_code') }}
-        <input
-          v-model="code"
-          type="text"
-          inputmode="numeric"
-          autocomplete="one-time-code"
-          autofocus
-          maxlength="20"
-          placeholder="123 456"
-        >
-      </label>
-      <p v-if="error" class="error">{{ error }}</p>
-      <button type="submit" :disabled="pending || !code.trim()">
+      <UiField :label="t('login.twofa_code')">
+        <template #default="{ id }">
+          <UiInput
+            :id="id"
+            v-model="code"
+            type="text"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            autofocus
+            maxlength="20"
+            placeholder="123 456"
+          />
+        </template>
+      </UiField>
+      <p v-if="error" class="text-xs text-danger" role="alert">{{ error }}</p>
+      <UiButton type="submit" :disabled="!code.trim()" :loading="pending" block>
         {{ pending ? t('login.submitting') : t('login.twofa_submit') }}
-      </button>
-      <button type="button" class="login-link" @click="backToPassword">{{ t('common.close') }}</button>
+      </UiButton>
+      <button
+        type="button"
+        class="rounded-md p-1.5 text-center text-xs font-semibold text-muted transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        @click="backToPassword"
+      >{{ t('common.close') }}</button>
     </form>
   </main>
 </template>

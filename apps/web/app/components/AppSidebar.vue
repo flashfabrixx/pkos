@@ -50,46 +50,53 @@ function isItemActive(path: string) {
 </script>
 
 <template>
-  <aside class="app-sidebar">
-    <div class="app-sidebar-brand">
-      <NuxtLink class="app-sidebar-logo" to="/">
-        <RectangleStackIcon class="size-5 text-blue-600" aria-hidden="true" />
+  <aside
+    class="sticky top-0 z-30 grid h-screen grid-rows-[auto_auto_1fr_auto] gap-2 border-r border-panel-border bg-surface-1 px-3 py-3.5
+           max-md:fixed max-md:left-0 max-md:top-0 max-md:w-[260px] max-md:-translate-x-full max-md:shadow-popover max-md:transition-transform max-md:duration-200
+           group-data-[mobile-open=true]/shell:max-md:translate-x-0"
+  >
+    <div class="px-2 pb-2.5 pt-1">
+      <NuxtLink class="inline-flex items-center gap-2 text-sm font-extrabold tracking-wider text-text-strong" to="/">
+        <RectangleStackIcon class="size-5 text-accent" aria-hidden="true" />
         <span>BKOS</span>
       </NuxtLink>
     </div>
 
     <button
       type="button"
-      class="app-sidebar-search"
+      class="inline-flex h-8 w-full items-center gap-2 rounded-md border border-panel-border bg-surface-3 px-2.5 text-left text-[13px] font-medium text-muted transition-colors hover:border-border-strong hover:bg-soft hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       @click="openCommandPalette"
     >
       <MagnifyingGlassIcon class="size-4" aria-hidden="true" />
-      <span>{{ t('nav.search') }}</span>
-      <kbd class="app-sidebar-kbd">⌘K</kbd>
+      <span class="flex-1">{{ t('nav.search') }}</span>
+      <UiKbd>⌘K</UiKbd>
     </button>
 
-    <nav class="app-sidebar-nav">
+    <nav class="grid content-start gap-0.5 pt-1.5">
       <NuxtLink
         v-for="item in navItems"
         :key="item.to"
         :to="item.to as string"
-        class="app-sidebar-nav-item"
-        :class="{ 'is-active': isItemActive(item.to) }"
+        :class="[
+          'inline-flex h-8 items-center gap-2.5 rounded-md px-2.5 text-[13px] font-medium transition-colors',
+          isItemActive(item.to)
+            ? 'bg-accent-soft text-accent font-semibold'
+            : 'text-text-soft hover:bg-soft hover:text-text'
+        ]"
+        :aria-current="isItemActive(item.to) ? 'page' : undefined"
       >
         <component :is="item.icon" class="size-4" aria-hidden="true" />
-        <span class="app-sidebar-nav-label">{{ item.label }}</span>
+        <span class="flex-1">{{ item.label }}</span>
         <span
           v-if="'badge' in item && item.badge && item.badge()"
-          class="app-sidebar-nav-badge"
+          class="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-bold leading-none text-accent-fg"
         >{{ item.badge() }}</span>
       </NuxtLink>
     </nav>
 
-    <div class="app-sidebar-footer">
-      <div class="app-sidebar-footer-user-row">
-        <span class="app-sidebar-footer-label">Signed in</span>
-        <span class="app-sidebar-footer-user">marcel</span>
-      </div>
+    <div class="grid gap-0.5 border-t border-border-subtle px-2.5 pb-1 pt-2.5">
+      <span class="text-[11px] font-semibold uppercase tracking-wider text-muted">Signed in</span>
+      <span class="text-[13px] font-semibold text-text">marcel</span>
     </div>
   </aside>
 </template>

@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 
 definePageMeta({ layout: 'empty' })
 
-const { t } = useI18n()
+const { t: _t } = useI18n()
 // 'setup.title' is "Welcome to BKOS" for the page heading; for the tab
 // we want a shorter, non-duplicating label.
 useHead({ title: 'Setup' })
@@ -29,14 +29,9 @@ async function testEmbedding() {
 async function finish() {
   finishing.value = true
   try {
-    // Only forward the embedding flag when we actually ran a test; the
-    // server schema accepts boolean | undefined, not null.
     const body: { embedding_ok?: boolean, mail_configured: boolean } = { mail_configured: false }
     if (embeddingTest.value) body.embedding_ok = embeddingTest.value.ok
     await $fetch('/api/setup/complete', { method: 'POST', body })
-    // Setup completion does not authenticate the operator — they still
-    // need to sign in. Send them to /login rather than / so auth.global
-    // doesn't immediately bounce them.
     await navigateTo('/login')
   } finally {
     finishing.value = false
@@ -56,77 +51,86 @@ const passwordOk = computed(() => Boolean(checks.value?.password_hash))
 </script>
 
 <template>
-  <main class="setup-wizard">
-    <header class="setup-wizard-head">
-      <SparklesIcon class="size-6 text-blue-600" aria-hidden="true" />
-      <h1>Welcome to BKOS</h1>
-      <p class="muted">A few quick checks before you go.</p>
+  <main class="mx-auto grid min-h-screen w-full max-w-2xl gap-6 px-6 py-12">
+    <header class="space-y-2 text-center">
+      <SparklesIcon class="mx-auto size-6 text-accent" aria-hidden="true" />
+      <h1 class="text-2xl font-semibold tracking-tight text-text-strong">Welcome to BKOS</h1>
+      <p class="text-sm text-muted">A few quick checks before you go.</p>
     </header>
 
-    <ol class="setup-wizard-steps">
-      <li>
-        <h2>
-          <component :is="sessionOk ? CheckCircleIcon : ExclamationCircleIcon" class="size-5" :class="sessionOk ? 'text-emerald-600' : 'text-amber-600'" aria-hidden="true" />
+    <ol class="grid gap-3">
+      <li class="rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
+        <h2 class="flex items-center gap-2 text-sm font-semibold text-text-strong">
+          <component
+            :is="sessionOk ? CheckCircleIcon : ExclamationCircleIcon"
+            :class="['size-5', sessionOk ? 'text-success' : 'text-warning']"
+            aria-hidden="true"
+          />
           <span>Session secret</span>
         </h2>
-        <p v-if="sessionOk">A strong <code>SESSION_SECRET</code> is configured.</p>
-        <p v-else>
-          Generate one with <code>openssl rand -base64 48</code> and set
-          <code>SESSION_SECRET</code> in your <code>.env</code>, then restart BKOS.
-          The server refuses to boot without it, so if you're seeing this page
-          something is unexpected.
+        <p v-if="sessionOk" class="mt-2 text-sm text-text-soft">A strong <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">SESSION_SECRET</code> is configured.</p>
+        <p v-else class="mt-2 text-sm text-text-soft">
+          Generate one with <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">openssl rand -base64 48</code> and set
+          <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">SESSION_SECRET</code> in your <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">.env</code>, then restart BKOS.
         </p>
       </li>
 
-      <li>
-        <h2>
-          <component :is="passwordOk ? CheckCircleIcon : ExclamationCircleIcon" class="size-5" :class="passwordOk ? 'text-emerald-600' : 'text-amber-600'" aria-hidden="true" />
+      <li class="rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
+        <h2 class="flex items-center gap-2 text-sm font-semibold text-text-strong">
+          <component
+            :is="passwordOk ? CheckCircleIcon : ExclamationCircleIcon"
+            :class="['size-5', passwordOk ? 'text-success' : 'text-warning']"
+            aria-hidden="true"
+          />
           <span>Admin password</span>
         </h2>
-        <p v-if="passwordOk">A hashed password is set for <code>BKOS_USERNAME</code>.</p>
-        <p v-else>
-          Run <code>pnpm bkos:hash-password</code> to generate
-          <code>BKOS_PASSWORD_HASH</code>, paste it into <code>.env</code>, restart.
+        <p v-if="passwordOk" class="mt-2 text-sm text-text-soft">A hashed password is set for <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">BKOS_USERNAME</code>.</p>
+        <p v-else class="mt-2 text-sm text-text-soft">
+          Run <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">pnpm bkos:hash-password</code> to generate
+          <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">BKOS_PASSWORD_HASH</code>, paste it into <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">.env</code>, restart.
         </p>
       </li>
 
-      <li>
-        <h2>
-          <component :is="embeddingTest?.ok ? CheckCircleIcon : ExclamationCircleIcon" class="size-5" :class="embeddingTest?.ok ? 'text-emerald-600' : 'text-slate-400'" aria-hidden="true" />
+      <li class="rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
+        <h2 class="flex items-center gap-2 text-sm font-semibold text-text-strong">
+          <component
+            :is="embeddingTest?.ok ? CheckCircleIcon : ExclamationCircleIcon"
+            :class="['size-5', embeddingTest?.ok ? 'text-success' : 'text-muted-soft']"
+            aria-hidden="true"
+          />
           <span>Embeddings (optional)</span>
         </h2>
-        <p v-if="!embeddingTest">
+        <p v-if="!embeddingTest" class="mt-2 text-sm text-text-soft">
           Without an embedding provider, search falls back to lexical-only and
-          entity-link suggestions are disabled. Click below to test the
-          configured provider.
+          entity-link suggestions are disabled. Click below to test the configured provider.
         </p>
-        <p v-else-if="embeddingTest.ok">
-          <code>{{ embeddingTest.provider }}</code> returned a {{ embeddingTest.dim }}-dim vector
-          ({{ embeddingTest.model || 'default model' }}).
+        <p v-else-if="embeddingTest.ok" class="mt-2 text-sm text-text-soft">
+          <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">{{ embeddingTest.provider }}</code>
+          returned a {{ embeddingTest.dim }}-dim vector ({{ embeddingTest.model || 'default model' }}).
         </p>
-        <p v-else class="error">
-          Provider <code>{{ embeddingTest.provider }}</code> didn't return a vector.
-          Re-check <code>BKOS_EMBEDDING_PROVIDER</code> and
-          <code>BKOS_EMBEDDING_MODEL</code>, then re-run the test.
+        <p v-else class="mt-2 text-sm text-danger">
+          Provider <code class="rounded bg-danger-soft px-1 py-0.5 font-mono text-xs">{{ embeddingTest.provider }}</code> didn't return a vector.
+          Re-check <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">BKOS_EMBEDDING_PROVIDER</code> and
+          <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">BKOS_EMBEDDING_MODEL</code>, then re-run the test.
         </p>
-        <button type="button" class="settings-secondary" @click="testEmbedding">Run test</button>
+        <UiButton variant="secondary" size="sm" class="mt-3" @click="testEmbedding">Run test</UiButton>
       </li>
 
-      <li>
-        <h2>
-          <SparklesIcon class="size-5 text-slate-400" aria-hidden="true" />
+      <li class="rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
+        <h2 class="flex items-center gap-2 text-sm font-semibold text-text-strong">
+          <SparklesIcon class="size-5 text-muted-soft" aria-hidden="true" />
           <span>Optional follow-ups</span>
         </h2>
-        <ul class="setup-followups">
-          <li>Enable 2FA from <NuxtLink to="/settings">Settings → Security</NuxtLink>.</li>
+        <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-text-soft">
+          <li>Enable 2FA from <NuxtLink class="text-accent hover:underline" to="/settings">Settings → Security</NuxtLink>.</li>
           <li>Generate an API key in Settings → API keys to use the bookmarklet.</li>
-          <li>Point IMAP at BKOS via the <code>MAIL_*</code> env vars (see docs/email-setup.md).</li>
+          <li>Point IMAP at BKOS via the <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">MAIL_*</code> env vars (see docs/email-setup.md).</li>
         </ul>
       </li>
     </ol>
 
-    <button class="settings-primary setup-wizard-finish" :disabled="finishing" @click="finish">
+    <UiButton :loading="finishing" block @click="finish">
       {{ finishing ? 'Finishing…' : 'Finish setup' }}
-    </button>
+    </UiButton>
   </main>
 </template>
