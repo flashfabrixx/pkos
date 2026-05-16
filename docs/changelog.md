@@ -3,7 +3,29 @@
 All notable changes to BKOS that affect operators or users. Each entry is
 keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
-## Unreleased
+## 0.1.0 — 2026-05-16
+
+First public self-hostable release. Single-user workspace covering
+capture (UI + REST + email + bookmarklet + file upload), processing
+(extraction + 1024-dim multilingual embeddings + activity log),
+Asana-style action board, hybrid semantic + lexical search, entity-link
+suggestions, audit log, outbound webhooks, soft-delete + reprocess
+flow, portable backup/restore, and a production deployment guide
+including zero-trust setups (Tailscale + Cloudflare Access).
+
+### Release validation
+- `pnpm typecheck` clean.
+- `pnpm test` green (43 specs / 16 suites; pgvector testcontainers for
+  migration + SQL-contract coverage).
+- `docker compose -f docker-compose.prod.yml build` produces a Nuxt
+  output image; the running container serves `/api/healthz: 200` against
+  a clean Postgres.
+- Browser smoke tour: 13 protected UI routes + 13 API endpoints return
+  200 under a logged-in cookie; capture-create roundtrips through the
+  pipeline to status `processed`.
+- Onboarding wizard's *Finish setup* button now POSTs and routes to
+  `/login`.
+- Apache-2.0 LICENSE shipped.
 
 ### Final pass — README + docs index
 - Top-level README rewritten with quickstart + production-deploy
