@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { BookmarkIcon, ClipboardIcon } from '@heroicons/vue/24/outline'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+useHead({ title: () => t('settings.page_title_clipper') })
 
 const apiKey = ref('')
 const origin = ref('')

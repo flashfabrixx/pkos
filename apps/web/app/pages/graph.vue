@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import type { GraphEdge, GraphNode } from '@bkos/core'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+useHead({ title: () => t('graph.title') })
 
 const type = ref('all')
 const relation = ref('all')

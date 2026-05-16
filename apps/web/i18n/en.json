@@ -166,7 +166,10 @@
     "documents_heading": "Documents"
   },
   "settings": {
-    "title": "Security",
+    "title": "Settings",
+    "page_title_security": "Security",
+    "page_title_clipper": "Web clipper",
+    "page_title_webhooks": "Webhooks",
     "eyebrow": "Settings",
     "twofa_title": "Two-factor authentication",
     "api_keys_title": "API keys",

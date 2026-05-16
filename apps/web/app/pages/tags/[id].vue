@@ -15,6 +15,7 @@ const route = useRoute()
 const { data, refresh } = await useFetch<any>(`/api/tags/${route.params.id}`)
 
 const tag = computed(() => data.value?.tag || null)
+useHead({ title: () => (tag.value?.name ? `#${tag.value.name}` : 'Tag') })
 const stats = computed(() => data.value?.stats || {})
 const documents = computed(() => data.value?.documents || [])
 const related = computed(() => data.value?.related || { people: [], projects: [], tags: [] })

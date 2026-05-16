@@ -12,6 +12,7 @@ import {
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
+useHead({ title: () => t('trash.title') })
 
 type TrashKind = 'documents' | 'entities' | 'actions' | 'comments'
 
