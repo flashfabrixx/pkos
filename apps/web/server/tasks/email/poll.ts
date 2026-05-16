@@ -1,5 +1,5 @@
-import { pollImapInbox } from '../utils/imap'
-import { logger } from '../utils/logger'
+import { pollImapInbox } from '../../utils/imap'
+import { logger } from '../../utils/logger'
 
 /**
  * Nitro scheduled task wrapper. Configured to run every 5 minutes in

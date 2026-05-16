@@ -1,5 +1,5 @@
-import { drainWebhookQueue } from '../utils/webhook-deliver'
-import { logger } from '../utils/logger'
+import { drainWebhookQueue } from '../../utils/webhook-deliver'
+import { logger } from '../../utils/logger'
 
 export default defineTask({
   meta: {

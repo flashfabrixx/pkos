@@ -1,5 +1,5 @@
-import { sendActionDigest } from '../utils/action-reminder'
-import { logger } from '../utils/logger'
+import { sendActionDigest } from '../../utils/action-reminder'
+import { logger } from '../../utils/logger'
 
 export default defineTask({
   meta: {
