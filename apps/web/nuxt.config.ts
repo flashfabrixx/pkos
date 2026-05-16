@@ -42,7 +42,10 @@ export default defineNuxtConfig({
     scheduledTasks: {
       // Poll the IMAP inbox every 5 minutes when MAIL_HOST is set.
       // The task is a no-op when unset, so this is safe to always wire.
-      '*/5 * * * *': ['email:poll']
+      '*/5 * * * *': ['email:poll'],
+      // Recompute entity-link suggestions nightly. Cheap when there are
+      // no embeddings; dismissed pairs honour a 30-day cooldown.
+      '0 2 * * *': ['suggestions:entities']
     }
   },
   vite: {

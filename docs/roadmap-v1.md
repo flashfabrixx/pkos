@@ -86,7 +86,7 @@ Embeddings liegen bereits vor — diese Phase macht sie für den User sichtbar.
 - Trefferliste mit Snippet-Highlighting und Entity-Chips.
 - Command-Palette schickt Volltext-Abfragen an dieselbe API.
 
-### B8 — Entity-Vorschläge  `todo`
+### B8 — Entity-Vorschläge  `done`
 - Migration: `entity_link_suggestions` (`source_id`, `target_id`,
   `score`, `reason`, `dismissed_at`, `accepted_at`).
 - Background-Job (Cron, täglich): Top-N ähnliche Entities per Cosine pro

@@ -545,6 +545,12 @@ function activityLabel(a: ActivityRow): string {
             >#{{ t.name }}</NuxtLink>
           </div>
         </section>
+
+        <EntitySuggestions
+          v-if="entity?.id"
+          :entity-id="entity.id"
+          :entity-type="kind"
+        />
       </aside>
     </main>
   </div>

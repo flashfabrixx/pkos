@@ -5,6 +5,18 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
 
+### B8 — Entity-link suggestions
+- Migration `0017_entity_link_suggestions.sql` adds a per-source
+  candidate table with score, reason, accepted_at, dismissed_at.
+- `utils/suggest-links.ts` recomputes top-5 cosine neighbours per
+  entity above a 0.78 floor; dismissed pairs honour a 30-day cooldown.
+- Nitro scheduled task `suggestions:entities` runs daily at 02:00.
+- `GET /api/entities/:id/suggestions`,
+  `POST /api/entities/suggestions/:id/accept`,
+  `POST /api/entities/suggestions/:id/dismiss`.
+- `EntitySuggestions.vue` mounted in the entity detail sidebar; emits a
+  `merge` event for parent pages to wire up the existing merge dialog.
+
 ### B7 — Hybrid search UI
 - `/api/search` now embeds the query (when a provider is configured)
   and ranks chunks by `0.6 · (1 − cosine) + 0.4 · ts_rank`. Falls back
