@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
 
   // Snapshot the action before changes so we can diff for activity entries.
   const beforeResult = await query<{ id: string, title: string, person_id: string | null, project_id: string | null, document_id: string }>(
-    `SELECT id, title, person_id, project_id, document_id FROM action_items WHERE id = $1`,
+    `SELECT id, title, person_id, project_id, document_id FROM action_items WHERE id = $1 AND deleted_at IS NULL`,
     [id]
   )
   const before = beforeResult.rows[0]

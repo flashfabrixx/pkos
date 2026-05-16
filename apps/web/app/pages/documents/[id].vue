@@ -69,6 +69,31 @@ async function updateLanguage(code: string | null) {
     console.error('Failed to update language', error)
   }
 }
+
+const reprocessing = ref(false)
+async function reprocessDocument() {
+  if (!document.value || reprocessing.value) return
+  reprocessing.value = true
+  try {
+    await $fetch(`/api/documents/${document.value.id}/reprocess`, { method: 'POST' })
+    await refresh()
+  } catch (error) {
+    console.error('Failed to reprocess document', error)
+  } finally {
+    reprocessing.value = false
+  }
+}
+
+async function deleteDocument() {
+  if (!document.value) return
+  if (!confirm('Move this capture to trash? You can restore it later from the trash page.')) return
+  try {
+    await $fetch(`/api/documents/${document.value.id}`, { method: 'DELETE' })
+    await navigateTo('/documents')
+  } catch (error) {
+    console.error('Failed to delete document', error)
+  }
+}
 import type { ActionStatus, OpenQuestionStatus } from '@bkos/core'
 
 interface ActionRow {
@@ -486,6 +511,27 @@ function searchLinkFor(term: string) {
               <ExclamationTriangleIcon class="size-3.5" aria-hidden="true" />
               <span>Processing failed</span>
             </span>
+            <div class="doc-header-tools">
+              <button
+                type="button"
+                class="doc-header-tool"
+                :disabled="reprocessing || isProcessing"
+                :title="reprocessing ? 'Reprocessing…' : 'Reprocess this capture'"
+                @click="reprocessDocument"
+              >
+                <ArrowPathIcon class="size-4" :class="{ 'status-pill-spin': reprocessing }" aria-hidden="true" />
+                <span>{{ reprocessing ? 'Reprocessing…' : 'Reprocess' }}</span>
+              </button>
+              <button
+                type="button"
+                class="doc-header-tool doc-header-tool--danger"
+                title="Move to trash"
+                @click="deleteDocument"
+              >
+                <TrashIcon class="size-4" aria-hidden="true" />
+                <span>Delete</span>
+              </button>
+            </div>
           </div>
 
           <div class="document-meta">

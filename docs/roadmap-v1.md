@@ -13,7 +13,7 @@ Status-Legende: `todo` / `wip` / `done`
 Stabilisiert den Kern, bevor neue Eingänge angeflanscht werden. Alle weiteren
 Sprints bauen auf dem Logger, Health-Endpoint und den API-Keys auf.
 
-### B1 — Soft-Delete & Reprocessing  `todo`
+### B1 — Soft-Delete & Reprocessing  `done`
 - Migration: `deleted_at` Spalte auf `documents`, `entities`, `action_items`,
   `comments`. Filter in allen Listen/Detail-Endpoints.
 - `POST /api/documents/:id/reprocess` (Status zurück auf `queued`,

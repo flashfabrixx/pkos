@@ -24,7 +24,7 @@ interface SummaryContext {
 
 export async function buildSummaryContext(entityId: string): Promise<SummaryContext | null> {
   const entity = await query<{ id: string, type: string, name: string, metadata: any }>(
-    `SELECT id, type, name, metadata FROM entities WHERE id = $1`,
+    `SELECT id, type, name, metadata FROM entities WHERE id = $1 AND deleted_at IS NULL`,
     [entityId]
   )
   const row = entity.rows[0]
@@ -35,13 +35,13 @@ export async function buildSummaryContext(entityId: string): Promise<SummaryCont
       `SELECT d.title AS document_title, em.excerpt, d.captured_at::text AS captured_at
          FROM entity_mentions em
          JOIN documents d ON d.id = em.document_id
-        WHERE em.entity_id = $1
+        WHERE em.entity_id = $1 AND d.deleted_at IS NULL
         ORDER BY d.captured_at DESC NULLS LAST, d.created_at DESC
         LIMIT 20`,
       [entityId]
     ),
     query<{ body: string, created_at: string }>(
-      `SELECT body, created_at FROM comments WHERE entity_id = $1 ORDER BY created_at DESC LIMIT 20`,
+      `SELECT body, created_at FROM comments WHERE entity_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 20`,
       [entityId]
     ),
     query<{ kind: string, payload: Record<string, unknown>, occurred_at: string }>(

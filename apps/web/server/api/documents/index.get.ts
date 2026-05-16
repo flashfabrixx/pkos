@@ -12,6 +12,7 @@ export default defineEventHandler(async (event) => {
     `SELECT id, title, source_type, summary, status, archive_path,
             captured_at::text AS captured_at, created_at, metadata
        FROM documents
+      WHERE deleted_at IS NULL
       ORDER BY created_at DESC
       LIMIT $1 OFFSET $2`,
     [limit, offset]

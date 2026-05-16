@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
   const result = await query(
     `SELECT id, entity_id, body, document_id, created_at, updated_at
      FROM comments
-     WHERE entity_id = $1
+     WHERE entity_id = $1 AND deleted_at IS NULL
      ORDER BY created_at ASC`,
     [params.data.entity_id]
   )

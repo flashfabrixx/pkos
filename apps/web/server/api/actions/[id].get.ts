@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
        ON ae.type = 'topic'
        AND ae.metadata->>'kind' = 'action_item'
        AND ae.name = a.title
-     WHERE a.id = $1`,
+     WHERE a.id = $1 AND a.deleted_at IS NULL`,
     [id]
   )
 
@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
     ? await query(
         `SELECT id, entity_id, body, document_id, created_at, updated_at
          FROM comments
-         WHERE entity_id = $1
+         WHERE entity_id = $1 AND deleted_at IS NULL
          ORDER BY created_at ASC`,
         [action.entity_id]
       )

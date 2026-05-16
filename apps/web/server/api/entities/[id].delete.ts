@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Missing id' })
 
   const existing = await query<{ id: string, type: string }>(
-    `SELECT id, type FROM entities WHERE id = $1`,
+    `SELECT id, type FROM entities WHERE id = $1 AND deleted_at IS NULL`,
     [id]
   )
   const entity = existing.rows[0]
@@ -19,6 +19,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, statusMessage: `Entity type '${entity.type}' cannot be deleted via this endpoint` })
   }
 
-  await query(`DELETE FROM entities WHERE id = $1`, [id])
+  await query(`UPDATE entities SET deleted_at = now(), updated_at = now() WHERE id = $1`, [id])
   return { deleted: true, id, type: entity.type }
 })

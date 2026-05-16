@@ -13,6 +13,7 @@ export default defineEventHandler(async (event) => {
     `SELECT id, type, name
      FROM entities
      WHERE type IN ('person', 'project', 'tag')
+       AND deleted_at IS NULL
        AND (name ILIKE $1 OR canonical_name ILIKE $1)
      ORDER BY
        CASE
@@ -61,11 +62,14 @@ export default defineEventHandler(async (event) => {
          ) AS rank
        FROM chunks c
        JOIN documents d ON d.id = c.document_id
-       WHERE c.search_vector @@ (SELECT q_simple FROM q)
-          OR c.search_vector @@ (SELECT q_en FROM q)
-          OR c.search_vector @@ (SELECT q_de FROM q)
-          OR c.content ILIKE '%' || $1 || '%'
-          OR d.title ILIKE '%' || $1 || '%'
+       WHERE d.deleted_at IS NULL
+         AND (
+           c.search_vector @@ (SELECT q_simple FROM q)
+            OR c.search_vector @@ (SELECT q_en FROM q)
+            OR c.search_vector @@ (SELECT q_de FROM q)
+            OR c.content ILIKE '%' || $1 || '%'
+            OR d.title ILIKE '%' || $1 || '%'
+         )
      )
      SELECT DISTINCT ON (document_id)
        document_id, title, source_type, summary, captured_at, created_at, content, rank
