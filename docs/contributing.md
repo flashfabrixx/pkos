@@ -46,6 +46,20 @@ apps/web/test/
 Every new endpoint, util, or scheduled task should ship with a Vitest spec
 that covers at least the happy path plus one explicit failure mode.
 
+## UI
+
+The UI is Tailwind v4, utility-first. Design tokens are declared once in
+`apps/web/app/assets/css/app.css` (the `@theme` block plus the three
+`:root` token blocks); everything else lives in component templates as
+utilities or in the small primitive library at
+`apps/web/app/components/ui/` (`UiButton`, `UiInput`, `UiField`,
+`UiSelect`, `UiCard`, `UiDialog`, `UiBadge`, etc.).
+
+The styleguide and rules of engagement (no `dark:` variants, no `@apply`
+outside the base layer, Heroicons-only, no emojis) are in
+[`CLAUDE.md`](../CLAUDE.md#ui-styleguide-tailwind-v4) — read it before
+adding new screens.
+
 ## Roadmap
 
 See [`docs/roadmap-v1.md`](./roadmap-v1.md). Each batch lands in its own
