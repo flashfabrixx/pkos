@@ -259,7 +259,6 @@ async function deleteEntity() {
   }
 }
 
-// ---------- Activity helpers ----------
 const ACTIVITY_LABEL: Record<string, (a: ActivityRow) => string> = {
   created: () => 'was created',
   mentioned_in_document: (a) => `mentioned in ${a.source_document_title || 'a document'}`,
@@ -281,277 +280,283 @@ function activityLabel(a: ActivityRow): string {
 </script>
 
 <template>
-  <div>
-    <main class="workspace document-grid">
-      <section class="panel document-main">
-        <header class="doc-header">
-          <div class="doc-header-title entity-header">
-            <slot name="avatar" />
-            <div class="entity-header-text">
-              <button
-                v-if="!editingName"
-                type="button"
-                class="doc-row-edit-trigger entity-name-trigger"
-                @click="beginEditName"
-              >
-                <h1>{{ namePrefix }}{{ entity.name }}</h1>
-              </button>
-              <input
-                v-else
-                ref="nameInputRef"
-                v-model="draftName"
-                class="doc-row-edit-input entity-name-input"
-                type="text"
-                maxlength="200"
-                @blur="commitEditName"
-                @keydown.enter.prevent="commitEditName"
-                @keydown.esc.prevent="cancelEditName"
-              >
-              <p class="entity-eyebrow">{{ eyebrow }}</p>
-            </div>
-            <Menu as="div" class="entity-menu">
-              <MenuButton class="entity-menu-trigger" :aria-label="`More actions for ${entity.name}`">
-                <EllipsisHorizontalIcon class="size-5" aria-hidden="true" />
-              </MenuButton>
-              <MenuItems class="entity-menu-items">
-                <MenuItem v-slot="{ active }">
-                  <button
-                    type="button"
-                    class="entity-menu-item"
-                    :class="{ 'is-active': active }"
-                    :disabled="summaryWorking"
-                    @click="refreshSummary"
-                  >
-                    <SparklesIcon class="size-4" aria-hidden="true" />
-                    <span>{{ summaryWorking ? 'Summarising…' : 'Refresh summary' }}</span>
-                  </button>
-                </MenuItem>
-                <MenuItem v-slot="{ active }">
-                  <button
-                    type="button"
-                    class="entity-menu-item entity-menu-item--danger"
-                    :class="{ 'is-active': active }"
-                    :disabled="deleting"
-                    @click="deleteEntity"
-                  >
-                    <TrashIcon class="size-4" aria-hidden="true" />
-                    <span>{{ deleting ? 'Deleting…' : `Delete ${kind}` }}</span>
-                  </button>
-                </MenuItem>
-              </MenuItems>
-            </Menu>
-          </div>
-
-          <div class="document-meta">
-            <span v-if="stats.document_count">
-              <DocumentTextIcon class="size-4" aria-hidden="true" />
-              <span>{{ stats.document_count }} {{ stats.document_count === 1 ? 'document' : 'documents' }}</span>
-            </span>
-            <span v-if="stats.actions_open || stats.actions_done">
-              <ClipboardDocumentCheckIcon class="size-4" aria-hidden="true" />
-              <span>{{ stats.actions_open }} open · {{ stats.actions_done }} done</span>
-            </span>
-            <span v-if="stats.last_seen">
-              <CalendarDaysIcon class="size-4" aria-hidden="true" />
-              <span>Last seen {{ formatDate(stats.last_seen) }}</span>
-            </span>
-          </div>
-        </header>
-
-        <section v-if="summary || summaryState !== 'absent'" class="doc-section entity-summary-section">
-          <div class="doc-section-head">
-            <div class="doc-section-title">
-              <SparklesIcon class="size-5 text-amber-500" aria-hidden="true" />
-              <h2>Summary</h2>
-              <span v-if="summaryState === 'stale'" class="entity-summary-badge entity-summary-badge--stale">stale</span>
-              <span v-if="summaryState === 'generating'" class="entity-summary-badge entity-summary-badge--working">refreshing…</span>
-              <span v-if="summaryState === 'failed'" class="entity-summary-badge entity-summary-badge--failed">failed</span>
-            </div>
+  <main class="mx-auto grid max-w-[1280px] gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <section class="space-y-6 rounded-card border border-border-default bg-surface-1 p-6 shadow-card">
+      <header class="space-y-3">
+        <div class="flex items-start gap-3">
+          <slot name="avatar" />
+          <div class="min-w-0 flex-1">
+            <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">{{ eyebrow }}</p>
             <button
-              v-if="summaryState !== 'generating'"
+              v-if="!editingName"
               type="button"
-              class="entity-summary-refresh"
-              :disabled="summaryWorking"
-              @click="refreshSummary"
+              class="-mx-2 mt-1 rounded-md px-2 py-1 text-left transition-colors hover:bg-surface-3"
+              @click="beginEditName"
             >
-              <ArrowPathIcon class="size-3.5" :class="{ 'animate-spin': summaryWorking }" aria-hidden="true" />
-              <span>{{ summary ? 'Refresh' : 'Generate' }}</span>
+              <h1 class="text-2xl font-semibold tracking-tight text-text-strong">{{ namePrefix }}{{ entity.name }}</h1>
             </button>
-          </div>
-          <p v-if="summary" class="entity-summary-text">{{ summary }}</p>
-          <p v-else class="muted entity-summary-empty">No summary yet — click Generate to build one from the captured context.</p>
-          <p v-if="summaryUpdatedAt" class="entity-summary-meta">Updated {{ relativeTime(summaryUpdatedAt) }}</p>
-        </section>
-
-        <section class="doc-section">
-          <div class="doc-section-head">
-            <div class="doc-section-title">
-              <h2>Description</h2>
-            </div>
-          </div>
-          <button
-            v-if="!editingDescription"
-            type="button"
-            class="doc-row-edit-trigger entity-description-trigger"
-            @click="beginEditDescription"
-          >
-            <p v-if="description" class="entity-description">{{ description }}</p>
-            <p v-else class="muted">{{ descriptionPlaceholder }}</p>
-          </button>
-          <textarea
-            v-else
-            ref="descriptionInputRef"
-            v-model="draftDescription"
-            class="doc-comment-textarea"
-            rows="3"
-            placeholder="Add a description…"
-            @blur="commitEditDescription"
-            @keydown.esc.prevent="cancelEditDescription"
-            @keydown.meta.enter.prevent="commitEditDescription"
-            @keydown.ctrl.enter.prevent="commitEditDescription"
-          />
-        </section>
-
-        <slot name="sections" />
-
-        <section class="doc-section">
-          <div class="entity-tabs">
-            <button
-              type="button"
-              class="entity-tab"
-              :class="{ 'is-active': activityTab === 'comments' }"
-              @click="activityTab = 'comments'"
+            <input
+              v-else
+              ref="nameInputRef"
+              v-model="draftName"
+              class="mt-1 w-full rounded-md border border-accent bg-surface-1 px-2 py-1 text-2xl font-semibold tracking-tight text-text-strong outline-none focus:ring-2 focus:ring-accent/20"
+              type="text"
+              maxlength="200"
+              @blur="commitEditName"
+              @keydown.enter.prevent="commitEditName"
+              @keydown.esc.prevent="cancelEditName"
             >
-              <ChatBubbleLeftIcon class="size-4" aria-hidden="true" />
-              <span>Comments</span>
-              <span v-if="comments.length" class="count">{{ comments.length }}</span>
-            </button>
-            <button
-              type="button"
-              class="entity-tab"
-              :class="{ 'is-active': activityTab === 'activity' }"
-              @click="activityTab = 'activity'"
-            >
-              <ClockIcon class="size-4" aria-hidden="true" />
-              <span>Activity</span>
-              <span v-if="activities.length" class="count">{{ activities.length }}</span>
-            </button>
           </div>
-
-          <div v-if="activityTab === 'comments'">
-            <ul v-if="comments.length" class="doc-comment-list">
-              <li v-for="comment in comments" :key="comment.id" class="doc-comment">
-                <div class="doc-comment-body">{{ comment.body }}</div>
-                <div class="doc-comment-meta">
-                  <span>{{ formatDate(comment.created_at) }}</span>
-                  <button
-                    type="button"
-                    class="doc-comment-delete"
-                    title="Delete comment"
-                    @click="deleteComment(comment)"
-                  >
-                    <TrashIcon class="size-3.5" aria-hidden="true" />
-                  </button>
-                </div>
-              </li>
-            </ul>
-            <div class="doc-comment-compose">
-              <textarea
-                v-model="draftCommentBody"
-                class="doc-comment-textarea"
-                rows="2"
-                :placeholder="commentPlaceholder"
-                @keydown="handleCommentKey"
-              />
-              <div class="doc-comment-compose-actions">
-                <span class="doc-comment-hint">Cmd/Ctrl+Enter to post</span>
+          <Menu as="div" class="relative shrink-0">
+            <MenuButton
+              class="inline-flex size-9 items-center justify-center rounded-md text-text-soft transition-colors hover:bg-surface-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              :aria-label="`More actions for ${entity.name}`"
+            >
+              <EllipsisHorizontalIcon class="size-5" aria-hidden="true" />
+            </MenuButton>
+            <MenuItems class="absolute right-0 z-30 mt-1 w-56 origin-top-right rounded-md border border-border-default bg-surface-1 py-1 text-sm shadow-popover focus:outline-none">
+              <MenuItem v-slot="{ active }">
                 <button
                   type="button"
-                  class="doc-comment-post"
-                  :disabled="!draftCommentBody.trim() || postingComment"
-                  @click="postComment"
+                  :class="[
+                    'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm',
+                    active ? 'bg-accent-soft text-accent' : 'text-text',
+                    summaryWorking && 'cursor-not-allowed opacity-60'
+                  ]"
+                  :disabled="summaryWorking"
+                  @click="refreshSummary"
                 >
-                  {{ postingComment ? 'Posting…' : 'Post' }}
+                  <SparklesIcon class="size-4" aria-hidden="true" />
+                  <span>{{ summaryWorking ? 'Summarising…' : 'Refresh summary' }}</span>
                 </button>
-              </div>
-            </div>
-          </div>
+              </MenuItem>
+              <MenuItem v-slot="{ active }">
+                <button
+                  type="button"
+                  :class="[
+                    'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm',
+                    active ? 'bg-danger-soft text-danger' : 'text-danger',
+                    deleting && 'cursor-not-allowed opacity-60'
+                  ]"
+                  :disabled="deleting"
+                  @click="deleteEntity"
+                >
+                  <TrashIcon class="size-4" aria-hidden="true" />
+                  <span>{{ deleting ? 'Deleting…' : `Delete ${kind}` }}</span>
+                </button>
+              </MenuItem>
+            </MenuItems>
+          </Menu>
+        </div>
 
-          <div v-else class="entity-activity-feed">
-            <ol v-if="activities.length" class="entity-activity-list">
-              <li v-for="activity in activities" :key="activity.id" class="entity-activity-row">
-                <span class="entity-activity-dot" aria-hidden="true"></span>
-                <div class="entity-activity-body">
-                  <p class="entity-activity-text">{{ activityLabel(activity) }}</p>
-                  <p class="entity-activity-meta">
-                    <span>{{ relativeTime(activity.occurred_at) }}</span>
-                    <NuxtLink
-                      v-if="activity.source_document_id"
-                      :to="`/documents/${activity.source_document_id}`"
-                      class="entity-activity-source"
-                    >· {{ activity.source_document_title }}</NuxtLink>
-                  </p>
-                </div>
-              </li>
-            </ol>
-            <p v-else class="muted">No activity recorded yet.</p>
-          </div>
-        </section>
+        <div class="flex flex-wrap items-center gap-4 text-xs text-text-soft">
+          <span v-if="stats.document_count" class="inline-flex items-center gap-1.5">
+            <DocumentTextIcon class="size-4" aria-hidden="true" />
+            <span>{{ stats.document_count }} {{ stats.document_count === 1 ? 'document' : 'documents' }}</span>
+          </span>
+          <span v-if="stats.actions_open || stats.actions_done" class="inline-flex items-center gap-1.5">
+            <ClipboardDocumentCheckIcon class="size-4" aria-hidden="true" />
+            <span>{{ stats.actions_open }} open · {{ stats.actions_done }} done</span>
+          </span>
+          <span v-if="stats.last_seen" class="inline-flex items-center gap-1.5">
+            <CalendarDaysIcon class="size-4" aria-hidden="true" />
+            <span>Last seen {{ formatDate(stats.last_seen) }}</span>
+          </span>
+        </div>
+      </header>
+
+      <section v-if="summary || summaryState !== 'absent'" class="space-y-2 rounded-card border border-border-subtle bg-surface-2 p-4">
+        <div class="flex items-center gap-2">
+          <SparklesIcon class="size-5 text-warning" aria-hidden="true" />
+          <h2 class="text-sm font-semibold text-text-strong">Summary</h2>
+          <UiBadge v-if="summaryState === 'stale'" variant="warning">stale</UiBadge>
+          <UiBadge v-if="summaryState === 'generating'" variant="accent">refreshing…</UiBadge>
+          <UiBadge v-if="summaryState === 'failed'" variant="danger">failed</UiBadge>
+          <button
+            v-if="summaryState !== 'generating'"
+            type="button"
+            class="ml-auto inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-text-soft transition-colors hover:bg-surface-3 hover:text-text disabled:cursor-not-allowed disabled:opacity-60"
+            :disabled="summaryWorking"
+            @click="refreshSummary"
+          >
+            <ArrowPathIcon class="size-3.5" :class="summaryWorking && 'animate-spin'" aria-hidden="true" />
+            <span>{{ summary ? 'Refresh' : 'Generate' }}</span>
+          </button>
+        </div>
+        <p v-if="summary" class="text-sm leading-relaxed text-text">{{ summary }}</p>
+        <p v-else class="text-sm text-muted">No summary yet — click Generate to build one from the captured context.</p>
+        <p v-if="summaryUpdatedAt" class="text-xs text-muted">Updated {{ relativeTime(summaryUpdatedAt) }}</p>
       </section>
 
-      <aside class="panel side-panel side-panel--flat">
-        <section v-if="related.people.length" class="side-section">
-          <div class="side-section-head">
-            <UsersIcon class="size-4 text-slate-500" aria-hidden="true" />
-            <h3>{{ peopleHeading }}</h3>
-            <span class="count">{{ related.people.length }}</span>
-          </div>
-          <ul class="people-list">
-            <li v-for="p in related.people" :key="p.id">
-              <NuxtLink :to="`/people/${p.id}`" class="entity-link">
-                <span
-                  class="avatar"
-                  :style="{ background: colorFor(p.name).bg, color: colorFor(p.name).fg }"
-                >{{ initialsOf(p.name) }}</span>
-                <span class="person-name">{{ p.name }}</span>
-              </NuxtLink>
-            </li>
-          </ul>
-        </section>
-
-        <section v-if="related.projects.length" class="side-section">
-          <div class="side-section-head">
-            <FolderIcon class="size-4 text-slate-500" aria-hidden="true" />
-            <h3>{{ projectsHeading }}</h3>
-          </div>
-          <ul class="project-list">
-            <li v-for="p in related.projects" :key="p.id">
-              <NuxtLink :to="`/projects/${p.id}`" class="entity-link">{{ p.name }}</NuxtLink>
-            </li>
-          </ul>
-        </section>
-
-        <section v-if="related.tags.length" class="side-section">
-          <div class="side-section-head">
-            <HashtagIcon class="size-4 text-slate-500" aria-hidden="true" />
-            <h3>{{ tagsHeading }}</h3>
-          </div>
-          <div class="tag-list">
-            <NuxtLink
-              v-for="t in related.tags"
-              :key="t.id"
-              :to="`/tags/${t.id}`"
-              class="tag"
-            >#{{ t.name }}</NuxtLink>
-          </div>
-        </section>
-
-        <EntitySuggestions
-          v-if="entity?.id"
-          :entity-id="entity.id"
-          :entity-type="kind"
+      <section class="space-y-2">
+        <h2 class="text-sm font-semibold text-text-strong">Description</h2>
+        <button
+          v-if="!editingDescription"
+          type="button"
+          class="-mx-2 block w-full rounded-md px-2 py-1 text-left transition-colors hover:bg-surface-3"
+          @click="beginEditDescription"
+        >
+          <p v-if="description" class="text-sm leading-relaxed text-text">{{ description }}</p>
+          <p v-else class="text-sm text-muted">{{ descriptionPlaceholder }}</p>
+        </button>
+        <textarea
+          v-else
+          ref="descriptionInputRef"
+          v-model="draftDescription"
+          class="block w-full resize-vertical rounded-md border border-accent bg-surface-1 p-3 text-sm text-text outline-none focus:ring-2 focus:ring-accent/20"
+          rows="3"
+          placeholder="Add a description…"
+          @blur="commitEditDescription"
+          @keydown.esc.prevent="cancelEditDescription"
+          @keydown.meta.enter.prevent="commitEditDescription"
+          @keydown.ctrl.enter.prevent="commitEditDescription"
         />
-      </aside>
-    </main>
-  </div>
+      </section>
+
+      <slot name="sections" />
+
+      <section class="space-y-3">
+        <div class="flex items-center gap-1 border-b border-border-subtle">
+          <button
+            type="button"
+            :class="[
+              'inline-flex items-center gap-2 border-b-2 px-3 py-2 text-sm font-medium transition-colors',
+              activityTab === 'comments'
+                ? 'border-accent text-accent'
+                : 'border-transparent text-text-soft hover:text-text'
+            ]"
+            @click="activityTab = 'comments'"
+          >
+            <ChatBubbleLeftIcon class="size-4" aria-hidden="true" />
+            <span>Comments</span>
+            <span v-if="comments.length" class="text-xs text-muted">{{ comments.length }}</span>
+          </button>
+          <button
+            type="button"
+            :class="[
+              'inline-flex items-center gap-2 border-b-2 px-3 py-2 text-sm font-medium transition-colors',
+              activityTab === 'activity'
+                ? 'border-accent text-accent'
+                : 'border-transparent text-text-soft hover:text-text'
+            ]"
+            @click="activityTab = 'activity'"
+          >
+            <ClockIcon class="size-4" aria-hidden="true" />
+            <span>Activity</span>
+            <span v-if="activities.length" class="text-xs text-muted">{{ activities.length }}</span>
+          </button>
+        </div>
+
+        <div v-if="activityTab === 'comments'" class="space-y-3">
+          <ul v-if="comments.length" class="space-y-3">
+            <li v-for="comment in comments" :key="comment.id" class="rounded-card border border-border-subtle bg-surface-2 p-3">
+              <p class="whitespace-pre-wrap text-sm text-text">{{ comment.body }}</p>
+              <div class="mt-2 flex items-center justify-between text-xs text-muted">
+                <span>{{ formatDate(comment.created_at) }}</span>
+                <button
+                  type="button"
+                  class="inline-flex size-7 items-center justify-center rounded-md text-muted-soft hover:bg-danger-soft hover:text-danger"
+                  title="Delete comment"
+                  @click="deleteComment(comment)"
+                >
+                  <TrashIcon class="size-3.5" aria-hidden="true" />
+                </button>
+              </div>
+            </li>
+          </ul>
+          <div class="space-y-2">
+            <UiTextarea
+              v-model="draftCommentBody"
+              :rows="2"
+              :placeholder="commentPlaceholder"
+              @keydown="handleCommentKey"
+            />
+            <div class="flex items-center justify-between text-xs text-muted">
+              <span>Cmd/Ctrl+Enter to post</span>
+              <UiButton
+                size="sm"
+                :disabled="!draftCommentBody.trim()"
+                :loading="postingComment"
+                @click="postComment"
+              >{{ postingComment ? 'Posting…' : 'Post' }}</UiButton>
+            </div>
+          </div>
+        </div>
+
+        <div v-else>
+          <ol v-if="activities.length" class="space-y-3">
+            <li v-for="activity in activities" :key="activity.id" class="flex items-start gap-3">
+              <span class="mt-1.5 size-2 shrink-0 rounded-full bg-accent" aria-hidden="true"></span>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm text-text">{{ activityLabel(activity) }}</p>
+                <p class="text-xs text-muted">
+                  <span>{{ relativeTime(activity.occurred_at) }}</span>
+                  <NuxtLink
+                    v-if="activity.source_document_id"
+                    :to="`/documents/${activity.source_document_id}`"
+                    class="text-accent hover:underline"
+                  >· {{ activity.source_document_title }}</NuxtLink>
+                </p>
+              </div>
+            </li>
+          </ol>
+          <p v-else class="text-sm text-muted">No activity recorded yet.</p>
+        </div>
+      </section>
+    </section>
+
+    <aside class="space-y-6 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
+      <section v-if="related.people.length" class="space-y-2">
+        <div class="flex items-center gap-2 text-sm font-semibold text-text-strong">
+          <UsersIcon class="size-4 text-muted" aria-hidden="true" />
+          <h3>{{ peopleHeading }}</h3>
+          <span class="text-xs font-normal text-muted">{{ related.people.length }}</span>
+        </div>
+        <ul class="space-y-1">
+          <li v-for="p in related.people" :key="p.id">
+            <NuxtLink :to="`/people/${p.id}`" class="flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-surface-2">
+              <span
+                class="inline-flex size-6 items-center justify-center rounded-full text-xs font-bold"
+                :style="{ background: colorFor(p.name).bg, color: colorFor(p.name).fg }"
+              >{{ initialsOf(p.name) }}</span>
+              <span class="truncate text-sm text-text">{{ p.name }}</span>
+            </NuxtLink>
+          </li>
+        </ul>
+      </section>
+
+      <section v-if="related.projects.length" class="space-y-2">
+        <div class="flex items-center gap-2 text-sm font-semibold text-text-strong">
+          <FolderIcon class="size-4 text-muted" aria-hidden="true" />
+          <h3>{{ projectsHeading }}</h3>
+        </div>
+        <ul class="space-y-1">
+          <li v-for="p in related.projects" :key="p.id">
+            <NuxtLink :to="`/projects/${p.id}`" class="block rounded-md px-2 py-1.5 text-sm text-text transition-colors hover:bg-surface-2">{{ p.name }}</NuxtLink>
+          </li>
+        </ul>
+      </section>
+
+      <section v-if="related.tags.length" class="space-y-2">
+        <div class="flex items-center gap-2 text-sm font-semibold text-text-strong">
+          <HashtagIcon class="size-4 text-muted" aria-hidden="true" />
+          <h3>{{ tagsHeading }}</h3>
+        </div>
+        <div class="flex flex-wrap gap-1.5">
+          <NuxtLink
+            v-for="t in related.tags"
+            :key="t.id"
+            :to="`/tags/${t.id}`"
+            class="inline-flex items-center rounded-full bg-soft px-2.5 py-1 text-xs font-medium text-text-soft transition-colors hover:bg-accent-soft hover:text-accent"
+          >#{{ t.name }}</NuxtLink>
+        </div>
+      </section>
+
+      <EntitySuggestions
+        v-if="entity?.id"
+        :entity-id="entity.id"
+        :entity-type="kind"
+      />
+    </aside>
+  </main>
 </template>

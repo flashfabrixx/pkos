@@ -47,10 +47,10 @@ const tagColor = computed(() => colorFor(tag.value?.name))
   >
     <template #avatar>
       <span
-        class="avatar avatar--xl entity-tile"
+        class="inline-flex size-12 shrink-0 items-center justify-center rounded-card"
         :style="{ background: tagColor.bg, color: tagColor.fg }"
       >
-        <HashtagIcon class="size-7" aria-hidden="true" />
+        <HashtagIcon class="size-6" aria-hidden="true" />
       </span>
     </template>
     <template #sections>

@@ -28,6 +28,7 @@ import {
   SparklesIcon as SparklesSolid
 } from '@heroicons/vue/24/solid'
 import { sourceTypeIcon } from '~/utils/source-type'
+import type { ActionStatus, OpenQuestionStatus } from '@bkos/core'
 
 const LANGUAGE_OPTIONS: Array<{ code: string, label: string }> = [
   { code: 'en', label: 'English' },
@@ -46,55 +47,6 @@ const LANGUAGE_OPTIONS: Array<{ code: string, label: string }> = [
   { code: 'ro', label: 'Română' },
   { code: 'tr', label: 'Türkçe' }
 ]
-
-const currentLanguageLabel = computed(() => {
-  const code = document.value?.language
-  if (!code) return 'Auto'
-  return LANGUAGE_OPTIONS.find((opt) => opt.code === code)?.label || code.toUpperCase()
-})
-const currentLanguageShort = computed(() => {
-  const code = document.value?.language
-  return code ? code.toUpperCase() : 'AUTO'
-})
-
-async function updateLanguage(code: string | null) {
-  if (!document.value) return
-  try {
-    await $fetch(`/api/documents/${document.value.id}`, {
-      method: 'PATCH',
-      body: { language: code }
-    })
-    await refresh()
-  } catch (error) {
-    console.error('Failed to update language', error)
-  }
-}
-
-const reprocessing = ref(false)
-async function reprocessDocument() {
-  if (!document.value || reprocessing.value) return
-  reprocessing.value = true
-  try {
-    await $fetch(`/api/documents/${document.value.id}/reprocess`, { method: 'POST' })
-    await refresh()
-  } catch (error) {
-    console.error('Failed to reprocess document', error)
-  } finally {
-    reprocessing.value = false
-  }
-}
-
-async function deleteDocument() {
-  if (!document.value) return
-  if (!confirm('Move this capture to trash? You can restore it later from the trash page.')) return
-  try {
-    await $fetch(`/api/documents/${document.value.id}`, { method: 'DELETE' })
-    await navigateTo('/documents')
-  } catch (error) {
-    console.error('Failed to delete document', error)
-  }
-}
-import type { ActionStatus, OpenQuestionStatus } from '@bkos/core'
 
 interface ActionRow {
   id: string
@@ -162,6 +114,51 @@ watch(
   },
   { immediate: true }
 )
+
+const currentLanguageLabel = computed(() => {
+  const code = document.value?.language
+  if (!code) return 'Auto'
+  return LANGUAGE_OPTIONS.find((opt) => opt.code === code)?.label || code.toUpperCase()
+})
+const currentLanguageShort = computed(() => {
+  const code = document.value?.language
+  return code ? code.toUpperCase() : 'AUTO'
+})
+
+async function updateLanguage(code: string | null) {
+  if (!document.value) return
+  try {
+    await $fetch(`/api/documents/${document.value.id}`, { method: 'PATCH', body: { language: code } })
+    await refresh()
+  } catch (error) {
+    console.error('Failed to update language', error)
+  }
+}
+
+const reprocessing = ref(false)
+async function reprocessDocument() {
+  if (!document.value || reprocessing.value) return
+  reprocessing.value = true
+  try {
+    await $fetch(`/api/documents/${document.value.id}/reprocess`, { method: 'POST' })
+    await refresh()
+  } catch (error) {
+    console.error('Failed to reprocess document', error)
+  } finally {
+    reprocessing.value = false
+  }
+}
+
+async function deleteDocument() {
+  if (!document.value) return
+  if (!confirm('Move this capture to trash? You can restore it later from the trash page.')) return
+  try {
+    await $fetch(`/api/documents/${document.value.id}`, { method: 'DELETE' })
+    await navigateTo('/documents')
+  } catch (error) {
+    console.error('Failed to delete document', error)
+  }
+}
 
 const documentEntityId = computed<string | null>(() => data.value?.document?.entity_id || null)
 
@@ -238,15 +235,9 @@ const drawerActionId = computed<string | null>({
     router.replace({ query: next })
   }
 })
-function openActionDrawer(id: string) {
-  drawerActionId.value = id
-}
-async function handleDrawerUpdate() {
-  await refresh()
-}
-async function handleDrawerDelete() {
-  await refresh()
-}
+function openActionDrawer(id: string) { drawerActionId.value = id }
+async function handleDrawerUpdate() { await refresh() }
+async function handleDrawerDelete() { await refresh() }
 
 function isOverdueAction(action: ActionRow) {
   if (!action.due_date || isActionDone(action.status) || action.status === 'dismissed') return false
@@ -325,15 +316,9 @@ function cancelEditDecision() {
 async function commitEditDecision(decision: DecisionRow) {
   if (editingDecisionId.value !== decision.id) return
   const next = draftDecisionTitle.value.trim()
-  if (!next || next === decision.title) {
-    cancelEditDecision()
-    return
-  }
+  if (!next || next === decision.title) { cancelEditDecision(); return }
   try {
-    const result = await $fetch<{ decision: { title: string } }>(`/api/decisions/${decision.id}`, {
-      method: 'PATCH',
-      body: { title: next }
-    })
+    const result = await $fetch<{ decision: { title: string } }>(`/api/decisions/${decision.id}`, { method: 'PATCH', body: { title: next } })
     decision.title = result.decision.title
   } catch (error) {
     console.error('Failed to update decision', error)
@@ -357,15 +342,9 @@ function cancelEditInsight() {
 async function commitEditInsight(insight: InsightRow) {
   if (editingInsightId.value !== insight.id) return
   const next = draftInsightTitle.value.trim()
-  if (!next || next === insight.title) {
-    cancelEditInsight()
-    return
-  }
+  if (!next || next === insight.title) { cancelEditInsight(); return }
   try {
-    const result = await $fetch<{ insight: { title: string } }>(`/api/insights/${insight.id}`, {
-      method: 'PATCH',
-      body: { title: next }
-    })
+    const result = await $fetch<{ insight: { title: string } }>(`/api/insights/${insight.id}`, { method: 'PATCH', body: { title: next } })
     insight.title = result.insight.title
   } catch (error) {
     console.error('Failed to update insight', error)
@@ -415,11 +394,7 @@ async function postCommentOn(entityId: string | null, draftKey: string) {
   try {
     const result = await $fetch<{ comment: CommentRow }>('/api/comments', {
       method: 'POST',
-      body: {
-        entityId,
-        documentId: document.value?.id,
-        body
-      }
+      body: { entityId, documentId: document.value?.id, body }
     })
     comments.value.push(result.comment)
     rowDrafts.value[draftKey] = ''
@@ -438,11 +413,7 @@ async function postComment() {
   try {
     const result = await $fetch<{ comment: CommentRow }>('/api/comments', {
       method: 'POST',
-      body: {
-        entityId: documentEntityId.value,
-        documentId: document.value?.id,
-        body
-      }
+      body: { entityId: documentEntityId.value, documentId: document.value?.id, body }
     })
     comments.value.push(result.comment)
     draftCommentBody.value = ''
@@ -488,9 +459,13 @@ async function toggleQuestion(question: OpenQuestionRow) {
   }
 }
 
-function searchLinkFor(term: string) {
-  return { path: '/search', query: { q: term } }
-}
+const confidentialityBadge = computed(() => {
+  switch (confidentiality.value) {
+    case 'private': return 'danger'
+    case 'sensitive': return 'warning'
+    default: return 'accent'
+  }
+})
 </script>
 
 <template>
@@ -500,82 +475,90 @@ function searchLinkFor(term: string) {
       @updated="handleDrawerUpdate"
       @deleted="handleDrawerDelete"
     />
-    <main v-if="document" class="workspace document-grid">
-      <section class="panel document-main">
-        <header class="doc-header">
-          <div class="doc-header-title">
-            <h1>{{ document.title }}</h1>
-            <span v-if="isProcessing" class="status-pill status-pill--pending">
-              <ArrowPathIcon class="size-3.5 status-pill-spin" aria-hidden="true" />
-              <span>Processing</span>
-            </span>
-            <span v-else-if="isFailed" class="status-pill status-pill--error">
-              <ExclamationTriangleIcon class="size-3.5" aria-hidden="true" />
-              <span>Processing failed</span>
-            </span>
-            <div class="doc-header-tools">
-              <button
-                type="button"
-                class="doc-header-tool"
+    <main v-if="document" class="mx-auto grid max-w-[1280px] gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <section class="space-y-6 rounded-card border border-border-default bg-surface-1 p-6 shadow-card">
+        <header class="space-y-3">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <h1 class="text-2xl font-semibold tracking-tight text-text-strong">{{ document.title }}</h1>
+              <div v-if="isProcessing || isFailed" class="mt-2">
+                <UiBadge v-if="isProcessing" variant="warning">
+                  <ArrowPathIcon class="size-3.5 animate-spin" aria-hidden="true" />
+                  Processing
+                </UiBadge>
+                <UiBadge v-else-if="isFailed" variant="danger">
+                  <ExclamationTriangleIcon class="size-3.5" aria-hidden="true" />
+                  Processing failed
+                </UiBadge>
+              </div>
+            </div>
+            <div class="flex shrink-0 items-center gap-1">
+              <UiButton
+                variant="secondary"
+                size="sm"
                 :disabled="reprocessing || isProcessing"
-                :title="reprocessing ? 'Reprocessing…' : 'Reprocess this capture'"
+                :loading="reprocessing"
                 @click="reprocessDocument"
               >
-                <ArrowPathIcon class="size-4" :class="{ 'status-pill-spin': reprocessing }" aria-hidden="true" />
-                <span>{{ reprocessing ? 'Reprocessing…' : 'Reprocess' }}</span>
-              </button>
-              <button
-                type="button"
-                class="doc-header-tool doc-header-tool--danger"
-                title="Move to trash"
-                @click="deleteDocument"
-              >
+                <ArrowPathIcon v-if="!reprocessing" class="size-4" aria-hidden="true" />
+                {{ reprocessing ? 'Reprocessing…' : 'Reprocess' }}
+              </UiButton>
+              <UiButton variant="ghost" size="sm" @click="deleteDocument">
                 <TrashIcon class="size-4" aria-hidden="true" />
-                <span>Delete</span>
-              </button>
+                Delete
+              </UiButton>
             </div>
           </div>
 
-          <div class="document-meta">
-            <span v-if="primaryDate">
+          <div class="flex flex-wrap items-center gap-3 text-xs text-text-soft">
+            <span v-if="primaryDate" class="inline-flex items-center gap-1.5">
               <CalendarDaysIcon class="size-4" aria-hidden="true" />
               <span>{{ formatDate(primaryDate) }}</span>
             </span>
-            <span>
+            <span class="inline-flex items-center gap-1.5">
               <component :is="sourceTypeIcon(document.source_type)" class="size-4" aria-hidden="true" />
               <span>{{ document.source_type }}</span>
             </span>
-            <span v-if="people.length">
+            <span v-if="people.length" class="inline-flex items-center gap-1.5">
               <UsersIcon class="size-4" aria-hidden="true" />
               <span>{{ people.length }} {{ people.length === 1 ? 'person' : 'people' }}</span>
             </span>
-            <span v-if="confidentiality" :class="['confidentiality', `confidentiality--${confidentiality}`]">
-              <component :is="confidentialityIcon" class="size-4" aria-hidden="true" />
+            <UiBadge v-if="confidentiality" :variant="confidentialityBadge">
+              <component :is="confidentialityIcon" class="size-3.5" aria-hidden="true" />
               <span>{{ confidentiality }}</span>
-            </span>
-            <Menu as="span" class="doc-language-menu">
-              <MenuButton class="doc-language-trigger" :title="`Click to override (currently: ${currentLanguageLabel})`">
+            </UiBadge>
+            <Menu as="span" class="relative inline-flex">
+              <MenuButton
+                class="inline-flex items-center gap-1.5 rounded-md border border-border-default px-2 py-1 text-xs font-medium text-text-soft hover:bg-surface-3"
+                :title="`Click to override (currently: ${currentLanguageLabel})`"
+              >
                 <LanguageIcon class="size-4" aria-hidden="true" />
                 <span>{{ currentLanguageShort }}</span>
                 <ChevronDownIcon class="size-3" aria-hidden="true" />
               </MenuButton>
-              <MenuItems class="doc-language-menu-items">
+              <MenuItems class="absolute right-0 top-full z-30 mt-1 max-h-72 w-48 overflow-auto rounded-md border border-border-default bg-surface-1 py-1 text-sm shadow-popover focus:outline-none">
                 <MenuItem v-slot="{ active }">
                   <button
                     type="button"
-                    class="doc-language-menu-item"
-                    :class="{ 'is-active': active, 'is-current': !document.language }"
+                    :class="[
+                      'flex w-full items-center px-3 py-1.5 text-left text-sm',
+                      active ? 'bg-accent-soft text-accent' : 'text-text',
+                      !document.language && 'font-semibold'
+                    ]"
                     @click="updateLanguage(null)"
                   >Auto · detect</button>
                 </MenuItem>
                 <MenuItem v-for="option in LANGUAGE_OPTIONS" :key="option.code" v-slot="{ active }">
                   <button
                     type="button"
-                    class="doc-language-menu-item"
-                    :class="{ 'is-active': active, 'is-current': document.language === option.code }"
+                    :class="[
+                      'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm',
+                      active ? 'bg-accent-soft text-accent' : 'text-text',
+                      document.language === option.code && 'font-semibold'
+                    ]"
                     @click="updateLanguage(option.code)"
                   >
-                    <span class="doc-language-menu-code">{{ option.code.toUpperCase() }}</span>
+                    <span class="font-mono text-[11px] text-muted">{{ option.code.toUpperCase() }}</span>
                     <span>{{ option.label }}</span>
                   </button>
                 </MenuItem>
@@ -584,182 +567,147 @@ function searchLinkFor(term: string) {
           </div>
         </header>
 
-        <section v-if="document.summary" class="doc-lead">
-          <p>{{ document.summary }}</p>
+        <section v-if="document.summary" class="rounded-card bg-accent-soft p-4">
+          <p class="text-sm leading-relaxed text-text">{{ document.summary }}</p>
         </section>
 
-        <section v-if="actions.length" class="doc-section">
-          <div class="doc-section-head">
-            <div class="doc-section-title">
-              <ClipboardDocumentCheckIcon class="size-5 text-slate-500" aria-hidden="true" />
-              <h2>Actions</h2>
-              <span class="count">{{ actions.length }}</span>
-            </div>
+        <section v-if="actions.length" class="space-y-2">
+          <div class="flex items-center gap-2">
+            <ClipboardDocumentCheckIcon class="size-5 text-muted" aria-hidden="true" />
+            <h2 class="text-sm font-semibold text-text-strong">Actions</h2>
+            <span class="text-xs text-muted">{{ actions.length }}</span>
           </div>
-          <ul class="doc-action-list">
-            <template v-for="action in actions" :key="action.id">
-              <li
-                class="doc-action-row"
-                :class="{ 'is-done': isActionDone(action.status) }"
+          <ul class="divide-y divide-border-subtle">
+            <li
+              v-for="action in actions"
+              :key="action.id"
+              class="group grid grid-cols-[auto_minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-3 py-2"
+              :class="isActionDone(action.status) && 'opacity-70'"
+            >
+              <button
+                type="button"
+                :class="[
+                  'inline-flex size-7 items-center justify-center rounded-full transition-colors',
+                  isActionDone(action.status)
+                    ? 'text-success hover:bg-success-soft'
+                    : 'text-muted-soft hover:bg-success-soft hover:text-success'
+                ]"
+                :aria-pressed="isActionDone(action.status)"
+                :aria-label="isActionDone(action.status) ? 'Mark action as open' : 'Mark action as done'"
+                @click="toggleAction(action)"
               >
+                <CheckCircleIcon class="size-5" aria-hidden="true" />
+              </button>
+
+              <div class="flex min-w-0 items-center gap-2">
+                <button
+                  v-if="editingActionTitleId !== action.id"
+                  type="button"
+                  class="min-w-0 flex-1 truncate rounded-md px-2 py-1 text-left text-sm text-text hover:bg-surface-3"
+                  @click="beginEditActionTitle(action)"
+                >
+                  <span :class="isActionDone(action.status) && 'text-muted line-through'">{{ action.title }}</span>
+                </button>
+                <input
+                  v-else
+                  :ref="(el: any) => titleInputs[action.id] = el as HTMLInputElement | null"
+                  v-model="draftActionTitle"
+                  class="min-w-0 flex-1 rounded-md border border-accent bg-surface-1 px-2 py-1 text-sm text-text outline-none focus:ring-2 focus:ring-accent/20"
+                  type="text"
+                  maxlength="500"
+                  @blur="commitEditActionTitle(action)"
+                  @keydown.enter.prevent="commitEditActionTitle(action)"
+                  @keydown.esc.prevent="cancelEditActionTitle"
+                >
                 <button
                   type="button"
-                  class="doc-action-check"
-                  :class="isActionDone(action.status) ? 'is-done' : 'is-open'"
-                  :aria-pressed="isActionDone(action.status)"
-                  :aria-label="isActionDone(action.status) ? 'Mark action as open' : 'Mark action as done'"
-                  @click="toggleAction(action)"
+                  class="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-soft opacity-0 transition-opacity hover:bg-surface-3 hover:text-text group-hover:opacity-100"
+                  title="Open action detail"
+                  @click="openActionDrawer(action.id)"
                 >
-                  <CheckCircleIcon class="size-5" aria-hidden="true" />
+                  <ChevronRightIcon class="size-4" aria-hidden="true" />
                 </button>
+              </div>
 
-                <div class="doc-action-title">
-                  <button
-                    v-if="editingActionTitleId !== action.id"
-                    type="button"
-                    class="doc-action-title-trigger"
-                    @click="beginEditActionTitle(action)"
-                  >
-                    <span :class="{ 'is-done': isActionDone(action.status) }">{{ action.title }}</span>
-                  </button>
-                  <input
-                    v-else
-                    :ref="(el: any) => titleInputs[action.id] = el as HTMLInputElement | null"
-                    v-model="draftActionTitle"
-                    class="doc-action-title-input"
-                    type="text"
-                    maxlength="500"
-                    @blur="commitEditActionTitle(action)"
-                    @keydown.enter.prevent="commitEditActionTitle(action)"
-                    @keydown.esc.prevent="cancelEditActionTitle"
-                  >
-                  <button
-                    type="button"
-                    class="row-open-chevron"
-                    title="Open action detail"
-                    @click="openActionDrawer(action.id)"
-                  >
-                    <ChevronRightIcon class="size-4" aria-hidden="true" />
-                  </button>
-                </div>
+              <div class="min-w-0">
+                <AssigneePicker
+                  :person-id="action.person_id"
+                  :person-name="action.person_name"
+                  @select="(person) => selectActionAssignee(action, person)"
+                  @create="(payload) => createActionAssignee(action, payload)"
+                  @clear="clearActionAssignee(action)"
+                />
+              </div>
 
-                <div class="doc-action-assignee">
-                  <AssigneePicker
-                    :person-id="action.person_id"
-                    :person-name="action.person_name"
-                    @select="(person) => selectActionAssignee(action, person)"
-                    @create="(payload) => createActionAssignee(action, payload)"
-                    @clear="clearActionAssignee(action)"
-                  />
-                </div>
-
-                <div class="doc-action-due">
-                  <button
-                    type="button"
-                    class="doc-action-due-trigger"
-                    :class="{
-                      'is-overdue': isOverdueAction(action),
-                      'is-today': isTodayAction(action),
-                      'is-empty': !action.due_date
-                    }"
-                    :title="action.due_date ? formatDate(action.due_date) : 'Set due date'"
-                    @click="openDuePicker(action)"
-                  >
-                    <CalendarDaysIcon
-                      v-if="!action.due_date"
-                      class="size-4 asana-due-empty-icon"
-                      aria-hidden="true"
-                    />
-                    <span v-else>{{ isTodayAction(action) ? 'Today' : formatDate(action.due_date) }}</span>
-                  </button>
-                  <input
-                    :ref="(el: any) => dueDateInputs[action.id] = el as HTMLInputElement | null"
-                    type="date"
-                    class="doc-action-due-input"
-                    :value="action.due_date || ''"
-                    @change="commitDueDate(action, $event)"
-                  >
-                </div>
-
-              </li>
-              <li v-if="false" class="doc-row-thread">
-                <div v-if="commentsFor(action.entity_id).length" class="doc-row-thread-comments">
-                  <div v-for="c in commentsFor(action.entity_id)" :key="c.id" class="doc-comment doc-comment--inline">
-                    <div class="doc-comment-body">{{ c.body }}</div>
-                    <div class="doc-comment-meta">
-                      <span>{{ formatDate(c.created_at) }}</span>
-                      <button type="button" class="doc-comment-delete" title="Delete comment" @click="deleteComment(c)">
-                        <TrashIcon class="size-3.5" aria-hidden="true" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div class="doc-row-thread-compose">
-                  <textarea
-                    v-model="rowDrafts[action.entity_id!]"
-                    class="doc-comment-textarea doc-comment-textarea--inline"
-                    rows="2"
-                    placeholder="Add a thought…"
-                    @keydown="handleRowCommentKey($event, action.entity_id, action.entity_id!)"
-                  />
-                  <div class="doc-comment-compose-actions">
-                    <span class="doc-comment-hint">Cmd/Ctrl+Enter to post</span>
-                    <button
-                      type="button"
-                      class="doc-comment-post"
-                      :disabled="!(rowDrafts[action.entity_id!] || '').trim() || rowPosting[action.entity_id!]"
-                      @click="postCommentOn(action.entity_id, action.entity_id!)"
-                    >
-                      {{ rowPosting[action.entity_id!] ? 'Posting…' : 'Post' }}
-                    </button>
-                  </div>
-                </div>
-              </li>
-            </template>
+              <div class="relative min-w-0">
+                <button
+                  type="button"
+                  :class="[
+                    'inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-medium hover:bg-surface-3',
+                    isOverdueAction(action) && 'text-danger',
+                    isTodayAction(action) && !isOverdueAction(action) && 'text-warning',
+                    !action.due_date && 'text-muted-soft'
+                  ]"
+                  :title="action.due_date ? formatDate(action.due_date) : 'Set due date'"
+                  @click="openDuePicker(action)"
+                >
+                  <CalendarDaysIcon v-if="!action.due_date" class="size-4" aria-hidden="true" />
+                  <span v-else>{{ isTodayAction(action) ? 'Today' : formatDate(action.due_date) }}</span>
+                </button>
+                <input
+                  :ref="(el: any) => dueDateInputs[action.id] = el as HTMLInputElement | null"
+                  type="date"
+                  class="pointer-events-none absolute inset-0 opacity-0"
+                  :value="action.due_date || ''"
+                  @change="commitDueDate(action, $event)"
+                >
+              </div>
+            </li>
           </ul>
         </section>
 
-        <section v-if="decisions.length" class="doc-section">
-          <div class="doc-section-head">
-            <div class="doc-section-title">
-              <FlagIcon class="size-5 text-slate-500" aria-hidden="true" />
-              <h2>Decisions</h2>
-              <span class="count">{{ decisions.length }}</span>
-            </div>
+        <section v-if="decisions.length" class="space-y-2">
+          <div class="flex items-center gap-2">
+            <FlagIcon class="size-5 text-muted" aria-hidden="true" />
+            <h2 class="text-sm font-semibold text-text-strong">Decisions</h2>
+            <span class="text-xs text-muted">{{ decisions.length }}</span>
           </div>
-          <ul class="doc-list">
+          <ul class="divide-y divide-border-subtle">
             <template v-for="decision in decisions" :key="decision.id">
-              <li class="doc-list-row">
-                <span class="doc-row-marker doc-row-marker-decision">
+              <li class="grid grid-cols-[20px_minmax(0,1fr)_auto] items-start gap-3 py-2">
+                <span class="mt-1 inline-flex size-5 items-center justify-center text-success">
                   <CheckBadgeSolid class="size-4" aria-hidden="true" />
                 </span>
-                <div class="doc-row-body">
+                <div class="min-w-0">
                   <button
                     v-if="editingDecisionId !== decision.id"
                     type="button"
-                    class="doc-row-edit-trigger"
+                    class="-mx-2 block w-full rounded-md px-2 py-1 text-left transition-colors hover:bg-surface-3"
                     @click="beginEditDecision(decision)"
                   >
-                    <span class="doc-row-title">{{ decision.title }}</span>
+                    <span class="block text-sm font-medium text-text">{{ decision.title }}</span>
                   </button>
                   <input
                     v-else
                     :ref="(el: any) => decisionInputs[decision.id] = el as HTMLInputElement | null"
                     v-model="draftDecisionTitle"
-                    class="doc-row-edit-input"
+                    class="block w-full rounded-md border border-accent bg-surface-1 px-2 py-1 text-sm text-text outline-none focus:ring-2 focus:ring-accent/20"
                     type="text"
                     maxlength="500"
                     @blur="commitEditDecision(decision)"
                     @keydown.enter.prevent="commitEditDecision(decision)"
                     @keydown.esc.prevent="cancelEditDecision"
                   >
-                  <small v-if="decision.rationale">{{ decision.rationale }}</small>
+                  <small v-if="decision.rationale" class="mt-0.5 block text-xs text-muted">{{ decision.rationale }}</small>
                 </div>
                 <button
                   v-if="decision.entity_id"
                   type="button"
-                  class="doc-row-comment-toggle"
-                  :class="{ 'has-comments': commentsFor(decision.entity_id).length > 0, 'is-active': isThreadOpen(decision.entity_id) }"
+                  :class="[
+                    'inline-flex h-7 shrink-0 items-center gap-1 rounded-md px-2 text-xs text-muted hover:bg-surface-3 hover:text-text',
+                    isThreadOpen(decision.entity_id) && 'bg-surface-3 text-text',
+                    commentsFor(decision.entity_id).length && 'text-accent'
+                  ]"
                   :title="commentsFor(decision.entity_id).length ? `${commentsFor(decision.entity_id).length} comments` : 'Add comment'"
                   @click="toggleThread(decision.entity_id)"
                 >
@@ -767,70 +715,59 @@ function searchLinkFor(term: string) {
                   <span v-if="commentsFor(decision.entity_id).length">{{ commentsFor(decision.entity_id).length }}</span>
                 </button>
               </li>
-              <li v-if="isThreadOpen(decision.entity_id)" class="doc-row-thread">
-                <div v-if="commentsFor(decision.entity_id).length" class="doc-row-thread-comments">
-                  <div v-for="c in commentsFor(decision.entity_id)" :key="c.id" class="doc-comment doc-comment--inline">
-                    <div class="doc-comment-body">{{ c.body }}</div>
-                    <div class="doc-comment-meta">
-                      <span>{{ formatDate(c.created_at) }}</span>
-                      <button type="button" class="doc-comment-delete" title="Delete comment" @click="deleteComment(c)">
-                        <TrashIcon class="size-3.5" aria-hidden="true" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div class="doc-row-thread-compose">
-                  <textarea
-                    v-model="rowDrafts[decision.entity_id!]"
-                    class="doc-comment-textarea doc-comment-textarea--inline"
-                    rows="2"
-                    placeholder="Add a thought…"
-                    @keydown="handleRowCommentKey($event, decision.entity_id, decision.entity_id!)"
-                  />
-                  <div class="doc-comment-compose-actions">
-                    <span class="doc-comment-hint">Cmd/Ctrl+Enter to post</span>
-                    <button
-                      type="button"
-                      class="doc-comment-post"
-                      :disabled="!(rowDrafts[decision.entity_id!] || '').trim() || rowPosting[decision.entity_id!]"
-                      @click="postCommentOn(decision.entity_id, decision.entity_id!)"
-                    >
-                      {{ rowPosting[decision.entity_id!] ? 'Posting…' : 'Post' }}
+              <li v-if="isThreadOpen(decision.entity_id)" class="ml-8 space-y-2 border-l-2 border-border-subtle py-2 pl-4">
+                <div v-for="c in commentsFor(decision.entity_id)" :key="c.id" class="rounded-md bg-surface-2 p-2 text-sm">
+                  <div class="whitespace-pre-wrap text-text">{{ c.body }}</div>
+                  <div class="mt-1 flex items-center justify-between text-xs text-muted">
+                    <span>{{ formatDate(c.created_at) }}</span>
+                    <button type="button" class="inline-flex size-6 items-center justify-center rounded-md hover:bg-danger-soft hover:text-danger" title="Delete comment" @click="deleteComment(c)">
+                      <TrashIcon class="size-3.5" aria-hidden="true" />
                     </button>
                   </div>
+                </div>
+                <UiTextarea
+                  v-model="rowDrafts[decision.entity_id!]"
+                  :rows="2"
+                  placeholder="Add a thought…"
+                  @keydown="handleRowCommentKey($event, decision.entity_id, decision.entity_id!)"
+                />
+                <div class="flex items-center justify-between text-xs text-muted">
+                  <span>Cmd/Ctrl+Enter to post</span>
+                  <UiButton
+                    size="sm"
+                    :disabled="!(rowDrafts[decision.entity_id!] || '').trim()"
+                    :loading="!!rowPosting[decision.entity_id!]"
+                    @click="postCommentOn(decision.entity_id, decision.entity_id!)"
+                  >{{ rowPosting[decision.entity_id!] ? 'Posting…' : 'Post' }}</UiButton>
                 </div>
               </li>
             </template>
           </ul>
         </section>
 
-        <section v-if="insights.length" class="doc-section">
-          <div class="doc-section-head">
-            <div class="doc-section-title">
-              <LightBulbIcon class="size-5 text-slate-500" aria-hidden="true" />
-              <h2>Insights</h2>
-              <span class="count">{{ insights.length }}</span>
-            </div>
+        <section v-if="insights.length" class="space-y-2">
+          <div class="flex items-center gap-2">
+            <LightBulbIcon class="size-5 text-muted" aria-hidden="true" />
+            <h2 class="text-sm font-semibold text-text-strong">Insights</h2>
+            <span class="text-xs text-muted">{{ insights.length }}</span>
           </div>
-          <ul class="doc-list">
+          <ul class="divide-y divide-border-subtle">
             <template v-for="insight in insights" :key="insight.id">
-              <li class="doc-list-row">
-                <span class="doc-row-marker doc-row-marker-insight">
+              <li class="grid grid-cols-[20px_minmax(0,1fr)_auto] items-center gap-3 py-2">
+                <span class="inline-flex size-5 items-center justify-center text-warning">
                   <SparklesSolid class="size-4" aria-hidden="true" />
                 </span>
                 <button
                   v-if="editingInsightId !== insight.id"
                   type="button"
-                  class="doc-row-edit-trigger"
+                  class="-mx-2 min-w-0 truncate rounded-md px-2 py-1 text-left text-sm text-text hover:bg-surface-3"
                   @click="beginEditInsight(insight)"
-                >
-                  <span class="doc-row-title">{{ insight.title }}</span>
-                </button>
+                >{{ insight.title }}</button>
                 <input
                   v-else
                   :ref="(el: any) => insightInputs[insight.id] = el as HTMLInputElement | null"
                   v-model="draftInsightTitle"
-                  class="doc-row-edit-input"
+                  class="min-w-0 rounded-md border border-accent bg-surface-1 px-2 py-1 text-sm text-text outline-none focus:ring-2 focus:ring-accent/20"
                   type="text"
                   maxlength="500"
                   @blur="commitEditInsight(insight)"
@@ -840,8 +777,11 @@ function searchLinkFor(term: string) {
                 <button
                   v-if="insight.entity_id"
                   type="button"
-                  class="doc-row-comment-toggle"
-                  :class="{ 'has-comments': commentsFor(insight.entity_id).length > 0, 'is-active': isThreadOpen(insight.entity_id) }"
+                  :class="[
+                    'inline-flex h-7 shrink-0 items-center gap-1 rounded-md px-2 text-xs text-muted hover:bg-surface-3 hover:text-text',
+                    isThreadOpen(insight.entity_id) && 'bg-surface-3 text-text',
+                    commentsFor(insight.entity_id).length && 'text-accent'
+                  ]"
                   :title="commentsFor(insight.entity_id).length ? `${commentsFor(insight.entity_id).length} comments` : 'Add comment'"
                   @click="toggleThread(insight.entity_id)"
                 >
@@ -849,73 +789,68 @@ function searchLinkFor(term: string) {
                   <span v-if="commentsFor(insight.entity_id).length">{{ commentsFor(insight.entity_id).length }}</span>
                 </button>
               </li>
-              <li v-if="isThreadOpen(insight.entity_id)" class="doc-row-thread">
-                <div v-if="commentsFor(insight.entity_id).length" class="doc-row-thread-comments">
-                  <div v-for="c in commentsFor(insight.entity_id)" :key="c.id" class="doc-comment doc-comment--inline">
-                    <div class="doc-comment-body">{{ c.body }}</div>
-                    <div class="doc-comment-meta">
-                      <span>{{ formatDate(c.created_at) }}</span>
-                      <button type="button" class="doc-comment-delete" title="Delete comment" @click="deleteComment(c)">
-                        <TrashIcon class="size-3.5" aria-hidden="true" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div class="doc-row-thread-compose">
-                  <textarea
-                    v-model="rowDrafts[insight.entity_id!]"
-                    class="doc-comment-textarea doc-comment-textarea--inline"
-                    rows="2"
-                    placeholder="Add a thought…"
-                    @keydown="handleRowCommentKey($event, insight.entity_id, insight.entity_id!)"
-                  />
-                  <div class="doc-comment-compose-actions">
-                    <span class="doc-comment-hint">Cmd/Ctrl+Enter to post</span>
-                    <button
-                      type="button"
-                      class="doc-comment-post"
-                      :disabled="!(rowDrafts[insight.entity_id!] || '').trim() || rowPosting[insight.entity_id!]"
-                      @click="postCommentOn(insight.entity_id, insight.entity_id!)"
-                    >
-                      {{ rowPosting[insight.entity_id!] ? 'Posting…' : 'Post' }}
+              <li v-if="isThreadOpen(insight.entity_id)" class="ml-8 space-y-2 border-l-2 border-border-subtle py-2 pl-4">
+                <div v-for="c in commentsFor(insight.entity_id)" :key="c.id" class="rounded-md bg-surface-2 p-2 text-sm">
+                  <div class="whitespace-pre-wrap text-text">{{ c.body }}</div>
+                  <div class="mt-1 flex items-center justify-between text-xs text-muted">
+                    <span>{{ formatDate(c.created_at) }}</span>
+                    <button type="button" class="inline-flex size-6 items-center justify-center rounded-md hover:bg-danger-soft hover:text-danger" title="Delete comment" @click="deleteComment(c)">
+                      <TrashIcon class="size-3.5" aria-hidden="true" />
                     </button>
                   </div>
+                </div>
+                <UiTextarea
+                  v-model="rowDrafts[insight.entity_id!]"
+                  :rows="2"
+                  placeholder="Add a thought…"
+                  @keydown="handleRowCommentKey($event, insight.entity_id, insight.entity_id!)"
+                />
+                <div class="flex items-center justify-between text-xs text-muted">
+                  <span>Cmd/Ctrl+Enter to post</span>
+                  <UiButton
+                    size="sm"
+                    :disabled="!(rowDrafts[insight.entity_id!] || '').trim()"
+                    :loading="!!rowPosting[insight.entity_id!]"
+                    @click="postCommentOn(insight.entity_id, insight.entity_id!)"
+                  >{{ rowPosting[insight.entity_id!] ? 'Posting…' : 'Post' }}</UiButton>
                 </div>
               </li>
             </template>
           </ul>
         </section>
 
-        <section v-if="openQuestions.length" class="doc-section">
-          <div class="doc-section-head">
-            <div class="doc-section-title">
-              <QuestionMarkCircleIcon class="size-5 text-slate-500" aria-hidden="true" />
-              <h2>Open questions</h2>
-              <span class="count">{{ openQuestions.length }}</span>
-            </div>
+        <section v-if="openQuestions.length" class="space-y-2">
+          <div class="flex items-center gap-2">
+            <QuestionMarkCircleIcon class="size-5 text-muted" aria-hidden="true" />
+            <h2 class="text-sm font-semibold text-text-strong">Open questions</h2>
+            <span class="text-xs text-muted">{{ openQuestions.length }}</span>
           </div>
-          <ul class="doc-list">
+          <ul class="divide-y divide-border-subtle">
             <template v-for="question in openQuestions" :key="question.id">
-              <li
-                class="doc-list-row"
-                :class="{ 'is-done': isQuestionResolved(question.status) }"
-              >
+              <li class="grid grid-cols-[20px_minmax(0,1fr)_auto] items-center gap-3 py-2" :class="isQuestionResolved(question.status) && 'opacity-70'">
                 <button
                   type="button"
-                  class="checkbox doc-row-marker-button"
-                  :class="{ 'is-checked': isQuestionResolved(question.status) }"
+                  :class="[
+                    'inline-flex size-5 items-center justify-center rounded border transition-colors',
+                    isQuestionResolved(question.status)
+                      ? 'border-success bg-success text-white'
+                      : 'border-border-strong text-transparent hover:border-success'
+                  ]"
                   :aria-pressed="isQuestionResolved(question.status)"
                   :aria-label="isQuestionResolved(question.status) ? 'Mark question as open' : 'Mark question as resolved'"
                   @click="toggleQuestion(question)"
                 >
                   <CheckIcon v-if="isQuestionResolved(question.status)" class="size-3" aria-hidden="true" />
                 </button>
-                <span class="doc-row-title" :class="{ 'is-done': isQuestionResolved(question.status) }">{{ question.title }}</span>
+                <span class="min-w-0 truncate text-sm text-text" :class="isQuestionResolved(question.status) && 'line-through text-muted'">{{ question.title }}</span>
                 <button
                   v-if="question.entity_id"
                   type="button"
-                  class="doc-row-comment-toggle"
-                  :class="{ 'has-comments': commentsFor(question.entity_id).length > 0, 'is-active': isThreadOpen(question.entity_id) }"
+                  :class="[
+                    'inline-flex h-7 shrink-0 items-center gap-1 rounded-md px-2 text-xs text-muted hover:bg-surface-3 hover:text-text',
+                    isThreadOpen(question.entity_id) && 'bg-surface-3 text-text',
+                    commentsFor(question.entity_id).length && 'text-accent'
+                  ]"
                   :title="commentsFor(question.entity_id).length ? `${commentsFor(question.entity_id).length} comments` : 'Add comment'"
                   @click="toggleThread(question.entity_id)"
                 >
@@ -923,61 +858,52 @@ function searchLinkFor(term: string) {
                   <span v-if="commentsFor(question.entity_id).length">{{ commentsFor(question.entity_id).length }}</span>
                 </button>
               </li>
-              <li v-if="isThreadOpen(question.entity_id)" class="doc-row-thread">
-                <div v-if="commentsFor(question.entity_id).length" class="doc-row-thread-comments">
-                  <div v-for="c in commentsFor(question.entity_id)" :key="c.id" class="doc-comment doc-comment--inline">
-                    <div class="doc-comment-body">{{ c.body }}</div>
-                    <div class="doc-comment-meta">
-                      <span>{{ formatDate(c.created_at) }}</span>
-                      <button type="button" class="doc-comment-delete" title="Delete comment" @click="deleteComment(c)">
-                        <TrashIcon class="size-3.5" aria-hidden="true" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div class="doc-row-thread-compose">
-                  <textarea
-                    v-model="rowDrafts[question.entity_id!]"
-                    class="doc-comment-textarea doc-comment-textarea--inline"
-                    rows="2"
-                    placeholder="Add a thought…"
-                    @keydown="handleRowCommentKey($event, question.entity_id, question.entity_id!)"
-                  />
-                  <div class="doc-comment-compose-actions">
-                    <span class="doc-comment-hint">Cmd/Ctrl+Enter to post</span>
-                    <button
-                      type="button"
-                      class="doc-comment-post"
-                      :disabled="!(rowDrafts[question.entity_id!] || '').trim() || rowPosting[question.entity_id!]"
-                      @click="postCommentOn(question.entity_id, question.entity_id!)"
-                    >
-                      {{ rowPosting[question.entity_id!] ? 'Posting…' : 'Post' }}
+              <li v-if="isThreadOpen(question.entity_id)" class="ml-8 space-y-2 border-l-2 border-border-subtle py-2 pl-4">
+                <div v-for="c in commentsFor(question.entity_id)" :key="c.id" class="rounded-md bg-surface-2 p-2 text-sm">
+                  <div class="whitespace-pre-wrap text-text">{{ c.body }}</div>
+                  <div class="mt-1 flex items-center justify-between text-xs text-muted">
+                    <span>{{ formatDate(c.created_at) }}</span>
+                    <button type="button" class="inline-flex size-6 items-center justify-center rounded-md hover:bg-danger-soft hover:text-danger" title="Delete comment" @click="deleteComment(c)">
+                      <TrashIcon class="size-3.5" aria-hidden="true" />
                     </button>
                   </div>
+                </div>
+                <UiTextarea
+                  v-model="rowDrafts[question.entity_id!]"
+                  :rows="2"
+                  placeholder="Add a thought…"
+                  @keydown="handleRowCommentKey($event, question.entity_id, question.entity_id!)"
+                />
+                <div class="flex items-center justify-between text-xs text-muted">
+                  <span>Cmd/Ctrl+Enter to post</span>
+                  <UiButton
+                    size="sm"
+                    :disabled="!(rowDrafts[question.entity_id!] || '').trim()"
+                    :loading="!!rowPosting[question.entity_id!]"
+                    @click="postCommentOn(question.entity_id, question.entity_id!)"
+                  >{{ rowPosting[question.entity_id!] ? 'Posting…' : 'Post' }}</UiButton>
                 </div>
               </li>
             </template>
           </ul>
         </section>
 
-        <section v-if="documentEntityId" class="doc-section">
-          <div class="doc-section-head">
-            <div class="doc-section-title">
-              <ChatBubbleLeftIcon class="size-5 text-slate-500" aria-hidden="true" />
-              <h2>Comments</h2>
-              <span v-if="commentsFor(documentEntityId).length" class="count">{{ commentsFor(documentEntityId).length }}</span>
-            </div>
+        <section v-if="documentEntityId" class="space-y-3">
+          <div class="flex items-center gap-2">
+            <ChatBubbleLeftIcon class="size-5 text-muted" aria-hidden="true" />
+            <h2 class="text-sm font-semibold text-text-strong">Comments</h2>
+            <span v-if="commentsFor(documentEntityId).length" class="text-xs text-muted">{{ commentsFor(documentEntityId).length }}</span>
           </div>
 
-          <ul v-if="commentsFor(documentEntityId).length" class="doc-comment-list">
-            <li v-for="comment in commentsFor(documentEntityId)" :key="comment.id" class="doc-comment">
-              <div class="doc-comment-body">{{ comment.body }}</div>
-              <div class="doc-comment-meta">
+          <ul v-if="commentsFor(documentEntityId).length" class="space-y-2">
+            <li v-for="comment in commentsFor(documentEntityId)" :key="comment.id" class="rounded-card bg-surface-2 p-3">
+              <p class="whitespace-pre-wrap text-sm text-text">{{ comment.body }}</p>
+              <div class="mt-2 flex items-center justify-between text-xs text-muted">
                 <span>{{ formatDate(comment.created_at) }}</span>
                 <button
                   type="button"
-                  class="doc-comment-delete"
-                  :title="'Delete comment'"
+                  class="inline-flex size-7 items-center justify-center rounded-md text-muted-soft hover:bg-danger-soft hover:text-danger"
+                  title="Delete comment"
                   @click="deleteComment(comment)"
                 >
                   <TrashIcon class="size-3.5" aria-hidden="true" />
@@ -986,75 +912,77 @@ function searchLinkFor(term: string) {
             </li>
           </ul>
 
-          <div class="doc-comment-compose">
-            <textarea
+          <div class="space-y-2">
+            <UiTextarea
               v-model="draftCommentBody"
-              class="doc-comment-textarea"
-              rows="2"
-              placeholder="Add a thought, idea, or question..."
+              :rows="2"
+              placeholder="Add a thought, idea, or question…"
               @keydown="handleCommentKey"
             />
-            <div class="doc-comment-compose-actions">
-              <span class="doc-comment-hint">Cmd/Ctrl+Enter to post</span>
-              <button
-                type="button"
-                class="doc-comment-post"
-                :disabled="!draftCommentBody.trim() || postingComment"
+            <div class="flex items-center justify-between text-xs text-muted">
+              <span>Cmd/Ctrl+Enter to post</span>
+              <UiButton
+                size="sm"
+                :disabled="!draftCommentBody.trim()"
+                :loading="postingComment"
                 @click="postComment"
-              >
-                {{ postingComment ? 'Posting…' : 'Post' }}
-              </button>
+              >{{ postingComment ? 'Posting…' : 'Post' }}</UiButton>
             </div>
           </div>
         </section>
 
-        <div class="doc-advanced">
-          <details ref="originalTextDetails" class="doc-disclose" @toggle="originalTextOpen = ($event.target as HTMLDetailsElement).open">
-            <summary class="doc-disclose-trigger">
-              <DocumentTextIcon class="size-4 text-slate-500" aria-hidden="true" />
+        <div class="border-t border-border-subtle pt-4">
+          <details class="group" @toggle="originalTextOpen = ($event.target as HTMLDetailsElement).open">
+            <summary class="inline-flex cursor-pointer items-center gap-1.5 text-xs font-semibold text-text-soft hover:text-text">
+              <DocumentTextIcon class="size-4 text-muted" aria-hidden="true" />
               <span>{{ originalTextOpen ? 'Hide original text' : 'Show original text' }}</span>
             </summary>
-            <pre class="raw-text">{{ document.raw_text }}</pre>
+            <pre class="mt-3 overflow-auto whitespace-pre-wrap rounded-card bg-surface-2 p-3 font-mono text-xs leading-relaxed text-text">{{ document.raw_text }}</pre>
           </details>
         </div>
       </section>
 
-      <aside class="panel side-panel side-panel--flat">
-        <section v-if="people.length" class="side-section">
-          <div class="side-section-head">
-            <UsersIcon class="size-4 text-slate-500" aria-hidden="true" />
+      <aside class="space-y-6 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
+        <section v-if="people.length" class="space-y-2">
+          <div class="flex items-center gap-2 text-sm font-semibold text-text-strong">
+            <UsersIcon class="size-4 text-muted" aria-hidden="true" />
             <h3>People</h3>
-            <span class="count">{{ people.length }}</span>
+            <span class="text-xs font-normal text-muted">{{ people.length }}</span>
           </div>
-          <ul class="people-list">
+          <ul class="space-y-1">
             <li v-for="person in people" :key="person.id">
-              <NuxtLink :to="`/people/${person.id}`" class="entity-link">
-                <span class="avatar" :title="person.name">{{ initialsOf(person.name) }}</span>
-                <span class="person-name">{{ person.name }}</span>
+              <NuxtLink :to="`/people/${person.id}`" class="flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-surface-2">
+                <span class="inline-flex size-6 items-center justify-center rounded-full bg-soft text-xs font-bold text-text-soft" :title="person.name">{{ initialsOf(person.name) }}</span>
+                <span class="truncate text-sm text-text">{{ person.name }}</span>
               </NuxtLink>
             </li>
           </ul>
         </section>
 
-        <section v-if="projects.length" class="side-section">
-          <div class="side-section-head">
-            <FolderIcon class="size-4 text-slate-500" aria-hidden="true" />
+        <section v-if="projects.length" class="space-y-2">
+          <div class="flex items-center gap-2 text-sm font-semibold text-text-strong">
+            <FolderIcon class="size-4 text-muted" aria-hidden="true" />
             <h3>Projects</h3>
           </div>
-          <ul class="project-list">
+          <ul class="space-y-1">
             <li v-for="project in projects" :key="project.id">
-              <NuxtLink :to="`/projects/${project.id}`" class="entity-link">{{ project.name }}</NuxtLink>
+              <NuxtLink :to="`/projects/${project.id}`" class="block rounded-md px-2 py-1.5 text-sm text-text transition-colors hover:bg-surface-2">{{ project.name }}</NuxtLink>
             </li>
           </ul>
         </section>
 
-        <section v-if="tags.length" class="side-section">
-          <div class="side-section-head">
-            <HashtagIcon class="size-4 text-slate-500" aria-hidden="true" />
+        <section v-if="tags.length" class="space-y-2">
+          <div class="flex items-center gap-2 text-sm font-semibold text-text-strong">
+            <HashtagIcon class="size-4 text-muted" aria-hidden="true" />
             <h3>Tags</h3>
           </div>
-          <div class="tag-list">
-            <NuxtLink v-for="t in tags" :key="t.id" :to="`/tags/${t.id}`" class="tag">#{{ t.name }}</NuxtLink>
+          <div class="flex flex-wrap gap-1.5">
+            <NuxtLink
+              v-for="t in tags"
+              :key="t.id"
+              :to="`/tags/${t.id}`"
+              class="inline-flex items-center rounded-full bg-soft px-2.5 py-1 text-xs font-medium text-text-soft transition-colors hover:bg-accent-soft hover:text-accent"
+            >#{{ t.name }}</NuxtLink>
           </div>
         </section>
       </aside>

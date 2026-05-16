@@ -108,48 +108,69 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="rootRef" class="assignee-picker">
+  <div ref="rootRef" class="relative">
     <button
       v-if="personName"
       type="button"
-      class="assignee-pill"
+      class="inline-flex items-center gap-1.5 rounded-full bg-surface-2 py-0.5 pl-0.5 pr-2 text-xs hover:bg-surface-3"
       :title="personName"
       @click="openPicker"
     >
-      <span class="assignee-avatar" :style="{ background: avatarColor.bg, color: avatarColor.fg }">{{ initials || '?' }}</span>
-      <span class="assignee-name">{{ personName }}</span>
-      <span class="assignee-clear" :aria-label="`Remove ${personName}`" @click="clearAssignee">
+      <span
+        class="inline-flex size-5 items-center justify-center rounded-full text-[10px] font-bold"
+        :style="{ background: avatarColor.bg, color: avatarColor.fg }"
+      >{{ initials || '?' }}</span>
+      <span class="truncate text-text">{{ personName }}</span>
+      <span
+        class="inline-flex size-4 items-center justify-center rounded-full text-muted-soft hover:bg-surface-1 hover:text-danger"
+        role="button"
+        :aria-label="`Remove ${personName}`"
+        @click="clearAssignee"
+      >
         <XMarkIcon class="size-3" aria-hidden="true" />
       </span>
     </button>
-    <button v-else type="button" class="assignee-empty" @click="openPicker">
+    <button
+      v-else
+      type="button"
+      class="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border-default px-2 py-1 text-xs text-muted hover:border-border-strong hover:bg-surface-2 hover:text-text"
+      @click="openPicker"
+    >
       <UserIcon class="size-3.5" aria-hidden="true" />
       <span>{{ placeholder || 'Assign' }}</span>
     </button>
 
-    <div v-if="open" class="assignee-popover" role="dialog">
+    <div
+      v-if="open"
+      class="absolute left-0 top-full z-30 mt-1 w-64 rounded-card border border-border-default bg-surface-1 p-2 shadow-popover"
+      role="dialog"
+    >
       <input
         ref="inputRef"
         v-model="queryStr"
         type="text"
-        class="assignee-input"
+        class="block w-full rounded-md border border-border-strong bg-surface-1 px-2 py-1.5 text-sm text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
         placeholder="Search or add a person"
         @keydown.esc.prevent="closePicker"
         @keydown.enter.prevent="queryStr.trim() && !hasExactMatch ? createPerson() : results[0] && selectPerson(results[0])"
       >
-      <ul v-if="results.length" class="assignee-results">
+      <ul v-if="results.length" class="mt-1 max-h-56 overflow-auto">
         <li v-for="person in results" :key="person.id">
-          <button type="button" class="assignee-option" @click="selectPerson(person)">
+          <button
+            type="button"
+            class="flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm text-text hover:bg-surface-3"
+            @click="selectPerson(person)"
+          >
             <span>{{ person.name }}</span>
           </button>
         </li>
       </ul>
-      <p v-else-if="!fetching && !queryStr" class="assignee-empty-state">No people yet</p>
-      <p v-else-if="!fetching && !results.length" class="assignee-empty-state">No matches</p>
+      <p v-else-if="!fetching && !queryStr" class="px-2 py-1.5 text-xs text-muted">No people yet</p>
+      <p v-else-if="!fetching && !results.length" class="px-2 py-1.5 text-xs text-muted">No matches</p>
       <button
         v-if="queryStr.trim() && !hasExactMatch"
         type="button"
-        class="assignee-create"
+        class="mt-1 inline-flex w-full items-center gap-1.5 border-t border-border-subtle px-2 py-1.5 text-left text-sm font-semibold text-accent hover:bg-accent-soft"
         @click="createPerson"
       >
         <PlusIcon class="size-3.5" aria-hidden="true" />

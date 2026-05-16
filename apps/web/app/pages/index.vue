@@ -101,9 +101,6 @@ async function importFiles(files: FileList | File[]) {
   fileError.value = ''
   importPending.value = true
   try {
-    // Single-file PDF / unsupported binary path: upload server-side so
-    // pdfjs / mammoth / OCR run in Node and we get a real capture with an
-    // attachment row, not just text in a textarea.
     if (list.length === 1) {
       const file = list[0]!
       if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
@@ -182,90 +179,101 @@ async function submitCapture() {
 </script>
 
 <template>
-  <div>
-    <main class="mx-auto grid min-h-[calc(100vh-72px)] max-w-5xl content-start gap-8 px-5 py-14">
-      <section class="grid gap-6">
-        <div class="text-center">
-          <h1 class="text-[30px] font-medium leading-tight text-slate-950">What do you want to remember?</h1>
+  <main class="mx-auto grid min-h-[calc(100vh-72px)] max-w-5xl content-start gap-8 px-5 py-14">
+    <section class="grid gap-6">
+      <div class="text-center">
+        <h1 class="text-3xl font-medium leading-tight text-text-strong">What do you want to remember?</h1>
+      </div>
+
+      <form
+        :class="[
+          'rounded-card border bg-surface-1 p-3 shadow-popover transition-colors',
+          dragActive ? 'border-accent ring-4 ring-accent/15' : 'border-border-default'
+        ]"
+        @submit.prevent="submitCapture"
+        @dragenter.prevent="dragActive = true"
+        @dragover.prevent="dragActive = true"
+        @dragleave.prevent="dragActive = false"
+        @drop.prevent="handleDrop"
+      >
+        <label class="relative block">
+          <span class="sr-only">Transcript / Note <span aria-hidden="true" class="text-danger">*</span></span>
+          <textarea
+            v-model="form.rawText"
+            required
+            rows="14"
+            class="min-h-[320px] w-full rounded-md border-0 bg-transparent p-3 text-[15px] leading-6 text-text outline-none placeholder:text-muted-soft focus:outline-none focus:ring-0"
+            placeholder="Paste or drop a meeting transcript, voice-note transcript, conversation note, or business reflection..."
+          ></textarea>
+          <span
+            v-if="dragActive"
+            class="pointer-events-none absolute inset-0 grid place-items-center rounded-md bg-surface-1/80 text-sm font-semibold text-accent"
+          >Drop files to import</span>
+        </label>
+
+        <div class="mt-4 grid gap-3 border-t border-border-subtle pt-4 md:grid-cols-[1fr_180px_180px_auto] md:items-end">
+          <UiField label="Source" required>
+            <UiSelect v-model="form.sourceType" :options="sourceOptions" />
+          </UiField>
+          <UiField label="Date" required>
+            <template #default="{ id }">
+              <UiInput :id="id" v-model="form.capturedAt" type="date" required />
+            </template>
+          </UiField>
+          <UiField label="Confidentiality" required>
+            <UiSelect v-model="form.confidentiality" :options="confidentialityOptions" />
+          </UiField>
+          <UiButton type="submit" :loading="pending" class="h-9 whitespace-nowrap md:self-end">
+            {{ pending ? 'Processing…' : 'Capture' }}
+          </UiButton>
         </div>
 
-        <form
-          :class="[
-            'rounded-xl border bg-white/70 p-3 shadow-[0_14px_45px_rgba(15,23,42,0.07)] backdrop-blur',
-            dragActive ? 'border-blue-500 ring-4 ring-blue-100' : 'border-slate-300'
-          ]"
-          @submit.prevent="submitCapture"
-          @dragenter.prevent="dragActive = true"
-          @dragover.prevent="dragActive = true"
-          @dragleave.prevent="dragActive = false"
-          @drop.prevent="handleDrop"
-        >
-          <label class="relative">
-            <span class="sr-only">Transcript / Note <strong class="required">*</strong></span>
-            <textarea
-              v-model="form.rawText"
-              required
-              rows="14"
-              class="min-h-[320px] rounded-lg border-0 bg-transparent p-3 text-[15px] leading-6 shadow-none focus:border-transparent focus:shadow-none focus:ring-0"
-              placeholder="Paste or drop a meeting transcript, voice-note transcript, conversation note, or business reflection..."
-            ></textarea>
-            <span v-if="dragActive" class="pointer-events-none absolute inset-0 grid place-items-center rounded-lg bg-white/75 text-sm font-semibold text-blue-700">
-              Drop files to import
-            </span>
+        <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+          <span>{{ importPending ? 'Importing file…' : 'Drop DOCX, VTT, Markdown, or text files into the input.' }}</span>
+          <label class="inline-flex cursor-pointer text-xs font-semibold text-accent hover:text-accent-strong">
+            <input class="sr-only" type="file" accept=".docx,.vtt,.md,.markdown,.txt,text/*" multiple @change="handleFileSelect">
+            <span>Choose files</span>
           </label>
-
-          <div class="mt-4 grid gap-3 border-t border-slate-200 pt-4 md:grid-cols-[1fr_180px_180px_auto] md:items-end">
-            <BkosSelect v-model="form.sourceType" label="Source" :options="sourceOptions" required />
-
-            <label>
-              <span>Date <strong class="required">*</strong></span>
-              <input v-model="form.capturedAt" type="date" required>
-            </label>
-
-            <BkosSelect v-model="form.confidentiality" label="Confidentiality" :options="confidentialityOptions" required />
-
-            <button class="h-[42px] whitespace-nowrap" type="submit" :disabled="pending">
-              {{ pending ? 'Processing...' : 'Capture' }}
-            </button>
-          </div>
-
-          <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-            <span>{{ importPending ? 'Importing file...' : 'Drop DOCX, VTT, Markdown, or text files into the input.' }}</span>
-            <label class="file-import-trigger">
-              <input class="sr-only" type="file" accept=".docx,.vtt,.md,.markdown,.txt,text/*" multiple @change="handleFileSelect">
-              <span>Choose files</span>
-            </label>
-          </div>
-
-          <p v-if="fileError" class="error mt-3">{{ fileError }}</p>
-          <p v-if="error" class="error mt-3">{{ error }}</p>
-        </form>
-
-        <div class="flex flex-wrap items-center justify-center gap-2">
-          <NuxtLink class="info-pill" to="/actions">
-            <ClipboardDocumentListIcon class="size-4" aria-hidden="true" />
-            <span>{{ openActionsLabel }}</span>
-          </NuxtLink>
-          <button class="info-pill" type="button" :aria-expanded="showRecentDocuments" @click="showRecentDocuments = !showRecentDocuments">
-            <ClockIcon class="size-4" aria-hidden="true" />
-            <span>{{ recentDocumentsLabel }}</span>
-          </button>
-        </div>
-      </section>
-
-      <section v-if="showRecentDocuments" class="px-1">
-        <div class="mb-3 flex items-center justify-between gap-3">
-          <h2>Recent documents</h2>
         </div>
 
-        <div class="list ghost-list">
-          <NuxtLink v-for="document in documents.slice(0, 6)" :key="document.id" class="list-item compact" :to="`/documents/${document.id}`">
-            <span>{{ document.title }}</span>
-            <small>{{ document.source_type }} · {{ document.status }}</small>
-          </NuxtLink>
-          <p v-if="!documents.length" class="muted">No documents captured yet.</p>
-        </div>
-      </section>
-    </main>
-  </div>
+        <p v-if="fileError" class="mt-3 text-xs text-danger">{{ fileError }}</p>
+        <p v-if="error" class="mt-3 text-xs text-danger">{{ error }}</p>
+      </form>
+
+      <div class="flex flex-wrap items-center justify-center gap-2">
+        <NuxtLink
+          class="inline-flex min-h-[34px] items-center gap-1.5 rounded-full border border-panel-border bg-surface-1/70 px-3 py-1.5 text-sm font-semibold text-text-soft transition-colors hover:border-border-strong hover:bg-surface-1 hover:text-text"
+          to="/actions"
+        >
+          <ClipboardDocumentListIcon class="size-4" aria-hidden="true" />
+          <span>{{ openActionsLabel }}</span>
+        </NuxtLink>
+        <button
+          type="button"
+          class="inline-flex min-h-[34px] items-center gap-1.5 rounded-full border border-panel-border bg-surface-1/70 px-3 py-1.5 text-sm font-semibold text-text-soft transition-colors hover:border-border-strong hover:bg-surface-1 hover:text-text"
+          :aria-expanded="showRecentDocuments"
+          @click="showRecentDocuments = !showRecentDocuments"
+        >
+          <ClockIcon class="size-4" aria-hidden="true" />
+          <span>{{ recentDocumentsLabel }}</span>
+        </button>
+      </div>
+    </section>
+
+    <section v-if="showRecentDocuments" class="px-1">
+      <h2 class="mb-3 text-sm font-semibold text-text-strong">Recent documents</h2>
+      <div class="space-y-1">
+        <NuxtLink
+          v-for="document in documents.slice(0, 6)"
+          :key="document.id"
+          class="flex items-baseline justify-between gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-surface-2"
+          :to="`/documents/${document.id}`"
+        >
+          <span class="truncate text-sm font-medium text-text">{{ document.title }}</span>
+          <small class="shrink-0 text-xs text-muted">{{ document.source_type }} · {{ document.status }}</small>
+        </NuxtLink>
+        <p v-if="!documents.length" class="text-sm text-muted">No documents captured yet.</p>
+      </div>
+    </section>
+  </main>
 </template>

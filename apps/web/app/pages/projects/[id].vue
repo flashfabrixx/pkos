@@ -75,10 +75,10 @@ async function toggleAction(action: ActionRow) {
   >
     <template #avatar>
       <span
-        class="avatar avatar--xl entity-tile"
+        class="inline-flex size-12 shrink-0 items-center justify-center rounded-card"
         :style="{ background: projectColor.bg, color: projectColor.fg }"
       >
-        <FolderIcon class="size-7" aria-hidden="true" />
+        <FolderIcon class="size-6" aria-hidden="true" />
       </span>
     </template>
     <template #sections>

@@ -79,7 +79,7 @@ async function toggleAction(action: ActionRow) {
   >
     <template #avatar>
       <span
-        class="avatar avatar--xl"
+        class="inline-flex size-12 shrink-0 items-center justify-center rounded-full text-lg font-bold"
         :style="{ background: avatarColor.bg, color: avatarColor.fg }"
       >{{ initials }}</span>
     </template>

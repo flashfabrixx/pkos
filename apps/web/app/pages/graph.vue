@@ -55,71 +55,98 @@ const visibleEdges = computed(() => edges.value
   .map((edge) => ({ ...edge, sourceNode: nodeMap.value.get(edge.source), targetNode: nodeMap.value.get(edge.target) }))
   .filter((edge) => edge.sourceNode && edge.targetNode))
 
-function nodeClass(type: string) {
-  return `graph-node ${type}`
+const NODE_FILL: Record<string, string> = {
+  document: 'var(--accent)',
+  person: 'var(--graph-person)',
+  project: 'var(--graph-project)',
+  decision: 'var(--success)',
+  insight: 'var(--warning)',
+  question: 'var(--danger)',
+  tag: 'var(--accent-strong)',
+  topic: 'var(--muted)'
+}
+
+function nodeFill(t: string) {
+  return NODE_FILL[t] || 'var(--muted)'
 }
 </script>
 
 <template>
-  <div>
-    <main class="workspace graph-workspace">
-      <section class="panel graph-panel">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Knowledge Wave</p>
-            <h1>Entity graph</h1>
-          </div>
-          <button type="button" class="secondary" @click="refresh">Refresh</button>
+  <main class="mx-auto grid max-w-[1280px] gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <section class="rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
+      <header class="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">Knowledge Wave</p>
+          <h1 class="text-xl font-semibold tracking-tight text-text-strong">Entity graph</h1>
         </div>
+        <UiButton variant="secondary" size="sm" @click="refresh">Refresh</UiButton>
+      </header>
 
-        <div class="filters">
-          <BkosSelect v-model="type" label="Node type" :options="nodeTypeOptions" />
-          <BkosSelect v-model="relation" label="Relation" :options="relationOptions" />
-        </div>
+      <div class="mb-4 grid gap-3 md:grid-cols-2">
+        <UiField label="Node type">
+          <UiSelect v-model="type" :options="nodeTypeOptions" />
+        </UiField>
+        <UiField label="Relation">
+          <UiSelect v-model="relation" :options="relationOptions" />
+        </UiField>
+      </div>
 
-        <div class="graph-canvas">
-          <svg viewBox="0 0 840 520" role="img" aria-label="Knowledge graph">
-            <line
-              v-for="edge in visibleEdges"
-              :key="edge.id"
-              :x1="edge.sourceNode!.x"
-              :y1="edge.sourceNode!.y"
-              :x2="edge.targetNode!.x"
-              :y2="edge.targetNode!.y"
-              class="graph-edge"
+      <div class="overflow-hidden rounded-card border border-border-subtle bg-surface-2">
+        <svg viewBox="0 0 840 520" class="block h-auto w-full" role="img" aria-label="Knowledge graph">
+          <line
+            v-for="edge in visibleEdges"
+            :key="edge.id"
+            :x1="edge.sourceNode!.x"
+            :y1="edge.sourceNode!.y"
+            :x2="edge.targetNode!.x"
+            :y2="edge.targetNode!.y"
+            stroke="var(--border-strong)"
+            stroke-width="1"
+            stroke-opacity="0.6"
+          />
+          <g v-for="node in positionedNodes" :key="node.id">
+            <circle
+              :cx="node.x"
+              :cy="node.y"
+              :r="node.type === 'document' ? 19 : 13"
+              :fill="nodeFill(node.type)"
+              fill-opacity="0.9"
             />
-            <g v-for="node in positionedNodes" :key="node.id">
-              <circle :class="nodeClass(node.type)" :cx="node.x" :cy="node.y" :r="node.type === 'document' ? 19 : 13" />
-              <text :x="node.x + 16" :y="node.y + 4">{{ node.name }}</text>
-            </g>
-          </svg>
-        </div>
+            <text
+              :x="node.x + 16"
+              :y="node.y + 4"
+              fill="var(--text)"
+              font-size="11"
+              font-family="Inter, sans-serif"
+            >{{ node.name }}</text>
+          </g>
+        </svg>
+      </div>
 
-        <p v-if="pending" class="muted">Loading graph...</p>
-        <p v-if="!pending && !nodes.length" class="muted">No graph data yet. Capture a document to create entities and edges.</p>
+      <p v-if="pending" class="mt-3 text-sm text-muted">Loading graph…</p>
+      <p v-if="!pending && !nodes.length" class="mt-3 text-sm text-muted">No graph data yet. Capture a document to create entities and edges.</p>
+    </section>
+
+    <aside class="space-y-6 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
+      <section class="space-y-2">
+        <h2 class="text-sm font-semibold text-text-strong">Nodes</h2>
+        <ul class="space-y-1">
+          <li v-for="node in nodes" :key="node.id" class="flex items-baseline justify-between gap-2 rounded-md px-2 py-1 text-sm hover:bg-surface-2">
+            <span class="truncate text-text">{{ node.name }}</span>
+            <small class="shrink-0 text-xs text-muted">{{ node.type }} · {{ node.mentions }}</small>
+          </li>
+        </ul>
       </section>
 
-      <aside class="panel side-panel">
-        <section>
-          <h2>Nodes</h2>
-          <div class="list">
-            <div v-for="node in nodes" :key="node.id" class="list-item compact">
-              <span>{{ node.name }}</span>
-              <small>{{ node.type }} · {{ node.mentions }} mention(s)</small>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h2>Edges</h2>
-          <div class="list">
-            <div v-for="edge in edges" :key="edge.id" class="list-item compact">
-              <span>{{ edge.relation_type }}</span>
-              <small>{{ edge.document_title || edge.document_id }} · confidence {{ Number(edge.confidence).toFixed(2) }}</small>
-            </div>
-          </div>
-        </section>
-      </aside>
-    </main>
-  </div>
+      <section class="space-y-2">
+        <h2 class="text-sm font-semibold text-text-strong">Edges</h2>
+        <ul class="space-y-1">
+          <li v-for="edge in edges" :key="edge.id" class="flex items-baseline justify-between gap-2 rounded-md px-2 py-1 text-sm hover:bg-surface-2">
+            <span class="truncate text-text">{{ edge.relation_type }}</span>
+            <small class="shrink-0 text-xs text-muted">{{ Number(edge.confidence).toFixed(2) }}</small>
+          </li>
+        </ul>
+      </section>
+    </aside>
+  </main>
 </template>

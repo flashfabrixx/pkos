@@ -27,26 +27,26 @@ function startMerge(s: Suggestion) {
 </script>
 
 <template>
-  <section v-if="suggestions.length" class="entity-suggestions">
-    <header class="entity-suggestions-head">
-      <h3>Possible duplicates</h3>
-      <p class="muted">Computed nightly from embeddings. Accept to merge, dismiss to ignore for 30 days.</p>
+  <section v-if="suggestions.length" class="space-y-2 rounded-card border border-warning-border bg-warning-soft p-3">
+    <header class="space-y-0.5">
+      <h3 class="text-sm font-semibold text-warning">Possible duplicates</h3>
+      <p class="text-xs text-text-soft">Computed nightly from embeddings. Accept to merge, dismiss to ignore for 30 days.</p>
     </header>
-    <ul>
-      <li v-for="s in suggestions" :key="s.id" class="entity-suggestion-row">
-        <div class="entity-suggestion-main">
-          <strong>{{ s.target_name }}</strong>
-          <span class="muted">{{ s.target_type }} · score {{ (s.score * 100).toFixed(0) }}</span>
+    <ul class="space-y-2">
+      <li v-for="s in suggestions" :key="s.id" class="rounded-md bg-surface-1 p-2">
+        <div class="mb-2 space-y-0.5">
+          <strong class="block truncate text-sm text-text">{{ s.target_name }}</strong>
+          <span class="text-xs text-muted">{{ s.target_type }} · score {{ (s.score * 100).toFixed(0) }}</span>
         </div>
-        <div class="entity-suggestion-actions">
-          <button type="button" class="entity-suggestion-btn" @click="startMerge(s)">
+        <div class="flex gap-1.5">
+          <UiButton size="sm" variant="secondary" @click="startMerge(s)">
             <ArrowsRightLeftIcon class="size-4" aria-hidden="true" />
             Merge
-          </button>
-          <button type="button" class="entity-suggestion-btn entity-suggestion-btn--ghost" @click="dismiss(s.id)">
+          </UiButton>
+          <UiButton size="sm" variant="ghost" @click="dismiss(s.id)">
             <XMarkIcon class="size-4" aria-hidden="true" />
             Dismiss
-          </button>
+          </UiButton>
         </div>
       </li>
     </ul>
