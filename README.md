@@ -1,162 +1,81 @@
-# BKOS - Business Knowledge Operating System
+# BKOS — Business Knowledge Operating System
 
-Business knowledge capture, processing, retrieval, and action tracking.
+Self-hosted knowledge capture, processing, retrieval and action
+tracking. BKOS turns meeting transcripts, voice notes, emails and
+clipped web pages into a queryable knowledge base with semantic search,
+entity graph, action reminders and outbound webhooks.
 
-## Purpose
+[![Roadmap status: 1.0 ready](https://img.shields.io/badge/roadmap-1.0--ready-brightgreen)](docs/roadmap-v1.md)
 
-BKOS turns meeting transcripts, voice notes, and business reflections into a queryable business knowledge base.
+## At a glance
 
-The first version should stay narrow:
+- **Capture** from text, drag-and-drop file uploads (PDF / DOCX),
+  IMAP email, or a one-click web-clipper bookmarklet.
+- **Process** with pluggable extraction (OpenRouter / Ollama /
+  placeholder) and 1024-dim multilingual embeddings (bge-m3 or
+  text-embedding-3-small).
+- **Discover** with hybrid semantic + lexical search,
+  entity-link suggestions, and a `⌘K` command palette.
+- **Act** with an Asana-style action board and a daily mail digest of
+  due / overdue items.
+- **Integrate** via a versioned REST API (`/api/v1/*`) with API keys
+  and HMAC-signed outbound webhooks.
+- **Operate** with `/healthz`, `/readyz`, structured pino logs, an
+  append-only audit log and a portable JSONL backup CLI.
 
-- capture text and transcript inputs
-- extract summaries, people, projects, decisions, insights, and action items
-- store human-readable notes
-- index content for semantic search
-- provide a web UI for inbox, query, and open actions
-
-## Quick Start
+## 5-minute quickstart (local dev)
 
 ```bash
+git clone https://github.com/your-org/bkos.git
+cd bkos
 cp .env.example .env
-
-# Generate a session secret and put it in .env
 echo "SESSION_SECRET=$(openssl rand -base64 48)" >> .env
-
-# Pick a Postgres password
 echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)" >> .env
 
-# Generate a hashed login password
 pnpm install
-pnpm setup:password
-# paste the printed BKOS_PASSWORD_HASH=... line into .env
-
-docker compose up -d
+pnpm setup:password   # paste output into BKOS_PASSWORD_HASH in .env
+docker compose up -d postgres
 pnpm db:migrate
 pnpm dev
 ```
 
-Open `http://localhost:3000`.
+Visit <http://localhost:3000>, finish the `/setup` wizard, and you're
+ready to capture.
 
-For a stable named local URL while the dev server is running:
+## Production deployment
 
 ```bash
-pnpm dev:portless
+cp .env.prod.example .env.prod   # fill in MUST-CHANGE lines
+docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
 ```
 
-Then open `http://bkos.localhost:1355`.
+See [`docs/deployment.md`](docs/deployment.md) for the full guide,
+including TLS via Caddy or Traefik and **zero-trust** options
+(Tailscale + Cloudflare Access) that never expose BKOS to the public
+internet.
 
-The default `BKOS_USERNAME` in `.env.example` is `marcel` — change it for your own setup.
+## Documentation
 
-For two-factor authentication, password recovery, and the full security
-posture, see [`docs/security.md`](docs/security.md).
+| Topic                     | File                                |
+| ------------------------- | ----------------------------------- |
+| Roadmap & sprint status   | [`docs/roadmap-v1.md`](docs/roadmap-v1.md) |
+| Changelog                 | [`docs/changelog.md`](docs/changelog.md)   |
+| Public REST API           | [`docs/api.md`](docs/api.md)               |
+| Security model            | [`docs/security.md`](docs/security.md)     |
+| Email → BKOS              | [`docs/email-setup.md`](docs/email-setup.md) |
+| Backup & restore          | [`docs/backup.md`](docs/backup.md)         |
+| Deployment (incl. zero-trust) | [`docs/deployment.md`](docs/deployment.md) |
+| Contributing              | [`docs/contributing.md`](docs/contributing.md) |
+| ADRs                      | [`docs/adr/`](docs/adr/)                    |
 
-## Repository Structure
+## Tests
 
-```text
-bkos/
-  apps/
-    web/          # Web UI: inbox, search, actions, topics
-    api/          # Capture, analysis, retrieval, auth
-  packages/
-    core/         # Domain schemas and shared types
-    ingest/       # Text and transcript parsing
-    retrieval/    # Search and RAG abstractions
-  infra/
-    migrations/   # Database migrations
-    deploy/       # Deployment configuration
-  docs/
-    adr/          # Architecture decision records
+```bash
+pnpm test         # unit + integration, requires Docker for Postgres testcontainer
+pnpm test:cov     # with coverage
 ```
 
-## Relationship To PKOS
+## License
 
-BKOS is intentionally separate from PKOS.
-
-PKOS remains the personal knowledge and operations system. BKOS owns business-specific capture, auth, data classification, retrieval, and action tracking.
-
-Reusable ideas from PKOS:
-
-- markdown notes as durable, human-readable source material
-- Postgres and pgvector for hybrid retrieval
-- structured extraction for people, projects, action items, decisions, and insights
-- local-first processing where practical
-
-Shared code should be extracted only after stable boundaries emerge.
-
-## BKOS v1 Scope
-
-The first vertical slice implements:
-
-- single-user password login with signed session cookie
-- capture form for business notes and transcripts
-- deterministic placeholder extraction for summaries, people, projects, action items, decisions, insights, open questions, and tags
-- Postgres persistence with explicit SQL migrations
-- pgvector-ready chunks table
-- Markdown archive output under `BKOS_VAULT_PATH`
-- document detail view
-- search view using Postgres text search and fallback matching
-- action list with status updates
-
-LLM extraction and embedding generation are intentionally behind a future interface. The app works without an LLM provider.
-
-## UI Direction
-
-The first screen is a focused capture workspace, not a landing page or analytics dashboard.
-
-It prioritizes:
-
-- global search in the top navigation
-- a large transcript input as the primary action
-- required source, date, and confidentiality fields directly below capture
-- lightweight open action and recent document counts
-- recent documents as supporting context
-- direct access to actions and the knowledge graph through navigation
-
-The UI uses Tailwind CSS for layout/utilities and Heroicons for navigation/status icons. Existing plain CSS remains for a few app-specific primitives while the interface is migrated incrementally.
-
-## Open Source And API Direction
-
-BKOS is intended to become open source early. Code, docs, and module boundaries should assume outside readers and future contributors.
-
-Near-term conventions:
-
-- keep configuration in `.env.example` without secrets
-- document architecture decisions in `docs/adr`
-- prefer explicit database migrations and typed server boundaries
-- keep capture, extraction, archive, retrieval, graph, and action workflows modular
-
-Future API work should add browser-accessible API documentation, ideally generated from route schemas, so external tools, skills, MCP servers, and systems such as Paperarchive can integrate without reading Nuxt internals.
-
-## BKOS v1.1 Knowledge Graph
-
-BKOS also builds a first native knowledge graph:
-
-- canonical `entities` for documents, people, projects, decisions, insights, questions, tags, and topics
-- `entity_mentions` with document evidence and confidence
-- typed `knowledge_edges` such as `document_mentions`, `belongs_to_project`, `assigned_to`, `decided_in`, `insight_about`, and `question_about`
-- Obsidian-compatible wikilinks in Markdown archive files
-- graph API at `/api/graph`
-- graph view at `/graph`
-
-## Embeddings (semantic retrieval)
-
-`chunks.embedding` and `entities.embedding` are 1024-dimensional vectors
-stored via pgvector with an HNSW cosine index. They are populated by a
-pluggable provider:
-
-- `BKOS_EMBEDDING_PROVIDER=placeholder` (default) — no embeddings written
-- `BKOS_EMBEDDING_PROVIDER=ollama` — local, default model `bge-m3`
-  (multilingual; `ollama pull bge-m3` first)
-- `BKOS_EMBEDDING_PROVIDER=openai` — uses `text-embedding-3-small` with
-  `dimensions=1024`; `OPENAI_API_KEY` required
-
-The model chosen must produce 1024-dimensional vectors (or longer — they
-are truncated). All defaults are multilingual; no language detection is
-needed on our side, German and English notes co-exist in one vector
-space.
-
-Calls are fail-open: if the provider is unreachable, the record is stored
-without an embedding and a single warning is logged. Re-run
-`pnpm db:embed` after switching providers to backfill existing rows.
-
-The graph extractor is deterministic for now. LLM-based entity and relation extraction should be added behind the same schema later.
+This project is under active pre-1.0 development. License file lands
+with the `v1.0.0` tag.
