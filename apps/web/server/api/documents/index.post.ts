@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { sourceTypes, confidentialityLevels, type CaptureInput } from '@bkos/core'
 import { requireAuth } from '../../utils/auth'
 import { withTransaction } from '../../utils/db'
+import { emitEvent } from '../../utils/events'
 import { prepareInput } from '../../utils/extractor'
 import { processDocument } from '../../utils/process'
 
@@ -60,6 +61,9 @@ export default defineEventHandler(async (event) => {
     const jobRow = jobResult.rows[0]
     if (!jobRow) throw createError({ statusCode: 500, statusMessage: 'Job insert failed' })
     const extracted = await processDocument(client, documentId, input, jobRow.id)
+
+    await emitEvent('capture.created', { document_id: documentId, title: input.title, source_type: input.sourceType })
+    await emitEvent('capture.processed', { document_id: documentId, summary: extracted.summary?.slice(0, 240) })
 
     return {
       documentId,
