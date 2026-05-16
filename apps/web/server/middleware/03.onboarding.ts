@@ -3,6 +3,7 @@ import { isSetupComplete } from '../utils/setup-state'
 
 const ALLOW_PATH_PREFIXES = [
   '/setup',
+  '/login',
   '/_nuxt',
   '/_ipx',
   '/api/setup',
