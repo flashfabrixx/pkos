@@ -1,9 +1,9 @@
 import { createError, getRouterParam } from 'h3'
 import type { CaptureInput, Confidentiality, SourceType } from '@bkos/core'
-import { requireAuth } from '../../utils/auth'
-import { withTransaction } from '../../utils/db'
-import { prepareInput } from '../../utils/extractor'
-import { processDocument } from '../../utils/process'
+import { requireAuth } from '../../../utils/auth'
+import { withTransaction } from '../../../utils/db'
+import { prepareInput } from '../../../utils/extractor'
+import { processDocument } from '../../../utils/process'
 
 export default defineEventHandler(async (event) => {
   requireAuth(event)

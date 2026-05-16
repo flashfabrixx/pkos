@@ -1,5 +1,5 @@
-import { recomputeSuggestions } from '../utils/suggest-links'
-import { logger } from '../utils/logger'
+import { recomputeSuggestions } from '../../utils/suggest-links'
+import { logger } from '../../utils/logger'
 
 export default defineTask({
   meta: {
