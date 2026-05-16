@@ -28,7 +28,7 @@ const ALLOWED_MIME = new Set([
  */
 export default defineEventHandler(async (event) => {
   await requireAuthOrApiKey(event, 'captures:write')
-  const config = useRuntimeConfig() as { maxUploadMb?: number }
+  const config = useRuntimeConfig() as unknown as { maxUploadMb?: string | number }
   const maxBytes = Math.max(1, Number(config.maxUploadMb || 25)) * 1024 * 1024
 
   const parts = await readMultipartFormData(event)

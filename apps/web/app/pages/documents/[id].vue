@@ -622,7 +622,7 @@ function searchLinkFor(term: string) {
                   </button>
                   <input
                     v-else
-                    :ref="(el) => titleInputs[action.id] = el as HTMLInputElement | null"
+                    :ref="(el: any) => titleInputs[action.id] = el as HTMLInputElement | null"
                     v-model="draftActionTitle"
                     class="doc-action-title-input"
                     type="text"
@@ -671,7 +671,7 @@ function searchLinkFor(term: string) {
                     <span v-else>{{ isTodayAction(action) ? 'Today' : formatDate(action.due_date) }}</span>
                   </button>
                   <input
-                    :ref="(el) => dueDateInputs[action.id] = el as HTMLInputElement | null"
+                    :ref="(el: any) => dueDateInputs[action.id] = el as HTMLInputElement | null"
                     type="date"
                     class="doc-action-due-input"
                     :value="action.due_date || ''"
@@ -742,7 +742,7 @@ function searchLinkFor(term: string) {
                   </button>
                   <input
                     v-else
-                    :ref="(el) => decisionInputs[decision.id] = el as HTMLInputElement | null"
+                    :ref="(el: any) => decisionInputs[decision.id] = el as HTMLInputElement | null"
                     v-model="draftDecisionTitle"
                     class="doc-row-edit-input"
                     type="text"
@@ -826,7 +826,7 @@ function searchLinkFor(term: string) {
                 </button>
                 <input
                   v-else
-                  :ref="(el) => insightInputs[insight.id] = el as HTMLInputElement | null"
+                  :ref="(el: any) => insightInputs[insight.id] = el as HTMLInputElement | null"
                   v-model="draftInsightTitle"
                   class="doc-row-edit-input"
                   type="text"

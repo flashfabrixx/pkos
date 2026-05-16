@@ -30,36 +30,40 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgres://${POSTGRES_USER:-bkos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-bkos}
-      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set}
-      BKOS_USERNAME: ${BKOS_USERNAME:-admin}
-      BKOS_PASSWORD_HASH: ${BKOS_PASSWORD_HASH:?BKOS_PASSWORD_HASH must be set}
-      BKOS_VAULT_PATH: /data/vault
-      BKOS_FILES_PATH: /data/files
-      BKOS_MAX_UPLOAD_MB: ${BKOS_MAX_UPLOAD_MB:-25}
       LOG_LEVEL: ${LOG_LEVEL:-info}
-      BKOS_EXTRACTOR_PROVIDER: ${BKOS_EXTRACTOR_PROVIDER:-placeholder}
-      BKOS_EMBEDDING_PROVIDER: ${BKOS_EMBEDDING_PROVIDER:-placeholder}
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openai/gpt-4.1-mini}
-      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
-      OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma4:e4b}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      BKOS_EMBEDDING_MODEL: ${BKOS_EMBEDDING_MODEL:-}
-      # Mail (optional)
-      MAIL_HOST: ${MAIL_HOST:-}
-      MAIL_PORT: ${MAIL_PORT:-993}
-      MAIL_USER: ${MAIL_USER:-}
-      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
-      MAIL_SECURE: ${MAIL_SECURE:-true}
-      MAIL_FROM_ALLOW: ${MAIL_FROM_ALLOW:-}
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_SECURE: ${SMTP_SECURE:-false}
-      SMTP_FROM: ${SMTP_FROM:-}
-      BKOS_REMINDER_EMAIL: ${BKOS_REMINDER_EMAIL:-}
+      # Nuxt runtimeConfig is baked at build time but accepts runtime
+      # overrides via NUXT_<KEY> env vars (screaming-snake of camelCase).
+      # Use those here so the prebuilt image picks up secrets from .env.prod.
+      NUXT_DATABASE_URL: postgres://${POSTGRES_USER:-bkos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-bkos}
+      NUXT_SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set}
+      NUXT_USERNAME: ${BKOS_USERNAME:-admin}
+      NUXT_PASSWORD_HASH: ${BKOS_PASSWORD_HASH:?BKOS_PASSWORD_HASH must be set}
+      NUXT_VAULT_PATH: /data/vault
+      NUXT_FILES_PATH: /data/files
+      NUXT_MAX_UPLOAD_MB: ${BKOS_MAX_UPLOAD_MB:-25}
+      NUXT_EXTRACTOR_PROVIDER: ${BKOS_EXTRACTOR_PROVIDER:-placeholder}
+      NUXT_EMBEDDING_PROVIDER: ${BKOS_EMBEDDING_PROVIDER:-placeholder}
+      NUXT_OPEN_ROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      NUXT_OPEN_ROUTER_MODEL: ${OPENROUTER_MODEL:-openai/gpt-4.1-mini}
+      NUXT_OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+      NUXT_OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma4:e4b}
+      NUXT_OPEN_AI_API_KEY: ${OPENAI_API_KEY:-}
+      NUXT_EMBEDDING_MODEL: ${BKOS_EMBEDDING_MODEL:-}
+      # Mail ingest (optional)
+      NUXT_MAIL_HOST: ${MAIL_HOST:-}
+      NUXT_MAIL_PORT: ${MAIL_PORT:-993}
+      NUXT_MAIL_USER: ${MAIL_USER:-}
+      NUXT_MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      NUXT_MAIL_SECURE: ${MAIL_SECURE:-true}
+      NUXT_MAIL_FROM_ALLOW: ${MAIL_FROM_ALLOW:-}
+      # SMTP for reminders (optional)
+      NUXT_SMTP_HOST: ${SMTP_HOST:-}
+      NUXT_SMTP_PORT: ${SMTP_PORT:-587}
+      NUXT_SMTP_USER: ${SMTP_USER:-}
+      NUXT_SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      NUXT_SMTP_SECURE: ${SMTP_SECURE:-false}
+      NUXT_SMTP_FROM: ${SMTP_FROM:-}
+      NUXT_REMINDER_EMAIL: ${BKOS_REMINDER_EMAIL:-}
     volumes:
       - bkos_vault:/data/vault
       - bkos_files:/data/files

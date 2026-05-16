@@ -98,7 +98,7 @@ export default defineEventHandler(async (event) => {
   if (nextPersonId !== undefined && nextPersonId !== before.person_id) {
     const payload = {
       action_id: id,
-      action_title: result.rows[0].title
+      action_title: result.rows[0]!.title
     }
     if (before.person_id) {
       await recordActivity({

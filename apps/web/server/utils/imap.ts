@@ -1,6 +1,22 @@
 import { ingestEmail, parseAllowList, type IncomingEmail } from './email-ingest'
 import { logger } from './logger'
 
+// mailparser ships no types; describe just the shape we use.
+interface ParsedAttachment {
+  filename?: string
+  contentType?: string
+  content: Buffer
+}
+interface ParsedMail {
+  messageId?: string
+  from?: { value?: Array<{ address?: string }> }
+  subject?: string
+  text?: string
+  html?: string | false
+  date?: Date
+  attachments?: ParsedAttachment[]
+}
+
 /**
  * Connect to the IMAP server defined by MAIL_* env vars, pull every
  * UNSEEN message from INBOX, ingest it, and mark it Seen on success.
@@ -23,7 +39,12 @@ export async function pollImapInbox(): Promise<{ scanned: number, ingested: numb
   }
 
   const { ImapFlow } = await import('imapflow')
-  const { simpleParser } = await import('mailparser')
+  // mailparser ships no types — assert the dynamic import to our local shape.
+  // @ts-expect-error untyped CJS module
+  const mailparser = await import('mailparser') as unknown as {
+    simpleParser: (source: Buffer | NodeJS.ReadableStream) => Promise<ParsedMail>
+  }
+  const { simpleParser } = mailparser
 
   const client = new ImapFlow({
     host: config.mailHost,
@@ -54,12 +75,12 @@ export async function pollImapInbox(): Promise<{ scanned: number, ingested: numb
           messageId,
           fromAddress: sender,
           subject: parsed.subject || '(no subject)',
-          body: parsed.text || parsed.html || '',
+          body: parsed.text || (typeof parsed.html === 'string' ? parsed.html : '') || '',
           receivedAt: parsed.date || new Date(),
           attachments: (parsed.attachments || []).map((att) => ({
             filename: att.filename || 'attachment',
             contentType: att.contentType || 'application/octet-stream',
-            content: att.content as Buffer
+            content: att.content
           }))
         }
         const result = await ingestEmail(incoming, allowList)
