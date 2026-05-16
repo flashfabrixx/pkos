@@ -19,6 +19,13 @@ export default defineNuxtConfig({
     mailPassword: process.env.MAIL_PASSWORD || '',
     mailSecure: process.env.MAIL_SECURE || 'true',
     mailFromAllow: process.env.MAIL_FROM_ALLOW || '',
+    smtpHost: process.env.SMTP_HOST || '',
+    smtpPort: process.env.SMTP_PORT || '587',
+    smtpUser: process.env.SMTP_USER || '',
+    smtpPassword: process.env.SMTP_PASSWORD || '',
+    smtpSecure: process.env.SMTP_SECURE || 'false',
+    smtpFrom: process.env.SMTP_FROM || '',
+    reminderEmail: process.env.BKOS_REMINDER_EMAIL || '',
     extractorProvider: process.env.BKOS_EXTRACTOR_PROVIDER || 'placeholder',
     openRouterApiKey: process.env.OPENROUTER_API_KEY || '',
     openRouterModel: process.env.OPENROUTER_MODEL || 'openai/gpt-4.1-mini',
@@ -45,7 +52,10 @@ export default defineNuxtConfig({
       '*/5 * * * *': ['email:poll'],
       // Recompute entity-link suggestions nightly. Cheap when there are
       // no embeddings; dismissed pairs honour a 30-day cooldown.
-      '0 2 * * *': ['suggestions:entities']
+      '0 2 * * *': ['suggestions:entities'],
+      // Action-reminder digest. No-op when SMTP_HOST or BKOS_REMINDER_EMAIL
+      // is unset, so it's safe to always wire.
+      '0 7 * * *': ['reminders:actions']
     }
   },
   vite: {

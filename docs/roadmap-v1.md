@@ -107,7 +107,7 @@ Aus dem rohen Tool wird ein benutzbares Produkt für Self-Hoster.
   testen, 2FA-Empfehlung, optional Mail-Konfig.
 - Nach Abschluss: Setup-Lock-Flag in der DB, `/setup` wird `404`.
 
-### B10 — Action-Reminders  `todo`
+### B10 — Action-Reminders  `done`
 - Mail-Versand (`nodemailer`) via SMTP-Konfig.
 - Cron: täglicher Digest pro User mit fälligen/überfälligen Actions.
 - Optional: pro-Action „Remind me at…" Feld.

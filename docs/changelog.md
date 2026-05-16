@@ -5,6 +5,15 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
 
+### B10 — Action reminders
+- `utils/mailer.ts`: cached nodemailer transport built from SMTP env;
+  no-op transport (logs intended send) when SMTP_HOST is unset.
+- `utils/action-reminder.ts` queries open actions with due_date ≤ today,
+  groups overdue vs today and composes a plain-text digest.
+- Nitro scheduled task `reminders:actions` runs daily at 07:00.
+- New env: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`,
+  `SMTP_SECURE`, `SMTP_FROM`, `BKOS_REMINDER_EMAIL`.
+
 ### B9 — Onboarding wizard
 - Migration `0018_setup_state.sql` adds a singleton `setup_state` row.
 - `utils/setup-state.ts` caches the completion flag for 30s and
