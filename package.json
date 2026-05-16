@@ -8,6 +8,9 @@
     "dev:portless": "portless alias bkos 3000 --force",
     "build": "pnpm --filter @bkos/web build",
     "typecheck": "pnpm --filter @bkos/web typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
     "db:migrate": "node scripts/migrate.mjs",
     "db:reset": "node scripts/reset-db.mjs",
     "setup:password": "node scripts/hash-password.mjs",
@@ -21,7 +24,11 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.0",
+    "@testcontainers/postgresql": "^10.13.2",
+    "@vitest/coverage-v8": "^2.1.8",
     "portless": "^0.13.0",
-    "tailwindcss": "^4.3.0"
+    "tailwindcss": "^4.3.0",
+    "testcontainers": "^10.13.2",
+    "vitest": "^2.1.8"
   }
 }

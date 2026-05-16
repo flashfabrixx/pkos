@@ -13,6 +13,11 @@ Status-Legende: `todo` / `wip` / `done`
 Stabilisiert den Kern, bevor neue Eingänge angeflanscht werden. Alle weiteren
 Sprints bauen auf dem Logger, Health-Endpoint und den API-Keys auf.
 
+### B0-TEST — Test infrastructure  `done`
+- Vitest + Testcontainers; `pnpm test` runs unit + integration suites.
+- Setup helpers at `apps/web/test/setup/pg.ts`.
+- Initial coverage of B1 surface; every later batch extends.
+
 ### B1 — Soft-Delete & Reprocessing  `done`
 - Migration: `deleted_at` Spalte auf `documents`, `entities`, `action_items`,
   `comments`. Filter in allen Listen/Detail-Endpoints.

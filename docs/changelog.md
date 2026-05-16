@@ -5,6 +5,18 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
 
+### B0-TEST — Test infrastructure
+- Vitest + Testcontainers configuration at the repo root
+  (`vitest.config.ts`); `pnpm test`, `pnpm test:watch` and `pnpm test:cov`
+  scripts wired up.
+- `apps/web/test/setup/pg.ts` spins up a `pgvector/pgvector:pg16` container,
+  applies every migration in order, and provides a `withTx` helper that
+  rolls back per test.
+- Initial coverage of merged surfaces: password util, canonicalize util,
+  language detection, migration suite smoke, soft-delete invariants and
+  entity-merge SQL contract.
+- `docs/contributing.md` documents the workflow.
+
 ### B1 — Soft-Delete & Reprocessing
 - New migration `0013_soft_delete.sql` adds `deleted_at` to documents,
   entities, action_items and comments plus partial indexes for live and
