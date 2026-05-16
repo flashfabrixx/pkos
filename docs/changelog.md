@@ -5,6 +5,18 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
 
+### B6 — Web clipper (bookmarklet)
+- New `POST /api/v1/captures/url`: accepts `{url, selection?, title?}`,
+  re-fetches the page via the SSRF-safe `utils/url-fetch.ts` helper,
+  composes selection + meta description into a capture, then runs the
+  standard pipeline.
+- `utils/url-fetch.ts`: hostname must resolve to a public IP (loopback,
+  RFC1918, link-local, IPv6 ULA all blocked); response size capped at
+  5 MB; 8s timeout; final-URL re-checked after redirects.
+- New page `/settings/clipper` shows a draggable "Save to BKOS"
+  bookmarklet pre-filled with the chosen API key and the host origin.
+- Vitest spec for the SSRF guard.
+
 ### B5 — Email-to-inbox (IMAP)
 - Migration `0016_email_ingest.sql` adds `email_ingest_log` for
   message-id dedupe.
