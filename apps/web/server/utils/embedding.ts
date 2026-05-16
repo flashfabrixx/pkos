@@ -19,12 +19,14 @@ export interface EmbeddingResult {
   model: string | null
 }
 
+import { logger } from './logger'
+
 let warnedFailureKey: string | null = null
 
 function warnOnce(key: string, message: string) {
   if (warnedFailureKey === key) return
   warnedFailureKey = key
-  console.warn(`[bkos][embedding] ${message}`)
+  logger.warn({ component: 'embedding' }, message)
 }
 
 function pgVectorLiteral(values: number[]): string {

@@ -2,6 +2,7 @@ import { createError, getRequestIP, readBody } from 'h3'
 import { z } from 'zod'
 import { isTotpEnabled } from '../../utils/auth-config'
 import { createSession, setSessionCookie } from '../../utils/auth'
+import { logger } from '../../utils/logger'
 import { hashPassword, isHashed, verifyPassword } from '../../utils/password'
 import { createPreAuthToken } from '../../utils/pre-auth'
 import { recordLoginFailure, recordLoginSuccess, throwIfLocked } from '../../utils/rate-limit'
@@ -37,9 +38,9 @@ export default defineEventHandler(async (event) => {
     passwordMatches = await verifyPassword(body.password, configuredHash)
   } else if (configuredPlain) {
     if (!globalThis.__bkos_warned_plaintext_password) {
-      console.warn(
-        '[bkos][security] BKOS_PASSWORD is set as plaintext. ' +
-        'Generate a hash via `pnpm setup:password` and use BKOS_PASSWORD_HASH instead.'
+      logger.warn(
+        { component: 'security' },
+        'BKOS_PASSWORD is set as plaintext. Generate a hash via `pnpm setup:password` and use BKOS_PASSWORD_HASH instead.'
       )
       globalThis.__bkos_warned_plaintext_password = true
     }

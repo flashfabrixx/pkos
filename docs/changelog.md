@@ -5,6 +5,20 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
 
+### B2 — Observability
+- Structured JSON logger (`pino`) at `apps/web/server/utils/logger.ts`. Dev
+  output is pretty-printed; production is JSON for journald / Loki / etc.
+- `02.request-log` middleware binds a child logger per request keyed by
+  `x-request-id` (echoed back on the response) and emits one completion
+  log line with method, status and duration.
+- `GET /healthz` (liveness: process up + DB round-trip) and `GET /readyz`
+  (readiness: DB, migrations applied, vault writable, embedding provider
+  reachable when configured). Both return JSON either way; non-OK is 503.
+- All previous `console.warn` / `console.error` sites in
+  `security-boot-check`, `error-handler`, `auth/login`, `summarize-entity`
+  and `embedding` switched to the structured logger.
+- New `LOG_LEVEL` env var; defaults to `info` in prod and `debug` else.
+
 ### B0-TEST — Test infrastructure
 - Vitest + Testcontainers configuration at the repo root
   (`vitest.config.ts`); `pnpm test`, `pnpm test:watch` and `pnpm test:cov`
