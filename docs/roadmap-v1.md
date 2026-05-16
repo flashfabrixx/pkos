@@ -154,7 +154,7 @@ Macht BKOS in fremde Stacks integrierbar und produktiv deploybar.
   Signatur im `X-BKOS-Signature`-Header.
 - Settings-Seite: Subscribe, Test-Delivery, Delivery-Log.
 
-### B16 — Backup & Export  `todo`  *(braucht B1)*
+### B16 — Backup & Export  `done`  *(braucht B1)*
 - `pnpm bkos:export` CLI: Workspace → tar.gz mit `documents.jsonl`,
   `entities.jsonl`, `actions.jsonl`, `assets/` (Files aus B4).
 - Markdown-Variante: Pro Capture ein `.md`-File mit Frontmatter.

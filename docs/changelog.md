@@ -5,6 +5,17 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
 
+### B16 — Backup / restore CLI
+- `scripts/bkos-export.mjs`: streams DB rows as JSONL + copies referenced
+  attachments into a tar.gz with a `manifest.json` (schema version,
+  counts, timestamp). Optional `--include-trashed` flag.
+- `scripts/bkos-import.mjs`: idempotent upsert by `id` for all known
+  tables; `--dry-run` reports counts without committing.
+- `pnpm bkos:export` and `pnpm bkos:import` scripts at the repo root.
+- `tar` (^7.4) added as a workspace dependency.
+- New `docs/backup.md` describes the JSONL path, the raw `pg_dump`
+  alternative, and the vault rsync option.
+
 ### B15 — Outgoing webhooks
 - Migration `0020_webhooks.sql` adds `webhook_subscriptions` and
   `webhook_deliveries` (with partial index on pending rows).

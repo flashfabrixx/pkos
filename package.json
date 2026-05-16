@@ -16,11 +16,14 @@
     "setup:password": "node scripts/hash-password.mjs",
     "setup:reset-2fa": "node scripts/reset-2fa.mjs",
     "db:embed": "node scripts/backfill-embeddings.mjs",
-    "db:detect-language": "node scripts/backfill-language.mjs"
+    "db:detect-language": "node scripts/backfill-language.mjs",
+    "bkos:export": "node scripts/bkos-export.mjs",
+    "bkos:import": "node scripts/bkos-import.mjs"
   },
   "dependencies": {
     "franc-min": "^6.2.0",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "tar": "^7.4.3"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.0",
