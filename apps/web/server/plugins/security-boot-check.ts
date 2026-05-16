@@ -1,5 +1,6 @@
 import { query } from '../utils/db'
 import { setMinIatSecondsFromDb } from '../utils/auth'
+import { logger } from '../utils/logger'
 
 // Bootstrap-time security checks. Throws on startup if the runtime config
 // is configured in a way that would be unsafe to deploy.
@@ -43,12 +44,12 @@ export default defineNitroPlugin(async () => {
   }
 
   for (const warning of warnings) {
-    console.warn(`[bkos][security] ${warning}`)
+    logger.warn({ component: 'security' }, warning)
   }
 
   if (errors.length) {
-    const message = ['[bkos][security] Refusing to start due to unsafe configuration:', ...errors.map((e) => `  - ${e}`)].join('\n')
-    console.error(message)
+    const message = ['Refusing to start due to unsafe configuration:', ...errors.map((e) => `  - ${e}`)].join('\n')
+    logger.error({ component: 'security', errors }, message)
     throw new Error(message)
   }
 
@@ -60,6 +61,6 @@ export default defineNitroPlugin(async () => {
     )
     setMinIatSecondsFromDb(Number(result.rows[0]?.session_min_iat || 0))
   } catch (error) {
-    console.warn('[bkos][security] Could not load session revocation checkpoint (DB not ready yet?). Defaulting to 0.', error)
+    logger.warn({ component: 'security', err: (error as Error).message }, 'Could not load session revocation checkpoint (DB not ready yet?). Defaulting to 0.')
   }
 })

@@ -26,7 +26,7 @@ Sprints bauen auf dem Logger, Health-Endpoint und den API-Keys auf.
 - Trash-Seite (`/trash`) mit Restore- und Permanent-Delete-Aktion.
 - Bestehende `DELETE`-Endpoints auf Soft-Delete umstellen.
 
-### B2 — Observability  `todo`
+### B2 — Observability  `done`
 - Pino-Logger als Nitro-Plugin, ersetzt `console.*` in der App.
 - `/healthz` (DB, pgvector, Embedding-Provider) und `/readyz` (Migrationen
   durch, Worker erreichbar).

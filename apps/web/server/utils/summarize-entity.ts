@@ -1,4 +1,5 @@
 import { query } from './db'
+import { logger } from './logger'
 
 const PROMPT_TEMPLATE = `You are summarising what BKOS knows about one entity in 2-3 concise sentences.
 Use the provided context (documents, comments, activity). Stay factual; do not invent.
@@ -177,7 +178,7 @@ export async function summariseEntity(entityId: string): Promise<{ summary: stri
   try {
     summary = await callProvider(prompt)
   } catch (error) {
-    console.warn(`[bkos][summary] provider call failed for entity ${entityId}:`, (error as Error).message)
+    logger.warn({ component: 'summary', entity_id: entityId, err: (error as Error).message }, 'provider call failed')
     await query(`UPDATE entities SET summary_state = 'failed', summary_updated_at = now() WHERE id = $1`, [entityId])
     return { summary: null, state: 'failed' }
   }
