@@ -66,7 +66,7 @@ wirklich „Knowledge Capture" statt nur „Knowledge Viewer".
 - Allow-List für Absender-Domains.
 - Fallback: SMTP-Eingang via Postal/Haraka-Beispiel in `docs/email-setup.md`.
 
-### B6 — Web-Clipper  `todo`  *(braucht B3)*
+### B6 — Web-Clipper  `done`  *(braucht B3)*
 - Bookmarklet, das aktuelle URL + Selection + Page-Title an
   `POST /api/v1/captures` schickt. Konfigurierbar über `/settings/clipper`.
 - Optional: Minimal-Chrome-Extension (MV3) mit gleichem Endpoint.
