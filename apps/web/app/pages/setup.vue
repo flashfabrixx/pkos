@@ -23,13 +23,11 @@ async function testEmbedding() {
 async function finish() {
   finishing.value = true
   try {
-    await $fetch('/api/setup/complete', {
-      method: 'POST',
-      body: {
-        embedding_ok: embeddingTest.value?.ok || null,
-        mail_configured: false
-      }
-    })
+    // Only forward the embedding flag when we actually ran a test; the
+    // server schema accepts boolean | undefined, not null.
+    const body: { embedding_ok?: boolean, mail_configured: boolean } = { mail_configured: false }
+    if (embeddingTest.value) body.embedding_ok = embeddingTest.value.ok
+    await $fetch('/api/setup/complete', { method: 'POST', body })
     // Setup completion does not authenticate the operator — they still
     // need to sign in. Send them to /login rather than / so auth.global
     // doesn't immediately bounce them.
