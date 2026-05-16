@@ -5,6 +5,16 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
 
+### B7 — Hybrid search UI
+- `/api/search` now embeds the query (when a provider is configured)
+  and ranks chunks by `0.6 · (1 − cosine) + 0.4 · ts_rank`. Falls back
+  to lexical-only when embeddings aren't available.
+- Accepts `kinds`, `lang`, `from`, `to` filters; returns
+  `mode: 'hybrid' | 'lexical' | 'idle'` so the UI can show how the
+  results were ranked.
+- `/search` page adds kind chips, language picker, date range and a
+  mode indicator.
+
 ### B6 — Web clipper (bookmarklet)
 - New `POST /api/v1/captures/url`: accepts `{url, selection?, title?}`,
   re-fetches the page via the SSRF-safe `utils/url-fetch.ts` helper,
