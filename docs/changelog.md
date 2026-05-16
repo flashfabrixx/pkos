@@ -5,6 +5,18 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
 
+### B9 — Onboarding wizard
+- Migration `0018_setup_state.sql` adds a singleton `setup_state` row.
+- `utils/setup-state.ts` caches the completion flag for 30s and
+  invalidates on `markSetupComplete()`.
+- New middleware `03.onboarding.ts`: redirects browsers to `/setup`
+  until the wizard finishes; API and auth routes still respond as usual.
+- New endpoints: `/api/setup/status`, `/api/setup/test-embedding`,
+  `/api/setup/complete`.
+- New page `/setup` (empty layout) shows session-secret, password and
+  embedding-provider status with actionable hints, plus follow-up
+  pointers (2FA, API keys, mail).
+
 ### B8 — Entity-link suggestions
 - Migration `0017_entity_link_suggestions.sql` adds a per-source
   candidate table with score, reason, accepted_at, dismissed_at.

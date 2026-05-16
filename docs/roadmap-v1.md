@@ -101,7 +101,7 @@ Embeddings liegen bereits vor — diese Phase macht sie für den User sichtbar.
 
 Aus dem rohen Tool wird ein benutzbares Produkt für Self-Hoster.
 
-### B9 — Onboarding-Wizard  `todo`
+### B9 — Onboarding-Wizard  `done`
 - First-Run-Erkennung (kein User in DB) → `/setup`-Route.
 - Schritte: Admin-User anlegen, SESSION_SECRET-Hinweis, Embedding-Provider
   testen, 2FA-Empfehlung, optional Mail-Konfig.
