@@ -1,11 +1,4 @@
 <script setup lang="ts">
-import {
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-  TransitionChild,
-  TransitionRoot
-} from '@headlessui/vue'
 import { colorFor } from '~/utils/hash-color'
 
 type Kind = 'person' | 'project' | 'tag'
@@ -74,71 +67,61 @@ async function submit() {
 </script>
 
 <template>
-  <TransitionRoot :show="open" as="template" appear>
-    <Dialog class="relative z-50" @close="open = false">
-      <TransitionChild
-        as="template"
-        enter="ease-out duration-200"
-        enter-from="opacity-0"
-        enter-to="opacity-100"
-        leave="ease-in duration-150"
-        leave-from="opacity-100"
-        leave-to="opacity-0"
-      >
-        <div class="fixed inset-0 bg-slate-500/25" />
-      </TransitionChild>
+  <UiDialog
+    :open="open"
+    :title="`Merge ${candidates.length} ${kindLabel}${candidates.length === 1 ? '' : 's'}`"
+    description="Pick the entity that should survive. All mentions, comments, edges and assignments from the other entries will be moved over, then the originals are removed."
+    size="lg"
+    @close="open = false"
+  >
+    <div class="space-y-4">
+      <ul class="space-y-2">
+        <li v-for="entity in candidates" :key="entity.id">
+          <label
+            :class="[
+              'flex cursor-pointer items-center gap-3 rounded-card border p-3 transition-colors',
+              primaryId === entity.id
+                ? 'border-accent bg-accent-soft'
+                : 'border-border-default bg-surface-1 hover:bg-surface-2'
+            ]"
+          >
+            <input
+              type="radio"
+              :value="entity.id"
+              v-model="primaryId"
+              class="size-4 shrink-0 text-accent focus:ring-2 focus:ring-accent/20"
+            >
+            <span class="flex min-w-0 flex-1 items-center gap-3">
+              <span
+                v-if="kind === 'person'"
+                class="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                :style="{ background: colorFor(entity.name).bg, color: colorFor(entity.name).fg }"
+              >{{ initialsOf(entity.name) }}</span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-medium text-text-strong">{{ kind === 'tag' ? `#${entity.name}` : entity.name }}</span>
+                <span class="flex flex-wrap gap-3 text-xs text-muted">
+                  <span v-if="entity.document_count !== undefined">{{ entity.document_count }} docs</span>
+                  <span v-if="(entity.actions_open || 0) + (entity.actions_done || 0) > 0">{{ entity.actions_open }} open · {{ entity.actions_done }} done</span>
+                  <span v-if="entity.last_seen">last {{ formatDate(entity.last_seen) }}</span>
+                </span>
+              </span>
+            </span>
+          </label>
+        </li>
+      </ul>
 
-      <div class="fixed inset-0 z-50 w-screen overflow-y-auto p-4 sm:p-6 md:p-20">
-        <TransitionChild
-          as="template"
-          enter="ease-out duration-200"
-          enter-from="opacity-0 scale-95"
-          enter-to="opacity-100 scale-100"
-          leave="ease-in duration-150"
-          leave-from="opacity-100 scale-100"
-          leave-to="opacity-0 scale-95"
-        >
-          <DialogPanel class="entity-merge-dialog">
-            <DialogTitle class="entity-create-title">Merge {{ candidates.length }} {{ kindLabel }}{{ candidates.length === 1 ? '' : 's' }}</DialogTitle>
-            <p class="entity-create-sub">Pick the entity that should survive. All mentions, comments, edges and assignments from the other entries will be moved over, then the originals are removed.</p>
+      <p v-if="error" class="text-xs text-danger" role="alert">{{ error }}</p>
 
-            <ul class="merge-candidates">
-              <li v-for="entity in candidates" :key="entity.id" :class="{ 'is-primary': primaryId === entity.id }">
-                <label class="merge-candidate-label">
-                  <input type="radio" :value="entity.id" v-model="primaryId">
-                  <span class="merge-candidate-card">
-                    <span v-if="kind === 'person'" class="avatar" :style="{ background: colorFor(entity.name).bg, color: colorFor(entity.name).fg }">{{ initialsOf(entity.name) }}</span>
-                    <span class="merge-candidate-text">
-                      <span class="merge-candidate-name">{{ kind === 'tag' ? `#${entity.name}` : entity.name }}</span>
-                      <span class="merge-candidate-meta">
-                        <span v-if="entity.document_count !== undefined">{{ entity.document_count }} docs</span>
-                        <span v-if="(entity.actions_open || 0) + (entity.actions_done || 0) > 0">
-                          {{ entity.actions_open }} open · {{ entity.actions_done }} done
-                        </span>
-                        <span v-if="entity.last_seen">last {{ formatDate(entity.last_seen) }}</span>
-                      </span>
-                    </span>
-                  </span>
-                </label>
-              </li>
-            </ul>
-
-            <p v-if="error" class="entity-create-error">{{ error }}</p>
-
-            <div class="entity-create-actions">
-              <button type="button" class="entity-create-cancel" @click="open = false">Cancel</button>
-              <button
-                type="button"
-                class="entity-create-submit"
-                :disabled="!primaryId || candidates.length < 2 || pending"
-                @click="submit"
-              >
-                {{ pending ? 'Merging…' : 'Merge into selected' }}
-              </button>
-            </div>
-          </DialogPanel>
-        </TransitionChild>
+      <div class="flex justify-end gap-2 pt-2">
+        <UiButton type="button" variant="secondary" size="sm" @click="open = false">Cancel</UiButton>
+        <UiButton
+          type="button"
+          size="sm"
+          :disabled="!primaryId || candidates.length < 2"
+          :loading="pending"
+          @click="submit"
+        >{{ pending ? 'Merging…' : 'Merge into selected' }}</UiButton>
       </div>
-    </Dialog>
-  </TransitionRoot>
+    </div>
+  </UiDialog>
 </template>

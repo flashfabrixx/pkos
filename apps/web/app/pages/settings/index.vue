@@ -170,195 +170,209 @@ function copyBackupCodes() {
 </script>
 
 <template>
-  <div>
-    <main class="workspace single">
-      <section class="panel">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">{{ t('settings.eyebrow') }}</p>
-            <h1>{{ t('settings.title') }}</h1>
-          </div>
+  <main class="mx-auto grid max-w-3xl gap-4 p-5">
+    <header>
+      <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">{{ t('settings.eyebrow') }}</p>
+      <h1 class="text-xl font-semibold tracking-tight text-text-strong">{{ t('settings.title') }}</h1>
+    </header>
+
+    <section class="space-y-3 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
+      <header class="flex items-start gap-3">
+        <PaintBrushIcon class="size-5 shrink-0 text-muted" aria-hidden="true" />
+        <div>
+          <h2 class="text-sm font-semibold text-text-strong">Appearance</h2>
+          <p class="text-xs text-muted">Light, dark, or follow the operating system.</p>
         </div>
+      </header>
+      <div class="inline-flex gap-1 rounded-md border border-border-default bg-surface-2 p-1">
+        <button
+          v-for="opt in THEME_OPTIONS"
+          :key="opt.value"
+          type="button"
+          :class="[
+            'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+            themeChoice === opt.value
+              ? 'border border-border-default bg-surface-1 text-text shadow-card'
+              : 'border border-transparent text-text-soft hover:text-text'
+          ]"
+          @click="applyTheme(opt.value)"
+        >
+          <component :is="opt.icon" class="size-4" aria-hidden="true" />
+          <span>{{ t(`common.${opt.value}`) }}</span>
+        </button>
+      </div>
+    </section>
 
-        <section class="settings-section">
-          <header class="settings-section-head">
-            <PaintBrushIcon class="size-5 text-slate-500" aria-hidden="true" />
-            <div>
-              <h2>Appearance</h2>
-              <p class="muted">Light, dark, or follow the operating system.</p>
+    <section class="space-y-3 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
+      <header class="flex items-start gap-3">
+        <LanguageIcon class="size-5 shrink-0 text-muted" aria-hidden="true" />
+        <div>
+          <h2 class="text-sm font-semibold text-text-strong">Language</h2>
+          <p class="text-xs text-muted">Display language for the BKOS interface.</p>
+        </div>
+      </header>
+      <div class="inline-flex gap-1 rounded-md border border-border-default bg-surface-2 p-1">
+        <button
+          v-for="code in localeOptions"
+          :key="code"
+          type="button"
+          :class="[
+            'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+            locale === code
+              ? 'border border-border-default bg-surface-1 text-text shadow-card'
+              : 'border border-transparent text-text-soft hover:text-text'
+          ]"
+          @click="setLocale(code)"
+        >
+          <span class="font-mono text-[11px] font-bold tracking-wider">{{ code.toUpperCase() }}</span>
+          <span>{{ LOCALE_LABELS[code] || code }}</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="space-y-4 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
+      <header class="flex items-start gap-3">
+        <component
+          :is="data?.enabled ? ShieldCheckIcon : ShieldExclamationIcon"
+          :class="['size-5 shrink-0', data?.enabled ? 'text-success' : 'text-warning']"
+          aria-hidden="true"
+        />
+        <div>
+          <h2 class="text-sm font-semibold text-text-strong">Two-factor authentication</h2>
+          <p class="text-xs text-muted">{{ data?.enabled ? 'Enabled — your account asks for a 6-digit code at login.' : 'Disabled — only a password protects your account.' }}</p>
+        </div>
+      </header>
+
+      <div v-if="data?.enabled" class="space-y-3">
+        <p class="text-sm text-text">Backup codes left: <strong>{{ data.backup_codes_remaining }} / {{ data.backup_codes_total }}</strong></p>
+        <form class="space-y-3" @submit.prevent="disable">
+          <UiField label="Current password (required to disable 2FA)">
+            <template #default="{ id }">
+              <UiInput :id="id" v-model="disablePassword" type="password" autocomplete="current-password" />
+            </template>
+          </UiField>
+          <p v-if="error" class="text-xs text-danger">{{ error }}</p>
+          <UiButton type="submit" variant="danger" size="sm" :disabled="!disablePassword" :loading="pending">
+            {{ pending ? 'Disabling…' : 'Disable two-factor' }}
+          </UiButton>
+        </form>
+      </div>
+
+      <div v-else-if="phase === 'idle'" class="space-y-3">
+        <p class="text-sm text-text-soft">Protect your BKOS account with an authenticator app (1Password, Authy, Google Authenticator, etc.).</p>
+        <UiButton :loading="pending" @click="startEnroll">
+          {{ pending ? 'Working…' : 'Enable two-factor' }}
+        </UiButton>
+        <p v-if="error" class="text-xs text-danger">{{ error }}</p>
+      </div>
+
+      <div v-else-if="phase === 'verifying'" class="space-y-3">
+        <ol class="list-decimal space-y-2 pl-5 text-sm text-text-soft">
+          <li>Open your authenticator app and add a new entry.</li>
+          <li>
+            Scan the QR by pasting this URI, or enter the secret manually:
+            <code class="mt-1 block break-all rounded bg-soft p-2 font-mono text-xs text-text">{{ enrollUri }}</code>
+            <p class="mt-1 text-xs text-muted">Secret: <code class="rounded bg-soft px-1 py-0.5 font-mono">{{ enrollSecret }}</code></p>
+          </li>
+          <li>Enter the current 6-digit code from your authenticator below.</li>
+        </ol>
+        <form class="space-y-3" @submit.prevent="verifyEnroll">
+          <UiField label="6-digit code">
+            <template #default="{ id }">
+              <UiInput
+                :id="id"
+                v-model="enrollCode"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                maxlength="6"
+                placeholder="123 456"
+                autofocus
+              />
+            </template>
+          </UiField>
+          <p v-if="error" class="text-xs text-danger">{{ error }}</p>
+          <div class="flex justify-end gap-2">
+            <UiButton type="button" variant="secondary" size="sm" @click="cancelEnroll">Cancel</UiButton>
+            <UiButton type="submit" size="sm" :disabled="enrollCode.length !== 6" :loading="pending">
+              {{ pending ? 'Verifying…' : 'Confirm and enable' }}
+            </UiButton>
+          </div>
+        </form>
+      </div>
+
+      <div v-else-if="phase === 'showing-backup-codes'" class="space-y-3">
+        <h3 class="text-sm font-semibold text-text-strong">Save your backup codes</h3>
+        <p class="text-xs text-muted">Each code works once. Use one if you lose access to your authenticator. Store them somewhere safe — they will not be shown again.</p>
+        <pre class="overflow-auto rounded-card bg-surface-2 p-3 font-mono text-xs leading-relaxed text-text">{{ backupCodes.join('\n') }}</pre>
+        <div class="flex justify-end gap-2">
+          <UiButton type="button" variant="secondary" size="sm" @click="copyBackupCodes">Copy to clipboard</UiButton>
+          <UiButton type="button" size="sm" @click="finishBackupCodes">I've saved them</UiButton>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-4 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
+      <header class="flex items-start gap-3">
+        <KeyIcon class="size-5 shrink-0 text-muted" aria-hidden="true" />
+        <div>
+          <h2 class="text-sm font-semibold text-text-strong">API keys</h2>
+          <p class="text-xs text-muted">Programmatic access for the BKOS REST API at <code class="rounded bg-soft px-1 py-0.5 font-mono text-[11px]">/api/v1/*</code>. Use as <code class="rounded bg-soft px-1 py-0.5 font-mono text-[11px]">Authorization: Bearer &lt;key&gt;</code>.</p>
+        </div>
+      </header>
+
+      <div v-if="newlyCreated" class="space-y-3 rounded-card border border-warning-border bg-warning-soft p-4">
+        <h3 class="text-sm font-semibold text-warning">New key created — copy it now</h3>
+        <p class="text-xs text-text-soft">This is the only time the full key is shown. Store it in your secrets manager.</p>
+        <pre class="overflow-auto rounded-card bg-surface-1 p-3 font-mono text-xs leading-relaxed text-text">{{ newlyCreated.plaintext }}</pre>
+        <div class="flex justify-end gap-2">
+          <UiButton type="button" variant="secondary" size="sm" @click="copyToClipboard(newlyCreated!.plaintext)">Copy</UiButton>
+          <UiButton type="button" size="sm" @click="dismissCreated">Done</UiButton>
+        </div>
+      </div>
+
+      <form class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end" @submit.prevent="createApiKey">
+        <UiField label="Key name">
+          <template #default="{ id }">
+            <UiInput :id="id" v-model="newKeyName" type="text" maxlength="120" placeholder="e.g. Shortcuts iPhone" />
+          </template>
+        </UiField>
+        <UiButton type="submit" :disabled="!newKeyName.trim()" :loading="creating">
+          <PlusIcon class="size-4" aria-hidden="true" />
+          {{ creating ? 'Creating…' : 'Create key' }}
+        </UiButton>
+        <p v-if="keysError" class="text-xs text-danger sm:col-span-2">{{ keysError }}</p>
+      </form>
+
+      <ul v-if="apiKeys.length" class="divide-y divide-border-subtle">
+        <li
+          v-for="key in apiKeys"
+          :key="key.id"
+          :class="['flex flex-wrap items-center gap-3 py-3', key.revoked_at && 'opacity-60']"
+        >
+          <div class="min-w-0 flex-1 space-y-0.5">
+            <div class="flex flex-wrap items-baseline gap-2">
+              <strong class="text-sm text-text-strong">{{ key.name }}</strong>
+              <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs text-text-soft">bkos_{{ key.prefix }}_…</code>
+              <span class="text-xs text-muted">{{ key.scopes.join(' · ') }}</span>
+              <UiBadge v-if="key.revoked_at" variant="danger">revoked</UiBadge>
             </div>
-          </header>
-          <div class="settings-segmented">
-            <button
-              v-for="opt in THEME_OPTIONS"
-              :key="opt.value"
-              type="button"
-              class="settings-segment"
-              :class="{ 'is-active': themeChoice === opt.value }"
-              @click="applyTheme(opt.value)"
-            >
-              <component :is="opt.icon" class="size-4" aria-hidden="true" />
-              <span>{{ t(`common.${opt.value}`) }}</span>
-            </button>
-          </div>
-        </section>
-
-        <section class="settings-section">
-          <header class="settings-section-head">
-            <LanguageIcon class="size-5 text-slate-500" aria-hidden="true" />
-            <div>
-              <h2>Language</h2>
-              <p class="muted">Display language for the BKOS interface.</p>
-            </div>
-          </header>
-          <div class="settings-segmented">
-            <button
-              v-for="code in localeOptions"
-              :key="code"
-              type="button"
-              class="settings-segment"
-              :class="{ 'is-active': locale === code }"
-              @click="setLocale(code)"
-            >
-              <span class="settings-segment-code">{{ code.toUpperCase() }}</span>
-              <span>{{ LOCALE_LABELS[code] || code }}</span>
-            </button>
-          </div>
-        </section>
-
-        <section class="settings-section">
-          <header class="settings-section-head">
-            <component :is="data?.enabled ? ShieldCheckIcon : ShieldExclamationIcon" class="size-5" :class="data?.enabled ? 'text-emerald-600' : 'text-amber-600'" aria-hidden="true" />
-            <div>
-              <h2>Two-factor authentication</h2>
-              <p class="muted">{{ data?.enabled ? 'Enabled — your account asks for a 6-digit code at login.' : 'Disabled — only a password protects your account.' }}</p>
-            </div>
-          </header>
-
-          <div v-if="data?.enabled" class="settings-2fa-enabled">
-            <p>Backup codes left: <strong>{{ data.backup_codes_remaining }} / {{ data.backup_codes_total }}</strong></p>
-            <form @submit.prevent="disable">
-              <label>
-                Current password (required to disable 2FA)
-                <input v-model="disablePassword" type="password" autocomplete="current-password">
-              </label>
-              <p v-if="error" class="error">{{ error }}</p>
-              <button type="submit" class="settings-danger" :disabled="!disablePassword || pending">
-                {{ pending ? 'Disabling…' : 'Disable two-factor' }}
-              </button>
-            </form>
-          </div>
-
-          <div v-else-if="phase === 'idle'">
-            <p>Protect your BKOS account with an authenticator app (1Password, Authy, Google Authenticator, etc.).</p>
-            <button type="button" class="settings-primary" :disabled="pending" @click="startEnroll">
-              {{ pending ? 'Working…' : 'Enable two-factor' }}
-            </button>
-            <p v-if="error" class="error">{{ error }}</p>
-          </div>
-
-          <div v-else-if="phase === 'verifying'" class="settings-enroll">
-            <ol class="settings-enroll-steps">
-              <li>Open your authenticator app and add a new entry.</li>
-              <li>
-                Scan the QR by pasting this URI, or enter the secret manually:
-                <code class="settings-otp-uri">{{ enrollUri }}</code>
-                <p class="muted">Secret: <code>{{ enrollSecret }}</code></p>
-              </li>
-              <li>
-                Enter the current 6-digit code from your authenticator below.
-              </li>
-            </ol>
-            <form @submit.prevent="verifyEnroll">
-              <label>
-                6-digit code
-                <input
-                  v-model="enrollCode"
-                  inputmode="numeric"
-                  autocomplete="one-time-code"
-                  maxlength="6"
-                  placeholder="123 456"
-                  autofocus
-                >
-              </label>
-              <p v-if="error" class="error">{{ error }}</p>
-              <div class="settings-enroll-actions">
-                <button type="button" class="settings-secondary" @click="cancelEnroll">Cancel</button>
-                <button type="submit" class="settings-primary" :disabled="enrollCode.length !== 6 || pending">
-                  {{ pending ? 'Verifying…' : 'Confirm and enable' }}
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <div v-else-if="phase === 'showing-backup-codes'" class="settings-backup-codes">
-            <h3>Save your backup codes</h3>
-            <p class="muted">Each code works once. Use one if you lose access to your authenticator. Store them somewhere safe — they will not be shown again.</p>
-            <pre class="settings-backup-list">{{ backupCodes.join('\n') }}</pre>
-            <div class="settings-enroll-actions">
-              <button type="button" class="settings-secondary" @click="copyBackupCodes">Copy to clipboard</button>
-              <button type="button" class="settings-primary" @click="finishBackupCodes">I've saved them</button>
+            <div class="flex flex-wrap gap-3 text-xs text-muted">
+              <span>created {{ formatBrowserDate(key.created_at) }}</span>
+              <span v-if="key.last_used_at">last used {{ formatBrowserDate(key.last_used_at) }}</span>
             </div>
           </div>
-        </section>
-
-        <section class="settings-section">
-          <header class="settings-section-head">
-            <KeyIcon class="size-5 text-slate-500" aria-hidden="true" />
-            <div>
-              <h2>API keys</h2>
-              <p class="muted">Programmatic access for the BKOS REST API at <code>/api/v1/*</code>. Use as <code>Authorization: Bearer &lt;key&gt;</code>.</p>
-            </div>
-          </header>
-
-          <div v-if="newlyCreated" class="settings-backup-codes">
-            <h3>New key created — copy it now</h3>
-            <p class="muted">This is the only time the full key is shown. Store it in your secrets manager.</p>
-            <pre class="settings-backup-list">{{ newlyCreated.plaintext }}</pre>
-            <div class="settings-enroll-actions">
-              <button type="button" class="settings-secondary" @click="copyToClipboard(newlyCreated!.plaintext)">Copy</button>
-              <button type="button" class="settings-primary" @click="dismissCreated">Done</button>
-            </div>
-          </div>
-
-          <form class="settings-api-key-create" @submit.prevent="createApiKey">
-            <label>
-              Key name
-              <input v-model="newKeyName" type="text" maxlength="120" placeholder="e.g. Shortcuts iPhone">
-            </label>
-            <button type="submit" class="settings-primary" :disabled="!newKeyName.trim() || creating">
-              <PlusIcon class="size-4" aria-hidden="true" />
-              {{ creating ? 'Creating…' : 'Create key' }}
-            </button>
-            <p v-if="keysError" class="error">{{ keysError }}</p>
-          </form>
-
-          <ul v-if="apiKeys.length" class="settings-api-key-list">
-            <li v-for="key in apiKeys" :key="key.id" class="settings-api-key-row" :class="{ 'is-revoked': key.revoked_at }">
-              <div class="settings-api-key-main">
-                <strong>{{ key.name }}</strong>
-                <code>bkos_{{ key.prefix }}_…</code>
-                <span class="muted">{{ key.scopes.join(' · ') }}</span>
-                <span v-if="key.revoked_at" class="settings-api-key-revoked">revoked</span>
-              </div>
-              <div class="settings-api-key-meta">
-                <span class="muted">created {{ formatBrowserDate(key.created_at) }}</span>
-                <span v-if="key.last_used_at" class="muted">last used {{ formatBrowserDate(key.last_used_at) }}</span>
-              </div>
-              <button
-                v-if="!key.revoked_at"
-                type="button"
-                class="settings-api-key-revoke"
-                @click="revokeApiKey(key.id)"
-              >
-                <TrashIcon class="size-4" aria-hidden="true" />
-                <span>Revoke</span>
-              </button>
-            </li>
-          </ul>
-          <p v-else class="muted">No keys yet. Create one above to start posting captures from external tools.</p>
-        </section>
-      </section>
-    </main>
-  </div>
+          <UiButton
+            v-if="!key.revoked_at"
+            variant="ghost"
+            size="sm"
+            @click="revokeApiKey(key.id)"
+          >
+            <TrashIcon class="size-4" aria-hidden="true" />
+            Revoke
+          </UiButton>
+        </li>
+      </ul>
+      <p v-else class="text-sm text-muted">No keys yet. Create one above to start posting captures from external tools.</p>
+    </section>
+  </main>
 </template>

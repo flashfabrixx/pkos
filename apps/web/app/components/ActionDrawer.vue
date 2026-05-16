@@ -262,7 +262,7 @@ async function deleteAction() {
         leave-from="opacity-100"
         leave-to="opacity-0"
       >
-        <div class="fixed inset-0 bg-slate-500/20" />
+        <div class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm" />
       </TransitionChild>
 
       <div class="fixed inset-y-0 right-0 flex max-w-full">
@@ -275,45 +275,62 @@ async function deleteAction() {
           leave-from="translate-x-0"
           leave-to="translate-x-full"
         >
-          <DialogPanel class="action-drawer">
-            <div v-if="action" class="action-drawer-inner">
-              <header class="action-drawer-head">
-                <div class="action-drawer-head-left">
+          <DialogPanel class="flex h-screen w-screen flex-col bg-surface-1 shadow-popover sm:w-[440px]">
+            <div v-if="action" class="flex h-full flex-col">
+              <header class="flex items-center justify-between gap-3 border-b border-border-subtle px-4 py-3">
+                <div class="flex items-center gap-2">
                   <button
                     type="button"
-                    class="doc-action-check"
-                    :class="isActionDone(action.status) ? 'is-done' : 'is-open'"
+                    :class="[
+                      'inline-flex size-7 items-center justify-center rounded-full transition-colors',
+                      isActionDone(action.status)
+                        ? 'text-success hover:bg-success-soft'
+                        : 'text-muted-soft hover:bg-success-soft hover:text-success'
+                    ]"
                     @click="toggleStatus"
                   >
                     <CheckCircleIcon class="size-5" aria-hidden="true" />
                   </button>
-                  <span class="action-drawer-status-label">{{ isActionDone(action.status) ? 'Completed' : 'Open' }}</span>
+                  <span class="text-xs font-semibold uppercase tracking-wider text-muted">{{ isActionDone(action.status) ? 'Completed' : 'Open' }}</span>
                 </div>
-                <div class="action-drawer-head-right">
-                  <button type="button" class="action-drawer-icon-btn" :title="`Delete action`" @click="deleteAction">
+                <div class="flex items-center gap-1">
+                  <button
+                    type="button"
+                    class="inline-flex size-8 items-center justify-center rounded-md text-muted-soft hover:bg-danger-soft hover:text-danger"
+                    title="Delete action"
+                    @click="deleteAction"
+                  >
                     <TrashIcon class="size-4" aria-hidden="true" />
                   </button>
-                  <button type="button" class="action-drawer-icon-btn" title="Close" @click="close">
+                  <button
+                    type="button"
+                    class="inline-flex size-8 items-center justify-center rounded-md text-muted-soft hover:bg-surface-3 hover:text-text"
+                    title="Close"
+                    @click="close"
+                  >
                     <XMarkIcon class="size-5" aria-hidden="true" />
                   </button>
                 </div>
               </header>
 
-              <div class="action-drawer-body">
-                <div class="action-drawer-title">
+              <div class="flex-1 space-y-6 overflow-y-auto px-4 py-5">
+                <div>
                   <button
                     v-if="!editingTitle"
                     type="button"
-                    class="doc-row-edit-trigger action-drawer-title-trigger"
+                    class="-mx-2 block w-full rounded-md px-2 py-1 text-left transition-colors hover:bg-surface-3"
                     @click="beginEditTitle"
                   >
-                    <h2 :class="{ 'is-done': isActionDone(action.status) }">{{ action.title }}</h2>
+                    <h2
+                      class="text-lg font-semibold text-text-strong"
+                      :class="isActionDone(action.status) && 'text-muted line-through'"
+                    >{{ action.title }}</h2>
                   </button>
                   <input
                     v-else
                     ref="titleInput"
                     v-model="draftTitle"
-                    class="doc-row-edit-input action-drawer-title-input"
+                    class="block w-full rounded-md border border-accent bg-surface-1 px-2 py-1 text-lg font-semibold text-text-strong outline-none focus:ring-2 focus:ring-accent/20"
                     type="text"
                     maxlength="500"
                     @blur="commitEditTitle"
@@ -322,85 +339,81 @@ async function deleteAction() {
                   >
                 </div>
 
-                <dl class="action-drawer-fields">
-                  <div class="action-drawer-field">
-                    <dt>Assignee</dt>
-                    <dd>
-                      <AssigneePicker
-                        :person-id="action.person_id"
-                        :person-name="action.person_name"
-                        @select="selectAssignee"
-                        @create="createAssignee"
-                        @clear="clearAssignee"
-                      />
-                    </dd>
-                  </div>
+                <dl class="grid grid-cols-[100px_minmax(0,1fr)] items-center gap-y-3 text-sm">
+                  <dt class="text-xs font-semibold uppercase tracking-wider text-muted">Assignee</dt>
+                  <dd>
+                    <AssigneePicker
+                      :person-id="action.person_id"
+                      :person-name="action.person_name"
+                      @select="selectAssignee"
+                      @create="createAssignee"
+                      @clear="clearAssignee"
+                    />
+                  </dd>
 
-                  <div class="action-drawer-field">
-                    <dt>Due date</dt>
-                    <dd class="action-drawer-due">
-                      <button
-                        type="button"
-                        class="doc-action-due-trigger"
-                        :class="{
-                          'is-overdue': isOverdue,
-                          'is-today': isToday,
-                          'is-empty': !action.due_date
-                        }"
-                        @click="openDuePicker"
-                      >
-                        <CalendarDaysIcon v-if="!action.due_date" class="size-4 asana-due-empty-icon" aria-hidden="true" />
-                        <span v-else>{{ isToday ? 'Today' : formatDate(action.due_date) }}</span>
-                      </button>
-                      <input
-                        ref="dueInput"
-                        type="date"
-                        class="doc-action-due-input"
-                        :value="action.due_date || ''"
-                        @change="commitDueDate"
-                      >
-                    </dd>
-                  </div>
+                  <dt class="text-xs font-semibold uppercase tracking-wider text-muted">Due date</dt>
+                  <dd class="relative">
+                    <button
+                      type="button"
+                      :class="[
+                        'inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-medium hover:bg-surface-3',
+                        isOverdue && 'text-danger',
+                        isToday && !isOverdue && 'text-warning',
+                        !action.due_date && 'text-muted-soft'
+                      ]"
+                      @click="openDuePicker"
+                    >
+                      <CalendarDaysIcon v-if="!action.due_date" class="size-4" aria-hidden="true" />
+                      <span v-else>{{ isToday ? 'Today' : formatDate(action.due_date) }}</span>
+                    </button>
+                    <input
+                      ref="dueInput"
+                      type="date"
+                      class="pointer-events-none absolute inset-0 opacity-0"
+                      :value="action.due_date || ''"
+                      @change="commitDueDate"
+                    >
+                  </dd>
 
-                  <div v-if="action.project_id" class="action-drawer-field">
-                    <dt>Project</dt>
+                  <template v-if="action.project_id">
+                    <dt class="text-xs font-semibold uppercase tracking-wider text-muted">Project</dt>
                     <dd>
-                      <NuxtLink :to="`/projects/${action.project_id}`" class="entity-link">{{ action.project_name }}</NuxtLink>
+                      <NuxtLink :to="`/projects/${action.project_id}`" class="text-sm text-accent hover:underline">{{ action.project_name }}</NuxtLink>
                     </dd>
-                  </div>
+                  </template>
 
-                  <div class="action-drawer-field">
-                    <dt>Source</dt>
-                    <dd>
-                      <NuxtLink :to="`/documents/${action.document_id}`" class="action-drawer-source">
-                        <component :is="sourceTypeIcon(action.document_source_type)" class="size-4 text-slate-500" aria-hidden="true" />
-                        <span>{{ action.document_title }}</span>
-                        <ArrowTopRightOnSquareIcon class="size-3.5 text-slate-400" aria-hidden="true" />
-                      </NuxtLink>
-                    </dd>
-                  </div>
+                  <dt class="text-xs font-semibold uppercase tracking-wider text-muted">Source</dt>
+                  <dd>
+                    <NuxtLink
+                      :to="`/documents/${action.document_id}`"
+                      class="inline-flex items-center gap-1.5 text-sm text-text hover:text-accent"
+                    >
+                      <component :is="sourceTypeIcon(action.document_source_type)" class="size-4 text-muted" aria-hidden="true" />
+                      <span class="truncate">{{ action.document_title }}</span>
+                      <ArrowTopRightOnSquareIcon class="size-3.5 text-muted-soft" aria-hidden="true" />
+                    </NuxtLink>
+                  </dd>
                 </dl>
 
-                <section class="action-drawer-section">
-                  <h3>
-                    <DocumentTextIcon class="size-4 text-slate-500" aria-hidden="true" />
+                <section class="space-y-2">
+                  <h3 class="flex items-center gap-2 text-sm font-semibold text-text-strong">
+                    <DocumentTextIcon class="size-4 text-muted" aria-hidden="true" />
                     <span>Description</span>
                   </h3>
                   <button
                     v-if="!editingDescription"
                     type="button"
-                    class="doc-row-edit-trigger entity-description-trigger"
+                    class="-mx-2 block w-full rounded-md px-2 py-1 text-left transition-colors hover:bg-surface-3"
                     @click="beginEditDescription"
                   >
-                    <p v-if="action.description" class="entity-description">{{ action.description }}</p>
-                    <p v-else class="muted">Add a description for this action…</p>
+                    <p v-if="action.description" class="whitespace-pre-wrap text-sm leading-relaxed text-text">{{ action.description }}</p>
+                    <p v-else class="text-sm text-muted">Add a description for this action…</p>
                   </button>
-                  <textarea
+                  <UiTextarea
                     v-else
                     ref="descriptionInput"
                     v-model="draftDescription"
-                    class="doc-comment-textarea"
-                    rows="3"
+                    :rows="3"
                     placeholder="Add a description…"
                     @blur="commitEditDescription"
                     @keydown.esc.prevent="cancelEditDescription"
@@ -409,48 +422,50 @@ async function deleteAction() {
                   />
                 </section>
 
-                <section class="action-drawer-section">
-                  <h3>
-                    <ChatBubbleLeftIcon class="size-4 text-slate-500" aria-hidden="true" />
+                <section class="space-y-2">
+                  <h3 class="flex items-center gap-2 text-sm font-semibold text-text-strong">
+                    <ChatBubbleLeftIcon class="size-4 text-muted" aria-hidden="true" />
                     <span>Comments</span>
-                    <span v-if="comments.length" class="count">{{ comments.length }}</span>
+                    <span v-if="comments.length" class="text-xs font-normal text-muted">{{ comments.length }}</span>
                   </h3>
-                  <ul v-if="comments.length" class="doc-comment-list">
-                    <li v-for="comment in comments" :key="comment.id" class="doc-comment">
-                      <div class="doc-comment-body">{{ comment.body }}</div>
-                      <div class="doc-comment-meta">
+                  <ul v-if="comments.length" class="space-y-2">
+                    <li v-for="comment in comments" :key="comment.id" class="rounded-card bg-surface-2 p-3">
+                      <p class="whitespace-pre-wrap text-sm text-text">{{ comment.body }}</p>
+                      <div class="mt-2 flex items-center justify-between text-xs text-muted">
                         <span>{{ formatDate(comment.created_at) }}</span>
-                        <button type="button" class="doc-comment-delete" title="Delete comment" @click="deleteComment(comment)">
+                        <button
+                          type="button"
+                          class="inline-flex size-7 items-center justify-center rounded-md text-muted-soft hover:bg-danger-soft hover:text-danger"
+                          title="Delete comment"
+                          @click="deleteComment(comment)"
+                        >
                           <TrashIcon class="size-3.5" aria-hidden="true" />
                         </button>
                       </div>
                     </li>
                   </ul>
-                  <div v-if="action.entity_id" class="doc-comment-compose">
-                    <textarea
+                  <div v-if="action.entity_id" class="space-y-2">
+                    <UiTextarea
                       v-model="draftCommentBody"
-                      class="doc-comment-textarea"
-                      rows="2"
+                      :rows="2"
                       placeholder="Add a thought about this action…"
                       @keydown="handleCommentKey"
                     />
-                    <div class="doc-comment-compose-actions">
-                      <span class="doc-comment-hint">Cmd/Ctrl+Enter to post</span>
-                      <button
-                        type="button"
-                        class="doc-comment-post"
-                        :disabled="!draftCommentBody.trim() || postingComment"
+                    <div class="flex items-center justify-between text-xs text-muted">
+                      <span>Cmd/Ctrl+Enter to post</span>
+                      <UiButton
+                        size="sm"
+                        :disabled="!draftCommentBody.trim()"
+                        :loading="postingComment"
                         @click="postComment"
-                      >
-                        {{ postingComment ? 'Posting…' : 'Post' }}
-                      </button>
+                      >{{ postingComment ? 'Posting…' : 'Post' }}</UiButton>
                     </div>
                   </div>
-                  <p v-else class="muted">Comments become available after the next processing run.</p>
+                  <p v-else class="text-xs text-muted">Comments become available after the next processing run.</p>
                 </section>
               </div>
             </div>
-            <div v-else-if="loading" class="action-drawer-loading">Loading…</div>
+            <div v-else-if="loading" class="flex h-full items-center justify-center text-sm text-muted">Loading…</div>
           </DialogPanel>
         </TransitionChild>
       </div>

@@ -231,7 +231,7 @@ onBeforeUnmount(() => {
         leave-from="opacity-100"
         leave-to="opacity-0"
       >
-        <div class="fixed inset-0 bg-slate-500/25 transition-opacity" />
+        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" />
       </TransitionChild>
 
       <div class="fixed inset-0 z-50 w-screen overflow-y-auto p-4 sm:p-6 md:p-20">
@@ -244,97 +244,73 @@ onBeforeUnmount(() => {
           leave-from="opacity-100 scale-100"
           leave-to="opacity-0 scale-95"
         >
-          <DialogPanel class="mx-auto max-w-2xl transform divide-y divide-slate-100 overflow-hidden rounded-xl bg-white shadow-2xl outline outline-1 outline-black/5 transition-all">
+          <DialogPanel class="mx-auto max-w-2xl transform divide-y divide-border-subtle overflow-hidden rounded-card bg-surface-1 shadow-popover ring-1 ring-border-default transition-all">
             <Combobox nullable @update:model-value="onSelect">
               <div class="grid grid-cols-1">
                 <ComboboxInput
                   ref="searchInput"
-                  class="command-palette-input col-start-1 row-start-1"
-                  placeholder="Search..."
+                  class="col-start-1 row-start-1 h-12 w-full border-0 bg-transparent pl-11 pr-4 text-base text-text outline-none placeholder:text-muted-soft focus:ring-0"
+                  placeholder="Search…"
                   @input="updateQuery"
                 />
-                <MagnifyingGlassIcon class="pointer-events-none col-start-1 row-start-1 ml-4 size-5 self-center text-slate-400" aria-hidden="true" />
+                <MagnifyingGlassIcon class="pointer-events-none col-start-1 row-start-1 ml-4 size-5 self-center text-muted-soft" aria-hidden="true" />
               </div>
 
-              <ComboboxOptions v-if="hasVisibleResults" static as="ul" class="max-h-80 transform-gpu scroll-py-10 scroll-pb-2 space-y-4 overflow-y-auto p-4 pb-2">
+              <ComboboxOptions v-if="hasVisibleResults" static as="ul" class="max-h-80 scroll-py-10 scroll-pb-2 space-y-4 overflow-y-auto p-3 pb-2">
                 <li v-if="searchItem">
-                  <ul class="-mx-4 text-sm text-slate-700">
+                  <ul class="text-sm">
                     <ComboboxOption :value="searchItem" as="template" v-slot="{ active }">
-                      <li :class="['flex cursor-default items-center px-4 py-2 select-none', active && 'bg-blue-600 text-white outline-hidden']">
-                        <component :is="searchItem.icon" :class="['size-5 flex-none', active ? 'text-white' : 'text-slate-400']" aria-hidden="true" />
+                      <li :class="['flex cursor-pointer select-none items-center rounded-md px-3 py-2', active ? 'bg-accent text-accent-fg' : 'text-text']">
+                        <component :is="searchItem.icon" :class="['size-5 flex-none', active ? 'text-accent-fg' : 'text-muted']" aria-hidden="true" />
                         <span class="ml-3 flex-auto truncate">{{ searchItem.title }}</span>
-                        <span v-if="active" class="ml-3 flex-none text-blue-100">Open search</span>
+                        <span v-if="active" class="ml-3 flex-none text-accent-fg/80">Open search</span>
                       </li>
                     </ComboboxOption>
                   </ul>
                 </li>
 
-                <li v-if="entityItems.length > 0">
-                  <h2 class="text-xs font-semibold text-slate-900">Entities</h2>
-                  <ul class="-mx-4 mt-2 text-sm text-slate-700">
-                    <ComboboxOption v-for="item in entityItems" :key="item.id" :value="item" as="template" v-slot="{ active }">
-                      <li :class="['flex cursor-default items-center px-4 py-2 select-none', active && 'bg-blue-600 text-white outline-hidden']">
-                        <component :is="item.icon" :class="['size-5 flex-none', active ? 'text-white' : 'text-slate-400']" aria-hidden="true" />
-                        <span class="ml-3 min-w-0 flex-auto">
-                          <span class="block truncate">{{ item.title }}</span>
-                          <span :class="['block truncate text-xs', active ? 'text-blue-100' : 'text-slate-500']">{{ item.subtitle }}</span>
-                        </span>
-                      </li>
-                    </ComboboxOption>
-                  </ul>
-                </li>
-
-                <li v-if="documentItems.length > 0">
-                  <h2 class="text-xs font-semibold text-slate-900">Documents</h2>
-                  <ul class="-mx-4 mt-2 text-sm text-slate-700">
-                    <ComboboxOption v-for="item in documentItems" :key="item.id" :value="item" as="template" v-slot="{ active }">
-                      <li :class="['flex cursor-default items-center px-4 py-2 select-none', active && 'bg-blue-600 text-white outline-hidden']">
-                        <component :is="item.icon" :class="['size-5 flex-none', active ? 'text-white' : 'text-slate-400']" aria-hidden="true" />
-                        <span class="ml-3 min-w-0 flex-auto">
-                          <span class="block truncate">{{ item.title }}</span>
-                          <span :class="['block truncate text-xs', active ? 'text-blue-100' : 'text-slate-500']">{{ item.subtitle }}</span>
-                        </span>
-                      </li>
-                    </ComboboxOption>
-                  </ul>
-                </li>
-
-                <li v-if="filteredCommands.length > 0">
-                  <h2 class="text-xs font-semibold text-slate-900">{{ rawQuery === '' ? 'Quick actions' : 'Navigation' }}</h2>
-                  <ul class="-mx-4 mt-2 text-sm text-slate-700">
-                    <ComboboxOption v-for="item in filteredCommands" :key="item.id" :value="item" as="template" v-slot="{ active }">
-                      <li :class="['flex cursor-default items-center px-4 py-2 select-none', active && 'bg-blue-600 text-white outline-hidden']">
-                        <component :is="item.icon" :class="['size-5 flex-none', active ? 'text-white' : 'text-slate-400']" aria-hidden="true" />
-                        <span class="ml-3 min-w-0 flex-auto">
-                          <span class="block truncate">{{ item.title }}</span>
-                          <span :class="['block truncate text-xs', active ? 'text-blue-100' : 'text-slate-500']">{{ item.subtitle }}</span>
-                        </span>
-                      </li>
-                    </ComboboxOption>
-                  </ul>
+                <li v-for="(group, index) in [
+                  { items: entityItems, label: 'Entities' },
+                  { items: documentItems, label: 'Documents' },
+                  { items: filteredCommands, label: rawQuery === '' ? 'Quick actions' : 'Navigation' }
+                ]" :key="index">
+                  <template v-if="group.items.length > 0">
+                    <h2 class="px-2 text-[11px] font-semibold uppercase tracking-wider text-muted">{{ group.label }}</h2>
+                    <ul class="mt-1 text-sm">
+                      <ComboboxOption v-for="item in group.items" :key="item.id" :value="item" as="template" v-slot="{ active }">
+                        <li :class="['flex cursor-pointer select-none items-center rounded-md px-3 py-2', active ? 'bg-accent text-accent-fg' : 'text-text']">
+                          <component :is="item.icon" :class="['size-5 flex-none', active ? 'text-accent-fg' : 'text-muted']" aria-hidden="true" />
+                          <span class="ml-3 min-w-0 flex-auto">
+                            <span class="block truncate">{{ item.title }}</span>
+                            <span :class="['block truncate text-xs', active ? 'text-accent-fg/80' : 'text-muted']">{{ item.subtitle }}</span>
+                          </span>
+                        </li>
+                      </ComboboxOption>
+                    </ul>
+                  </template>
                 </li>
               </ComboboxOptions>
 
               <div v-if="helpMode" class="px-6 py-14 text-center text-sm sm:px-14">
-                <LifebuoyIcon class="mx-auto size-6 text-slate-400" aria-hidden="true" />
-                <p class="mt-4 font-semibold text-slate-900">Help with searching</p>
-                <p class="mt-2 text-slate-500">Use BKOS command search to jump between views and find documents. Prefix with # for document search or &gt; for navigation.</p>
+                <LifebuoyIcon class="mx-auto size-6 text-muted-soft" aria-hidden="true" />
+                <p class="mt-4 font-semibold text-text-strong">Help with searching</p>
+                <p class="mt-2 text-text-soft">Use BKOS command search to jump between views and find documents. Prefix with # for document search or &gt; for navigation.</p>
               </div>
 
               <div v-if="query !== '' && !helpMode && !pending && !hasVisibleResults" class="px-6 py-14 text-center text-sm sm:px-14">
-                <ExclamationTriangleIcon class="mx-auto size-6 text-slate-400" aria-hidden="true" />
-                <p class="mt-4 font-semibold text-slate-900">No results found</p>
-                <p class="mt-2 text-slate-500">BKOS could not find anything with that term.</p>
+                <ExclamationTriangleIcon class="mx-auto size-6 text-muted-soft" aria-hidden="true" />
+                <p class="mt-4 font-semibold text-text-strong">No results found</p>
+                <p class="mt-2 text-text-soft">BKOS could not find anything with that term.</p>
               </div>
 
-              <div class="command-palette-footer">
+              <div class="flex flex-wrap items-center gap-1.5 bg-surface-2 px-3 py-2.5 text-xs text-text-soft">
                 Type
-                <kbd :class="['command-footer-key', documentMode ? 'active' : '']">#</kbd>
+                <UiKbd :class="documentMode && 'border-accent text-accent'">#</UiKbd>
                 <span class="hidden sm:inline">for documents,</span>
                 <span class="sm:hidden">docs,</span>
-                <kbd :class="['command-footer-key', commandMode ? 'active' : '']">&gt;</kbd>
+                <UiKbd :class="commandMode && 'border-accent text-accent'">&gt;</UiKbd>
                 <span>for navigation,</span>
-                <kbd :class="['command-footer-key', helpMode ? 'active' : '']">?</kbd>
+                <UiKbd :class="helpMode && 'border-accent text-accent'">?</UiKbd>
                 <span>for help.</span>
               </div>
             </Combobox>
