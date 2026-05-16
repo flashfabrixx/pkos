@@ -82,7 +82,7 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss() as any],
     optimizeDeps: {
-      include: ['@headlessui/vue', '@heroicons/vue/20/solid', '@heroicons/vue/24/outline', 'mammoth/mammoth.browser']
+      include: ['@headlessui/vue', '@heroicons/vue/20/solid', '@heroicons/vue/24/outline', 'mammoth/mammoth.browser', 'vue-i18n']
     }
   }
 })

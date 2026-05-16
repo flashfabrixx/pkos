@@ -15,6 +15,7 @@ import {
   TrashIcon,
   UsersIcon
 } from '@heroicons/vue/24/outline'
+import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const { choice, cycle } = useTheme()
