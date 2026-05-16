@@ -14,7 +14,6 @@
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",
     "dotenv": "^16.4.7",
-    "dotenv-expand": "^11.0.7",
     "franc-min": "^6.2.0",
     "imapflow": "^1.0.183",
     "mailparser": "^3.7.2",

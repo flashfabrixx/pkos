@@ -1,14 +1,17 @@
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { config as loadDotenv } from 'dotenv'
-import { expand as expandDotenv } from 'dotenv-expand'
 import tailwindcss from '@tailwindcss/vite'
 
 // Nuxt's CLI `--dotenv` flag is unreliable across versions for runtimeConfig
 // defaults that read process.env at config-load time. Load the repo-root
-// .env eagerly here and expand `${VAR}` references so DATABASE_URL=… works.
+// .env eagerly here. We deliberately do NOT run dotenv-expand: values like
+// BKOS_PASSWORD_HASH (scrypt format `scrypt$16384$8$1$…`) contain literal
+// `$1`/`$8` segments that the expander would mistake for shell variables.
+// Trade-off: write DATABASE_URL with the password inlined, not via
+// `${POSTGRES_PASSWORD}` substitution.
 const here = dirname(fileURLToPath(import.meta.url))
-expandDotenv(loadDotenv({ path: resolve(here, '../../.env'), override: false }))
+loadDotenv({ path: resolve(here, '../../.env'), override: false })
 
 export default defineNuxtConfig({
   compatibilityDate: '2026-05-15',
