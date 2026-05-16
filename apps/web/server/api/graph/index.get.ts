@@ -9,7 +9,9 @@ export default defineEventHandler(async (event) => {
   const relation = typeof params.relation === 'string' && params.relation !== 'all' ? params.relation : null
   const limit = Number(params.limit || 120)
 
-  const edgeWhere = relation ? 'WHERE ke.relation_type = $1' : ''
+  const edgeWhere = relation
+    ? 'WHERE ke.relation_type = $1 AND (d.id IS NULL OR d.deleted_at IS NULL)'
+    : 'WHERE (d.id IS NULL OR d.deleted_at IS NULL)'
   const edgeValues = relation ? [relation, limit] : [limit]
   const edgeLimitPlaceholder = relation ? '$2' : '$1'
 
@@ -60,7 +62,7 @@ export default defineEventHandler(async (event) => {
        COUNT(em.id)::text AS mentions
      FROM entities e
      LEFT JOIN entity_mentions em ON em.entity_id = e.id
-     WHERE e.id = ANY($1::uuid[])
+     WHERE e.id = ANY($1::uuid[]) AND e.deleted_at IS NULL
      ${nodeTypeClause}
      GROUP BY e.id
      ORDER BY COUNT(em.id) DESC, e.name

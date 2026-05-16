@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
   const result = await query(
     `UPDATE comments
      SET body = $1, updated_at = now()
-     WHERE id = $2
+     WHERE id = $2 AND deleted_at IS NULL
      RETURNING id, entity_id, body, document_id, created_at, updated_at`,
     [data.body, id]
   )

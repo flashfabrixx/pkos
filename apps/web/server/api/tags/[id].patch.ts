@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
   const body = schema.parse(await readBody(event))
 
   const beforeResult = await query<{ name: string, description: string | null }>(
-    `SELECT name, (metadata->>'description') AS description FROM entities WHERE id = $1 AND type = 'tag'`,
+    `SELECT name, (metadata->>'description') AS description FROM entities WHERE id = $1 AND type = 'tag' AND deleted_at IS NULL`,
     [id]
   )
   const before = beforeResult.rows[0]
@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
     const result = await query(
       `UPDATE entities
        SET ${updates.join(', ')}, updated_at = now()
-       WHERE id = $${values.length} AND type = 'tag'
+       WHERE id = $${values.length} AND type = 'tag' AND deleted_at IS NULL
        RETURNING id, name, canonical_name, metadata`,
       values
     )

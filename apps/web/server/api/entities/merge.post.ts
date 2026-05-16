@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
 
   return withTransaction(async (client) => {
     const entitiesResult = await client.query<{ id: string, type: string, name: string }>(
-      `SELECT id, type, name FROM entities WHERE id = ANY($1::uuid[])`,
+      `SELECT id, type, name FROM entities WHERE id = ANY($1::uuid[]) AND deleted_at IS NULL`,
       [allIds]
     )
     const rows = entitiesResult.rows

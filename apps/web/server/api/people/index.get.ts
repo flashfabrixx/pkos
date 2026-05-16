@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   const offset = Math.max(Number(params.offset) || 0, 0)
 
   const values: Array<string | number> = []
-  let whereClause = `e.type = 'person'`
+  let whereClause = `e.type = 'person' AND e.deleted_at IS NULL`
   if (q) {
     values.push(`%${q}%`)
     whereClause += ` AND e.name ILIKE $${values.length}`
@@ -29,12 +29,14 @@ export default defineEventHandler(async (event) => {
     last_seen: string | null
   }>(
     `SELECT e.id, e.name,
-       (SELECT COUNT(DISTINCT document_id)::int FROM entity_mentions WHERE entity_id = e.id) AS document_count,
-       (SELECT COUNT(*)::int FROM action_items WHERE person_id = e.id AND status = 'open') AS actions_open,
-       (SELECT COUNT(*)::int FROM action_items WHERE person_id = e.id AND status = 'done') AS actions_done,
+       (SELECT COUNT(DISTINCT em.document_id)::int FROM entity_mentions em
+          JOIN documents d ON d.id = em.document_id
+          WHERE em.entity_id = e.id AND d.deleted_at IS NULL) AS document_count,
+       (SELECT COUNT(*)::int FROM action_items WHERE person_id = e.id AND status = 'open' AND deleted_at IS NULL) AS actions_open,
+       (SELECT COUNT(*)::int FROM action_items WHERE person_id = e.id AND status = 'done' AND deleted_at IS NULL) AS actions_done,
        (SELECT MAX(d.captured_at)::text FROM documents d
           JOIN entity_mentions em ON em.document_id = d.id
-          WHERE em.entity_id = e.id) AS last_seen
+          WHERE em.entity_id = e.id AND d.deleted_at IS NULL) AS last_seen
      FROM entities e
      WHERE ${whereClause}
      ORDER BY e.name

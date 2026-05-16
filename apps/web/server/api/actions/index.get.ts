@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   const status = typeof params.status === 'string' ? params.status : 'open'
   const project = typeof params.project === 'string' ? params.project : 'all'
   const allowed = ['open', 'done', 'dismissed']
-  const where: string[] = []
+  const where: string[] = ['a.deleted_at IS NULL', 'd.deleted_at IS NULL']
   const values: Array<string | number> = []
 
   if (allowed.includes(status)) {
@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
     where.push(`a.project_id = $${values.length}`)
   }
 
-  const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : ''
+  const whereSql = `WHERE ${where.join(' AND ')}`
 
   const limit = Math.min(Math.max(Number(params.limit) || 50, 1), 200)
   const offset = Math.max(Number(params.offset) || 0, 0)
@@ -60,6 +60,8 @@ export default defineEventHandler(async (event) => {
      FROM action_items a
      JOIN entities pr ON pr.id = a.project_id
      WHERE pr.type = 'project'
+       AND a.deleted_at IS NULL
+       AND pr.deleted_at IS NULL
      ORDER BY pr.name`
   )
 

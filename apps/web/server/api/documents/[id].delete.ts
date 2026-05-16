@@ -8,11 +8,11 @@ export default defineEventHandler(async (event) => {
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Missing id' })
 
   const result = await query(
-    `UPDATE comments SET deleted_at = now(), updated_at = now()
+    `UPDATE documents SET deleted_at = now(), updated_at = now()
      WHERE id = $1 AND deleted_at IS NULL
      RETURNING id`,
     [id]
   )
-  if (!result.rowCount) throw createError({ statusCode: 404, statusMessage: 'Comment not found' })
+  if (!result.rowCount) throw createError({ statusCode: 404, statusMessage: 'Document not found' })
   return { deleted: true, id }
 })

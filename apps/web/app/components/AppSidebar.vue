@@ -9,6 +9,7 @@ import {
   PencilSquareIcon,
   QueueListIcon,
   RectangleStackIcon,
+  TrashIcon,
   UsersIcon
 } from '@heroicons/vue/24/outline'
 
@@ -32,6 +33,7 @@ const navItems = [
   { to: '/projects', label: 'Projects', icon: FolderIcon },
   { to: '/tags', label: 'Tags', icon: HashtagIcon },
   { to: '/graph', label: 'Graph', icon: ChartBarSquareIcon },
+  { to: '/trash', label: 'Trash', icon: TrashIcon },
   { to: '/settings', label: 'Settings', icon: Cog6ToothIcon }
 ] as const
 

@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
      SET language = $1,
          metadata = metadata || jsonb_build_object('language_pg_config', $2::text),
          updated_at = now()
-     WHERE id = $3
+     WHERE id = $3 AND deleted_at IS NULL
      RETURNING id`,
     [next, pgConfig, id]
   )

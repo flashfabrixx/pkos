@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
      FROM documents d
      LEFT JOIN entities e
        ON e.type = 'document' AND (e.metadata->>'document_id')::uuid = d.id
-     WHERE d.id = $1`,
+     WHERE d.id = $1 AND d.deleted_at IS NULL`,
     [id]
   )
   const document = documentResult.rows[0]
@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
          ON ae.type = 'topic'
          AND ae.metadata->>'kind' = 'action_item'
          AND ae.name = a.title
-       WHERE a.document_id = $1
+       WHERE a.document_id = $1 AND a.deleted_at IS NULL
        ORDER BY a.created_at`,
       [id]
     ),
@@ -86,7 +86,7 @@ export default defineEventHandler(async (event) => {
     query(
       `SELECT c.id, c.entity_id, c.body, c.document_id, c.created_at, c.updated_at
        FROM comments c
-       WHERE c.entity_id IN (
+       WHERE c.deleted_at IS NULL AND c.entity_id IN (
          SELECT entity_id FROM entity_mentions WHERE document_id = $1
          UNION
          SELECT id FROM entities WHERE type = 'document' AND (metadata->>'document_id')::uuid = $1
