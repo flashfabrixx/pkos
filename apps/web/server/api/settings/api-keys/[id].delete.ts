@@ -1,9 +1,10 @@
 import { createError, getRouterParam } from 'h3'
 import { requireAuth } from '../../../utils/auth'
+import { recordAudit } from '../../../utils/audit'
 import { query } from '../../../utils/db'
 
 export default defineEventHandler(async (event) => {
-  requireAuth(event)
+  const actor = requireAuth(event)
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Missing id' })
 
@@ -14,5 +15,6 @@ export default defineEventHandler(async (event) => {
     [id]
   )
   if (!result.rowCount) throw createError({ statusCode: 404, statusMessage: 'Key not found or already revoked' })
+  await recordAudit({ event, actor, action: 'api_key.revoke', resourceKind: 'api_key', resourceId: id })
   return { revoked: true, id }
 })

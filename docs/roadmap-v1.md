@@ -132,7 +132,7 @@ Aus dem rohen Tool wird ein benutzbares Produkt für Self-Hoster.
   `localStorage`.
 - Heroicons bleiben tokenisiert (`currentColor`).
 
-### B14 — Workspace-Audit-Log  `todo`
+### B14 — Workspace-Audit-Log  `done`
 - Migration: `audit_events` (`actor_id`, `action`, `resource_kind`,
   `resource_id`, `meta`, `created_at`).
 - Hook-Punkte: Login, Logout, 2FA-Setup, API-Key-Create/Revoke,

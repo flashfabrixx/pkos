@@ -5,6 +5,17 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
 
+### B14 — Workspace audit log
+- Migration `0019_audit_events.sql` adds the append-only `audit_events`
+  table with index on `occurred_at DESC`.
+- `utils/audit.ts` exposes `recordAudit({event, actor, action, resourceKind, resourceId, meta})`
+  with best-effort write semantics (logs and swallows errors).
+- Hook sites: login success + failure, logout, api-key create + revoke,
+  document soft-delete, entity soft-delete, entity merge.
+- New endpoints: `GET /api/admin/audit` (filterable, paginated) and
+  `GET /api/admin/audit.csv` (capped at 10k rows).
+- New page `/admin/audit` with filter input and CSV download.
+
 ### B11-13 — UI polish (i18n + responsive + dark mode)
 - **Tokens**: `:root` extended with a full surface/text/border/accent
   token set, plus a `:root[data-theme="dark"]` override and a

@@ -1,11 +1,12 @@
 import { createError, getRouterParam } from 'h3'
 import { requireAuth } from '../../utils/auth'
+import { recordAudit } from '../../utils/audit'
 import { query } from '../../utils/db'
 
 const DELETABLE_TYPES = new Set(['person', 'project', 'tag'])
 
 export default defineEventHandler(async (event) => {
-  requireAuth(event)
+  const actor = requireAuth(event)
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Missing id' })
 
@@ -20,5 +21,6 @@ export default defineEventHandler(async (event) => {
   }
 
   await query(`UPDATE entities SET deleted_at = now(), updated_at = now() WHERE id = $1`, [id])
+  await recordAudit({ event, actor, action: 'entity.delete', resourceKind: entity.type, resourceId: id })
   return { deleted: true, id, type: entity.type }
 })

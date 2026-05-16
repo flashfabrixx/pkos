@@ -1,6 +1,7 @@
 import { createError, readBody } from 'h3'
 import { z } from 'zod'
 import { requireAuth } from '../../../utils/auth'
+import { recordAudit } from '../../../utils/audit'
 import { ALL_SCOPES, DEFAULT_SCOPES, generateKey } from '../../../utils/api-keys'
 import { query } from '../../../utils/db'
 
@@ -25,12 +26,7 @@ export default defineEventHandler(async (event) => {
      VALUES ($1, $2, $3, $4::text[], $5) RETURNING id`,
     [body.data.name, prefix, hashedKey, scopes, actor]
   )
-  return {
-    id: result.rows[0]!.id,
-    name: body.data.name,
-    prefix,
-    scopes,
-    plaintext,
-    actor
-  }
+  const id = result.rows[0]!.id
+  await recordAudit({ event, actor, action: 'api_key.create', resourceKind: 'api_key', resourceId: id, meta: { name: body.data.name, scopes } })
+  return { id, name: body.data.name, prefix, scopes, plaintext, actor }
 })

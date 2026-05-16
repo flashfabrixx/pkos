@@ -1,6 +1,7 @@
 import { createError, getRequestIP, readBody } from 'h3'
 import { z } from 'zod'
 import { isTotpEnabled } from '../../utils/auth-config'
+import { recordAudit } from '../../utils/audit'
 import { createSession, setSessionCookie } from '../../utils/auth'
 import { logger } from '../../utils/logger'
 import { hashPassword, isHashed, verifyPassword } from '../../utils/password'
@@ -52,10 +53,12 @@ export default defineEventHandler(async (event) => {
 
   if (!usernameMatches || !passwordMatches) {
     recordLoginFailure(ip)
+    await recordAudit({ event, actor: body.username, action: 'auth.login_failed' })
     throw createError({ statusCode: 401, statusMessage: 'Invalid credentials' })
   }
 
   recordLoginSuccess(ip)
+  await recordAudit({ event, actor: body.username, action: 'auth.login' })
 
   // If 2FA is configured, first step is done — issue a pre-auth token and
   // ask the client to submit a TOTP code or a backup code via /api/auth/2fa/login.
