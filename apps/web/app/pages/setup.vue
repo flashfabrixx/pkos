@@ -5,7 +5,9 @@ import { useI18n } from 'vue-i18n'
 definePageMeta({ layout: 'empty' })
 
 const { t } = useI18n()
-useHead({ title: () => t('setup.title') })
+// 'setup.title' is "Welcome to BKOS" for the page heading; for the tab
+// we want a shorter, non-duplicating label.
+useHead({ title: 'Setup' })
 
 interface SetupStatus {
   completed: boolean
