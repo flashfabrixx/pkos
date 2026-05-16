@@ -79,7 +79,7 @@ wirklich „Knowledge Capture" statt nur „Knowledge Viewer".
 
 Embeddings liegen bereits vor — diese Phase macht sie für den User sichtbar.
 
-### B7 — Such-UI  `todo`
+### B7 — Such-UI  `done`
 - Neue Seite `/search` mit kombinierter semantischer + Volltext-Suche.
 - Server: `POST /api/search`, parametrisiert nach `q`, `kinds`, `lang`,
   `date_from/to`, `entity_id`. Hybrid-Score (Cosine + TSV-Rank, gewichtet).
