@@ -18,9 +18,7 @@ interface ActionRow {
 const props = defineProps<{
   actions: ActionRow[]
   title?: string
-  /** Which secondary field to show alongside the title (e.g. project_name in /people/:id, person_name in /projects/:id). */
   secondaryField?: 'project_name' | 'person_name'
-  /** Route base for the secondary entity link, e.g. '/projects' or '/people'. */
   secondaryRouteBase?: string
 }>()
 
@@ -55,52 +53,59 @@ function secondaryRoute(action: ActionRow): string | null {
 </script>
 
 <template>
-  <section v-if="actions.length" class="doc-section">
-    <div class="doc-section-head">
-      <div class="doc-section-title">
-        <ClipboardDocumentCheckIcon class="size-5 text-slate-500" aria-hidden="true" />
-        <h2>{{ headingText }}</h2>
-        <span class="count">{{ actions.length }}</span>
-      </div>
+  <section v-if="actions.length" class="space-y-2">
+    <div class="flex items-center gap-2">
+      <ClipboardDocumentCheckIcon class="size-5 text-muted" aria-hidden="true" />
+      <h2 class="text-sm font-semibold text-text-strong">{{ headingText }}</h2>
+      <span class="text-xs text-muted">{{ actions.length }}</span>
     </div>
-    <ul class="doc-action-list">
+    <ul class="divide-y divide-border-subtle">
       <li
         v-for="action in actions"
         :key="action.id"
-        class="doc-action-row"
-        :class="{ 'is-done': isActionDone(action.status) }"
+        :class="[
+          'grid grid-cols-[auto_minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-3 py-2',
+          isActionDone(action.status) && 'opacity-70'
+        ]"
       >
         <button
           type="button"
-          class="doc-action-check"
-          :class="isActionDone(action.status) ? 'is-done' : 'is-open'"
+          :class="[
+            'inline-flex size-7 items-center justify-center rounded-full transition-colors',
+            isActionDone(action.status)
+              ? 'text-success hover:bg-success-soft'
+              : 'text-muted-soft hover:text-success hover:bg-success-soft'
+          ]"
           @click="emit('toggle', action)"
         >
           <CheckCircleIcon class="size-5" aria-hidden="true" />
         </button>
-        <div class="doc-action-title">
-          <NuxtLink :to="`/documents/${action.document_id}`" class="doc-row-edit-trigger">
-            <span :class="{ 'is-done': isActionDone(action.status) }">{{ action.title }}</span>
+        <div class="min-w-0">
+          <NuxtLink :to="`/documents/${action.document_id}`" class="block truncate text-sm text-text hover:text-accent">
+            <span :class="isActionDone(action.status) && 'text-muted line-through'">{{ action.title }}</span>
           </NuxtLink>
         </div>
-        <div class="doc-action-assignee">
+        <div class="min-w-0 text-xs">
           <NuxtLink
             v-if="secondaryRoute(action)"
             :to="secondaryRoute(action)!"
-            class="entity-action-project"
+            class="truncate text-accent hover:underline"
           >{{ secondaryText(action) }}</NuxtLink>
-          <span v-else-if="secondaryText(action)" class="entity-action-project">{{ secondaryText(action) }}</span>
+          <span v-else-if="secondaryText(action)" class="truncate text-text-soft">{{ secondaryText(action) }}</span>
         </div>
-        <div class="doc-action-due">
+        <div class="min-w-0 text-xs">
           <span
-            class="doc-action-due-trigger"
-            :class="{ 'is-overdue': isOverdue(action), 'is-today': isToday(action), 'is-empty': !action.due_date }"
+            :class="[
+              'inline-flex items-center gap-1.5',
+              isOverdue(action) && 'text-danger font-medium',
+              isToday(action) && !isOverdue(action) && 'text-warning font-medium',
+              !action.due_date && 'text-muted-soft'
+            ]"
           >
-            <CalendarDaysIcon v-if="!action.due_date" class="size-4 asana-due-empty-icon" aria-hidden="true" />
+            <CalendarDaysIcon v-if="!action.due_date" class="size-4" aria-hidden="true" />
             <span v-else>{{ isToday(action) ? 'Today' : formatDate(action.due_date) }}</span>
           </span>
         </div>
-        <span></span>
       </li>
     </ul>
   </section>

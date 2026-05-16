@@ -5,7 +5,6 @@ import {
   DocumentTextIcon,
   PlusIcon,
   Squares2X2Icon,
-  UsersIcon,
   XMarkIcon
 } from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
@@ -75,98 +74,111 @@ function formatDate(value: string | null | undefined, fallback = '') {
 </script>
 
 <template>
-  <div>
-    <main class="workspace single">
-      <section class="panel">
-        <div class="section-head entity-index-head">
-          <div>
-            <p class="eyebrow">{{ t('people.eyebrow') }}</p>
-            <h1>{{ t('people.title') }}</h1>
-          </div>
-          <div class="entity-index-head-right">
-            <button
-              type="button"
-              class="entity-index-select"
-              :class="{ 'is-active': multiEdit }"
-              @click="toggleMultiEdit"
-            >
-              <Squares2X2Icon class="size-4" aria-hidden="true" />
-              <span>{{ multiEdit ? 'Cancel' : 'Select' }}</span>
-            </button>
-            <button type="button" class="entity-index-add" @click="createOpen = true">
-              <PlusIcon class="size-4" aria-hidden="true" />
-              <span>{{ t('people.add') }}</span>
-            </button>
-          </div>
+  <main class="mx-auto grid max-w-5xl gap-4 p-5">
+    <section class="rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
+      <header class="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">{{ t('people.eyebrow') }}</p>
+          <h1 class="text-xl font-semibold tracking-tight text-text-strong">{{ t('people.title') }}</h1>
         </div>
-
-        <div v-if="multiEdit" class="entity-index-bulkbar">
-          <span class="entity-index-bulkbar-count">{{ selectedIds.size }} selected</span>
-          <button
-            type="button"
-            class="entity-index-bulkbar-action"
-            :disabled="selectedIds.size < 2"
-            @click="openMerge"
-          >{{ t('people.merge') }}</button>
-          <button type="button" class="entity-index-bulkbar-close" @click="toggleMultiEdit">
-            <XMarkIcon class="size-4" aria-hidden="true" />
-          </button>
-        </div>
-
-        <EntityCreateDialog v-model:open="createOpen" kind="person" @created="onCreated" />
-        <EntityMergeDialog
-          v-model:open="mergeOpen"
-          kind="person"
-          :candidates="selectedCandidates"
-          @merged="onMerged"
-        />
-
-        <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
-        <p v-else-if="!people.length" class="muted">{{ t('people.empty') }}</p>
-
-        <ul v-else class="doc-list entity-index-list" :class="{ 'is-multi-edit': multiEdit }">
-          <li
-            v-for="p in people"
-            :key="p.id"
-            class="doc-list-row entity-index-row"
-            :class="{ 'is-selected': selectedIds.has(p.id) }"
+        <div class="flex flex-wrap items-center gap-2">
+          <UiButton
+            :variant="multiEdit ? 'primary' : 'secondary'"
+            size="sm"
+            @click="toggleMultiEdit"
           >
-            <input
-              v-if="multiEdit"
-              type="checkbox"
-              class="entity-index-checkbox"
-              :checked="selectedIds.has(p.id)"
-              @change="toggleSelected(p.id)"
-            >
-            <NuxtLink :to="`/people/${p.id}`" class="entity-index-link" :class="{ 'is-disabled': multiEdit }">
-              <span
-                class="avatar"
-                :style="{ background: colorFor(p.name).bg, color: colorFor(p.name).fg }"
-              >{{ initialsOf(p.name) }}</span>
-              <span class="entity-index-name">{{ p.name }}</span>
-            </NuxtLink>
-            <div class="entity-index-meta">
-              <span v-if="p.document_count" class="entity-index-stat">
-                <DocumentTextIcon class="size-3.5" aria-hidden="true" />
-                <span>{{ p.document_count }}</span>
-              </span>
-              <span v-if="p.actions_open || p.actions_done" class="entity-index-stat">
-                <ClipboardDocumentCheckIcon class="size-3.5" aria-hidden="true" />
-                <span>{{ p.actions_open }} open</span>
-              </span>
-              <span v-if="p.last_seen" class="entity-index-stat entity-index-stat--muted">
-                <CalendarDaysIcon class="size-3.5" aria-hidden="true" />
-                <span>{{ formatDate(p.last_seen) }}</span>
-              </span>
-            </div>
-          </li>
-        </ul>
-
-        <div ref="sentinelRef" class="infinite-sentinel" aria-hidden="true">
-          <span v-if="loadingMore" class="muted">Loading more…</span>
-          <span v-else-if="!hasMore && people.length" class="muted">End of list</span>
+            <Squares2X2Icon class="size-4" aria-hidden="true" />
+            {{ multiEdit ? 'Cancel' : 'Select' }}
+          </UiButton>
+          <UiButton size="sm" @click="createOpen = true">
+            <PlusIcon class="size-4" aria-hidden="true" />
+            {{ t('people.add') }}
+          </UiButton>
         </div>
-      </section>
-    </main>
-  </div>
+      </header>
+
+      <div
+        v-if="multiEdit"
+        class="mb-4 flex items-center gap-2 rounded-card border border-border-default bg-surface-2 px-3 py-2"
+      >
+        <span class="text-sm font-semibold text-text">{{ selectedIds.size }} selected</span>
+        <UiButton
+          variant="secondary"
+          size="sm"
+          :disabled="selectedIds.size < 2"
+          @click="openMerge"
+        >{{ t('people.merge') }}</UiButton>
+        <button
+          type="button"
+          class="ml-auto inline-flex size-8 items-center justify-center rounded-md text-muted-soft hover:bg-surface-3 hover:text-text"
+          :aria-label="t('common.close')"
+          @click="toggleMultiEdit"
+        >
+          <XMarkIcon class="size-4" aria-hidden="true" />
+        </button>
+      </div>
+
+      <EntityCreateDialog v-model:open="createOpen" kind="person" @created="onCreated" />
+      <EntityMergeDialog
+        v-model:open="mergeOpen"
+        kind="person"
+        :candidates="selectedCandidates"
+        @merged="onMerged"
+      />
+
+      <p v-if="loading" class="text-sm text-muted">{{ t('common.loading') }}</p>
+      <p v-else-if="!people.length" class="text-sm text-muted">{{ t('people.empty') }}</p>
+
+      <ul v-else class="divide-y divide-border-subtle">
+        <li
+          v-for="p in people"
+          :key="p.id"
+          :class="[
+            'grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 py-2.5 transition-colors',
+            selectedIds.has(p.id) ? 'bg-accent-soft' : 'hover:bg-surface-2'
+          ]"
+        >
+          <input
+            v-if="multiEdit"
+            type="checkbox"
+            class="size-4 rounded border-border-strong text-accent focus:ring-2 focus:ring-accent/20"
+            :checked="selectedIds.has(p.id)"
+            @change="toggleSelected(p.id)"
+          >
+          <NuxtLink
+            :to="`/people/${p.id}`"
+            :class="[
+              'flex min-w-0 items-center gap-3 rounded-md px-2 py-1',
+              multiEdit && 'pointer-events-none opacity-80'
+            ]"
+          >
+            <span
+              class="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+              :style="{ background: colorFor(p.name).bg, color: colorFor(p.name).fg }"
+            >{{ initialsOf(p.name) }}</span>
+            <span class="truncate text-sm font-medium text-text-strong">{{ p.name }}</span>
+          </NuxtLink>
+          <div class="flex shrink-0 items-center gap-3 text-xs text-text-soft">
+            <span v-if="p.document_count" class="inline-flex items-center gap-1">
+              <DocumentTextIcon class="size-3.5" aria-hidden="true" />
+              <span>{{ p.document_count }}</span>
+            </span>
+            <span v-if="p.actions_open || p.actions_done" class="inline-flex items-center gap-1">
+              <ClipboardDocumentCheckIcon class="size-3.5" aria-hidden="true" />
+              <span>{{ p.actions_open }} open</span>
+            </span>
+            <span v-if="p.last_seen" class="inline-flex items-center gap-1 text-muted">
+              <CalendarDaysIcon class="size-3.5" aria-hidden="true" />
+              <span>{{ formatDate(p.last_seen) }}</span>
+            </span>
+          </div>
+        </li>
+      </ul>
+
+      <div ref="sentinelRef" class="py-4 text-center" aria-hidden="true">
+        <span v-if="loadingMore" class="text-xs text-muted">Loading more…</span>
+        <span v-else-if="!hasMore && people.length" class="text-xs text-muted">End of list</span>
+      </div>
+    </section>
+  </main>
 </template>

@@ -89,8 +89,6 @@ function beginEdit(action: ActionItem, field: Exclude<EditableField, null>) {
     if (field === 'dueDate') {
       const el = dueDateInput.value
       el?.focus()
-      // showPicker() forces the native calendar to open
-      // (focus() alone doesn't trigger it in most browsers)
       try { (el as unknown as { showPicker?: () => void })?.showPicker?.() } catch {}
       return
     }
@@ -143,9 +141,7 @@ async function handleRowFocusOut(action: ActionItem, event: FocusEvent) {
 }
 
 async function deleteAction(id: string) {
-  await $fetch(`/api/actions/${id}`, {
-    method: 'DELETE'
-  })
+  await $fetch(`/api/actions/${id}`, { method: 'DELETE' })
   await refresh()
 }
 
@@ -200,7 +196,7 @@ function openActionDrawer(id: string) {
 async function handleDrawerUpdate() {
   await refresh()
 }
-async function handleDrawerDelete(id: string) {
+async function handleDrawerDelete(_id: string) {
   await refresh()
 }
 
@@ -220,12 +216,8 @@ const hasActiveFilters = computed(
   () => status.value !== DEFAULT_STATUS || project.value !== DEFAULT_PROJECT
 )
 
-function clearStatus() {
-  status.value = DEFAULT_STATUS
-}
-function clearProject() {
-  project.value = DEFAULT_PROJECT
-}
+function clearStatus() { status.value = DEFAULT_STATUS }
+function clearProject() { project.value = DEFAULT_PROJECT }
 function clearAllFilters() {
   status.value = DEFAULT_STATUS
   project.value = DEFAULT_PROJECT
@@ -256,62 +248,72 @@ onBeforeUnmount(() => {
       @deleted="handleDrawerDelete"
     />
     <main class="mx-auto grid max-w-[1440px] gap-4 p-5">
-      <section class="panel">
+      <section class="rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
         <div class="mb-4 flex flex-wrap items-start justify-between gap-4">
           <div class="min-w-0">
-            <p class="eyebrow">Act</p>
-            <h1>Action items</h1>
+            <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">Act</p>
+            <h1 class="text-xl font-semibold tracking-tight text-text-strong">{{ t('actions.title') }}</h1>
           </div>
 
-          <div ref="filterRoot" class="filter-bar">
+          <div ref="filterRoot" class="relative">
             <button
               type="button"
-              class="filter-trigger"
-              :class="{ 'is-active': hasActiveFilters }"
+              :class="[
+                'inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+                hasActiveFilters
+                  ? 'border-accent bg-accent-soft text-accent'
+                  : 'border-border-default bg-surface-1 text-text-soft hover:bg-surface-3'
+              ]"
               :aria-expanded="filterPanelOpen"
               @click="toggleFilterPanel"
             >
               <AdjustmentsHorizontalIcon class="size-4" aria-hidden="true" />
               <span>Filter</span>
-              <span v-if="hasActiveFilters" class="filter-trigger-count">
+              <span v-if="hasActiveFilters" class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-bold leading-none text-accent-fg">
                 {{ (status !== DEFAULT_STATUS ? 1 : 0) + (project !== DEFAULT_PROJECT ? 1 : 0) }}
               </span>
             </button>
 
-            <div v-if="filterPanelOpen" class="filter-panel" role="dialog">
-              <div class="filter-panel-row">
-                <BkosSelect v-model="status" label="Status" :options="statusOptions" />
-              </div>
-              <div class="filter-panel-row">
-                <BkosSelect v-model="project" label="Project" :options="projectOptions" />
-              </div>
-              <div v-if="hasActiveFilters" class="filter-panel-footer">
-                <button type="button" class="filter-reset" @click="clearAllFilters">Reset filters</button>
+            <div
+              v-if="filterPanelOpen"
+              class="absolute right-0 z-20 mt-2 w-72 rounded-card border border-border-default bg-surface-1 p-3 shadow-popover"
+              role="dialog"
+            >
+              <div class="grid gap-3">
+                <UiField label="Status">
+                  <UiSelect v-model="status" :options="statusOptions" />
+                </UiField>
+                <UiField label="Project">
+                  <UiSelect v-model="project" :options="projectOptions" />
+                </UiField>
+                <div v-if="hasActiveFilters" class="flex justify-end border-t border-border-subtle pt-3">
+                  <UiButton variant="ghost" size="sm" @click="clearAllFilters">Reset filters</UiButton>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div v-if="hasActiveFilters" class="filter-chips">
-          <span v-if="status !== DEFAULT_STATUS" class="filter-chip">
-            <span class="filter-chip-label">Status</span>
-            <span>{{ statusLabel }}</span>
-            <button type="button" class="filter-chip-remove" aria-label="Clear status filter" @click="clearStatus">
+        <div v-if="hasActiveFilters" class="mb-3 flex flex-wrap items-center gap-2">
+          <span v-if="status !== DEFAULT_STATUS" class="inline-flex items-center gap-1 rounded-full bg-accent-soft py-1 pl-3 pr-1 text-xs text-accent">
+            <span class="font-semibold uppercase tracking-wider text-[10px] opacity-80">Status</span>
+            <span class="font-medium">{{ statusLabel }}</span>
+            <button type="button" class="inline-flex size-5 items-center justify-center rounded-full hover:bg-accent/15" aria-label="Clear status filter" @click="clearStatus">
               <XMarkIcon class="size-3" aria-hidden="true" />
             </button>
           </span>
-          <span v-if="project !== DEFAULT_PROJECT" class="filter-chip">
-            <span class="filter-chip-label">Project</span>
-            <span>{{ projectLabel }}</span>
-            <button type="button" class="filter-chip-remove" aria-label="Clear project filter" @click="clearProject">
+          <span v-if="project !== DEFAULT_PROJECT" class="inline-flex items-center gap-1 rounded-full bg-accent-soft py-1 pl-3 pr-1 text-xs text-accent">
+            <span class="font-semibold uppercase tracking-wider text-[10px] opacity-80">Project</span>
+            <span class="font-medium">{{ projectLabel }}</span>
+            <button type="button" class="inline-flex size-5 items-center justify-center rounded-full hover:bg-accent/15" aria-label="Clear project filter" @click="clearProject">
               <XMarkIcon class="size-3" aria-hidden="true" />
             </button>
           </span>
-          <button type="button" class="filter-chip-clear-all" @click="clearAllFilters">Clear all</button>
+          <button type="button" class="text-xs font-semibold text-muted hover:text-accent" @click="clearAllFilters">Clear all</button>
         </div>
 
-        <div class="asana-table">
-          <div class="asana-header">
+        <div class="overflow-hidden rounded-card border border-border-subtle">
+          <div class="grid grid-cols-[40px_minmax(0,3fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-3 border-b border-border-subtle bg-surface-2 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted">
             <span></span>
             <span>Task</span>
             <span>Assignee</span>
@@ -322,11 +324,16 @@ onBeforeUnmount(() => {
           <div
             v-for="action in actions"
             :key="action.id"
-            class="asana-row"
+            class="group grid grid-cols-[40px_minmax(0,3fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-3 border-b border-border-subtle px-3 py-2 transition-colors last:border-0 hover:bg-surface-2"
             @focusout="handleRowFocusOut(action, $event)"
           >
             <button
-              :class="['action-check', action.status === 'done' ? 'is-done' : 'is-open']"
+              :class="[
+                'inline-flex size-7 items-center justify-center rounded-full transition-colors',
+                action.status === 'done'
+                  ? 'text-success hover:bg-success-soft'
+                  : 'text-muted-soft hover:text-success hover:bg-success-soft'
+              ]"
               type="button"
               :title="markDoneLabel(action)"
               @click="updateAction(action.id, action.status === 'done' ? 'open' : 'done')"
@@ -334,20 +341,20 @@ onBeforeUnmount(() => {
               <CheckCircleIcon class="size-5" aria-hidden="true" />
             </button>
 
-            <div class="asana-title">
+            <div class="flex min-w-0 items-center gap-2">
               <button
                 v-if="!isEditing(action)"
-                class="asana-inline-trigger"
                 type="button"
+                class="min-w-0 flex-1 truncate rounded-md px-2 py-1 text-left text-sm text-text hover:bg-surface-3"
                 @click="openInlineEditor(action, 'title')"
               >
-                <span class="asana-title-text" :class="{ 'is-done': action.status === 'done' }">{{ action.title }}</span>
+                <span :class="action.status === 'done' && 'text-muted line-through'">{{ action.title }}</span>
               </button>
               <input
                 v-else
                 ref="titleInput"
                 v-model="draftTitle"
-                class="asana-inline-input"
+                class="min-w-0 flex-1 rounded-md border border-accent bg-surface-1 px-2 py-1 text-sm text-text outline-none focus:ring-2 focus:ring-accent/20"
                 type="text"
                 maxlength="500"
                 @keydown.enter.prevent="saveEdit(action)"
@@ -357,21 +364,21 @@ onBeforeUnmount(() => {
               <button
                 v-if="!isEditing(action)"
                 type="button"
-                class="row-open-chevron"
+                class="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-soft opacity-0 transition-opacity hover:bg-surface-3 hover:text-text group-hover:opacity-100"
                 title="Open action detail"
                 @click="openActionDrawer(action.id)"
               >
                 <ChevronRightIcon class="size-4" aria-hidden="true" />
               </button>
-              <button v-if="isEditing(action)" class="action-inline-cancel" type="button" title="Cancel edit" @click="cancelEdit">
+              <button v-if="isEditing(action)" type="button" class="inline-flex size-7 items-center justify-center rounded-md text-muted hover:bg-surface-3 hover:text-text" title="Cancel edit" @click="cancelEdit">
                 <XMarkIcon class="size-4" aria-hidden="true" />
               </button>
-              <button v-if="isEditing(action)" class="action-inline-save" type="button" title="Save edit" @click="saveEdit(action)">
+              <button v-if="isEditing(action)" type="button" class="inline-flex size-7 items-center justify-center rounded-md text-success hover:bg-success-soft" title="Save edit" @click="saveEdit(action)">
                 <CheckCircleIcon class="size-4" aria-hidden="true" />
               </button>
             </div>
 
-            <div class="asana-cell asana-cell-assignee">
+            <div class="min-w-0">
               <AssigneePicker
                 :person-id="action.person_id"
                 :person-name="action.person_name"
@@ -381,22 +388,22 @@ onBeforeUnmount(() => {
               />
             </div>
 
-            <div class="asana-cell">
+            <div class="min-w-0">
               <button
                 v-if="!isEditing(action)"
-                class="asana-inline-trigger asana-due-trigger"
-                :class="{
-                  'is-overdue': isOverdue(action),
-                  'is-today': isToday(action),
-                  'is-empty': !action.due_date
-                }"
                 type="button"
+                :class="[
+                  'inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-medium hover:bg-surface-3',
+                  isOverdue(action) && 'text-danger',
+                  isToday(action) && !isOverdue(action) && 'text-warning',
+                  !action.due_date && 'text-muted-soft'
+                ]"
                 :title="action.due_date ? formatDate(action.due_date) : 'Set due date'"
                 @click="openInlineEditor(action, 'dueDate')"
               >
                 <CalendarDaysIcon
                   v-if="!action.due_date"
-                  class="size-4 asana-due-empty-icon"
+                  class="size-4"
                   aria-hidden="true"
                 />
                 <span v-else>{{ isToday(action) ? 'Today' : formatDate(action.due_date) }}</span>
@@ -405,7 +412,7 @@ onBeforeUnmount(() => {
                 v-else
                 ref="dueDateInput"
                 v-model="draftDueDate"
-                class="asana-inline-input asana-inline-date"
+                class="rounded-md border border-accent bg-surface-1 px-2 py-1 text-xs text-text outline-none focus:ring-2 focus:ring-accent/20"
                 type="date"
                 @keydown.enter.prevent="saveEdit(action)"
                 @keydown.esc.prevent="cancelEdit"
@@ -413,27 +420,26 @@ onBeforeUnmount(() => {
               >
             </div>
 
-            <div class="asana-cell asana-cell-source">
+            <div class="min-w-0">
               <NuxtLink
-                class="asana-source-pill"
+                class="inline-flex max-w-full items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium"
                 :to="`/documents/${action.document_id}`"
                 :style="{ background: sourcePillFor(action).bg, color: sourcePillFor(action).fg }"
                 :title="`${action.document_title} · ${action.document_source_type}`"
               >
                 <component :is="sourceTypeIcon(action.document_source_type)" class="size-3.5 shrink-0" aria-hidden="true" />
-                <span>{{ sourcePillFor(action).label }}</span>
+                <span class="truncate">{{ sourcePillFor(action).label }}</span>
               </NuxtLink>
             </div>
-
           </div>
 
-          <p v-if="pending" class="muted p-4">Loading actions...</p>
-          <p v-if="!pending && !actions.length" class="muted p-4">No actions match these filters.</p>
+          <p v-if="pending" class="p-4 text-sm text-muted">Loading actions...</p>
+          <p v-if="!pending && !actions.length" class="p-4 text-sm text-muted">No actions match these filters.</p>
         </div>
 
-        <div ref="sentinelRef" class="infinite-sentinel" aria-hidden="true">
-          <span v-if="loadingMore" class="muted">Loading more…</span>
-          <span v-else-if="!hasMore && actions.length" class="muted">End of list</span>
+        <div ref="sentinelRef" class="py-4 text-center" aria-hidden="true">
+          <span v-if="loadingMore" class="text-xs text-muted">Loading more…</span>
+          <span v-else-if="!hasMore && actions.length" class="text-xs text-muted">End of list</span>
         </div>
       </section>
     </main>

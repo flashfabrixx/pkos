@@ -20,7 +20,7 @@ interface DepartmentRow {
   projects_count: number
 }
 
-const { items: departments, loading, loadingMore, hasMore, reset, sentinelRef } = useInfiniteList<DepartmentRow>({
+const { items: departments, loading, loadingMore, hasMore, sentinelRef } = useInfiniteList<DepartmentRow>({
   pageSize: 50,
   async fetcher({ offset, limit }) {
     const data = await $fetch<{ departments: DepartmentRow[], hasMore: boolean }>('/api/departments', {
@@ -37,61 +37,58 @@ function onCreated(entity: { id: string }) {
 </script>
 
 <template>
-  <div>
-    <main class="workspace single">
-      <section class="panel">
-        <div class="section-head entity-index-head">
-          <div>
-            <p class="eyebrow">{{ t('departments.eyebrow') }}</p>
-            <h1>{{ t('departments.title') }}</h1>
-          </div>
-          <div class="entity-index-head-right">
-            <button type="button" class="entity-index-add" @click="createOpen = true">
-              <PlusIcon class="size-4" aria-hidden="true" />
-              <span>{{ t('departments.add') }}</span>
-            </button>
-          </div>
+  <main class="mx-auto grid max-w-5xl gap-4 p-5">
+    <section class="rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
+      <header class="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">{{ t('departments.eyebrow') }}</p>
+          <h1 class="text-xl font-semibold tracking-tight text-text-strong">{{ t('departments.title') }}</h1>
         </div>
+        <UiButton size="sm" @click="createOpen = true">
+          <PlusIcon class="size-4" aria-hidden="true" />
+          {{ t('departments.add') }}
+        </UiButton>
+      </header>
 
-        <EntityCreateDialog v-model:open="createOpen" kind="department" @created="onCreated" />
+      <EntityCreateDialog v-model:open="createOpen" kind="department" @created="onCreated" />
 
-        <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
-        <p v-else-if="!departments.length" class="muted">{{ t('departments.empty') }}</p>
+      <p v-if="loading" class="text-sm text-muted">{{ t('common.loading') }}</p>
+      <p v-else-if="!departments.length" class="text-sm text-muted">{{ t('departments.empty') }}</p>
 
-        <ul v-else class="doc-list entity-index-list">
-          <li
-            v-for="d in departments"
-            :key="d.id"
-            class="doc-list-row entity-index-row"
-          >
-            <NuxtLink :to="`/departments/${d.id}`" class="entity-index-link">
-              <span class="avatar entity-tile">
-                <BuildingOffice2Icon class="size-4" aria-hidden="true" />
-              </span>
-              <span class="entity-index-name">{{ d.name }}</span>
-            </NuxtLink>
-            <div class="entity-index-meta">
-              <span v-if="d.parent_name" class="entity-index-stat entity-index-stat--muted">
-                <BuildingOffice2Icon class="size-3.5" aria-hidden="true" />
-                <span>{{ d.parent_name }}</span>
-              </span>
-              <span v-if="d.members_count" class="entity-index-stat">
-                <UsersIcon class="size-3.5" aria-hidden="true" />
-                <span>{{ d.members_count }}</span>
-              </span>
-              <span v-if="d.projects_count" class="entity-index-stat">
-                <ClipboardDocumentCheckIcon class="size-3.5" aria-hidden="true" />
-                <span>{{ d.projects_count }}</span>
-              </span>
-            </div>
-          </li>
-        </ul>
+      <ul v-else class="divide-y divide-border-subtle">
+        <li
+          v-for="d in departments"
+          :key="d.id"
+          class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 py-2.5 transition-colors hover:bg-surface-2"
+        >
+          <span></span>
+          <NuxtLink :to="`/departments/${d.id}`" class="flex min-w-0 items-center gap-3 rounded-md px-2 py-1">
+            <span class="inline-flex size-8 shrink-0 items-center justify-center rounded-card bg-soft text-text-soft">
+              <BuildingOffice2Icon class="size-4" aria-hidden="true" />
+            </span>
+            <span class="truncate text-sm font-medium text-text-strong">{{ d.name }}</span>
+          </NuxtLink>
+          <div class="flex shrink-0 items-center gap-3 text-xs text-text-soft">
+            <span v-if="d.parent_name" class="inline-flex items-center gap-1 text-muted">
+              <BuildingOffice2Icon class="size-3.5" aria-hidden="true" />
+              <span>{{ d.parent_name }}</span>
+            </span>
+            <span v-if="d.members_count" class="inline-flex items-center gap-1">
+              <UsersIcon class="size-3.5" aria-hidden="true" />
+              <span>{{ d.members_count }}</span>
+            </span>
+            <span v-if="d.projects_count" class="inline-flex items-center gap-1">
+              <ClipboardDocumentCheckIcon class="size-3.5" aria-hidden="true" />
+              <span>{{ d.projects_count }}</span>
+            </span>
+          </div>
+        </li>
+      </ul>
 
-        <div ref="sentinelRef" class="infinite-sentinel" aria-hidden="true">
-          <span v-if="loadingMore" class="muted">{{ t('common.load_more') }}</span>
-          <span v-else-if="!hasMore && departments.length" class="muted">{{ t('common.end_of_list') }}</span>
-        </div>
-      </section>
-    </main>
-  </div>
+      <div ref="sentinelRef" class="py-4 text-center" aria-hidden="true">
+        <span v-if="loadingMore" class="text-xs text-muted">{{ t('common.load_more') }}</span>
+        <span v-else-if="!hasMore && departments.length" class="text-xs text-muted">{{ t('common.end_of_list') }}</span>
+      </div>
+    </section>
+  </main>
 </template>
