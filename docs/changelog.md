@@ -29,7 +29,7 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
   round-trip, and revoked-key → 401.
 
 ### Interactive CLI setup
-- `pnpm setup` walks operator through choosing a username/password,
+- `pnpm bkos:setup` walks the operator through choosing a username/password,
   generates SESSION_SECRET + POSTGRES_PASSWORD, writes/merges `.env`,
   brings Postgres up, applies migrations, and marks setup_state as
   complete so the in-app wizard is skipped.

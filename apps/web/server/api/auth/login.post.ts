@@ -41,7 +41,7 @@ export default defineEventHandler(async (event) => {
     if (!globalThis.__bkos_warned_plaintext_password) {
       logger.warn(
         { component: 'security' },
-        'BKOS_PASSWORD is set as plaintext. Generate a hash via `pnpm setup:password` and use BKOS_PASSWORD_HASH instead.'
+        'BKOS_PASSWORD is set as plaintext. Generate a hash via `pnpm bkos:hash-password` and use BKOS_PASSWORD_HASH instead.'
       )
       globalThis.__bkos_warned_plaintext_password = true
     }
