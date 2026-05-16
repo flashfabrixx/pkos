@@ -145,7 +145,7 @@ Aus dem rohen Tool wird ein benutzbares Produkt für Self-Hoster.
 
 Macht BKOS in fremde Stacks integrierbar und produktiv deploybar.
 
-### B15 — Outgoing Webhooks  `todo`
+### B15 — Outgoing Webhooks  `done`
 - Migration: `webhook_subscriptions` (`url`, `secret`, `events`,
   `active`, `last_status`, `last_delivered_at`).
 - Event-Bus (intern): `capture.created`, `capture.processed`,

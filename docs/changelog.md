@@ -5,6 +5,22 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
 
+### B15 — Outgoing webhooks
+- Migration `0020_webhooks.sql` adds `webhook_subscriptions` and
+  `webhook_deliveries` (with partial index on pending rows).
+- `utils/events.ts` `emitEvent(type, payload)` enqueues one delivery
+  per matching active subscription (`events[]` empty = subscribe to all).
+- `utils/webhook-deliver.ts` HMAC-SHA-256 signs the body, POSTs with an
+  8s timeout. Failures back off exponentially (1m, 2m, 4m, 8m, 16m); the
+  5th failure deactivates the subscription.
+- Nitro scheduled task `webhook:retry` every minute drains the queue.
+- Endpoints: `GET /api/settings/webhooks`, `POST` (returns secret
+  exactly once), `DELETE /api/settings/webhooks/:id`.
+- `/settings/webhooks` page for managing subscriptions.
+- Audit events `webhook.subscribe` / `webhook.unsubscribe`.
+- Initial emit sites: `capture.created` and `capture.processed` in the
+  document-create endpoint; additional sites land as integrations need them.
+
 ### B14 — Workspace audit log
 - Migration `0019_audit_events.sql` adds the append-only `audit_events`
   table with index on `occurred_at DESC`.

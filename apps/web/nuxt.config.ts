@@ -60,7 +60,10 @@ export default defineNuxtConfig({
       '0 2 * * *': ['suggestions:entities'],
       // Action-reminder digest. No-op when SMTP_HOST or BKOS_REMINDER_EMAIL
       // is unset, so it's safe to always wire.
-      '0 7 * * *': ['reminders:actions']
+      '0 7 * * *': ['reminders:actions'],
+      // Drain pending webhook deliveries every minute; rows with
+      // next_attempt_at in the future are skipped.
+      '*/1 * * * *': ['webhook:retry']
     }
   },
   vite: {
