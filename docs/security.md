@@ -21,7 +21,7 @@ Every value here is required for the server to boot in production.
 | Variable | Purpose |
 | --- | --- |
 | `BKOS_USERNAME` | Login name |
-| `BKOS_PASSWORD_HASH` | Hashed password (generate with `pnpm setup:password`) |
+| `BKOS_PASSWORD_HASH` | Hashed password (generate with `pnpm bkos:hash-password`) |
 | `SESSION_SECRET` | Cookie + AES key derivation. **At least 32 chars.** `openssl rand -base64 48` |
 | `POSTGRES_PASSWORD` | DB password used by both compose and the app |
 | `DATABASE_URL` | Full Postgres connection string |
@@ -34,7 +34,7 @@ replace it with `BKOS_PASSWORD_HASH`.
 
 ```bash
 # Password hash (asks twice, prints the hash for your .env)
-pnpm setup:password
+pnpm bkos:hash-password
 
 # Session secret
 openssl rand -base64 48
@@ -59,7 +59,7 @@ one good for a single login.
 ### Lost or forgotten password
 
 1. SSH to the server.
-2. `pnpm setup:password` — generates a new `BKOS_PASSWORD_HASH`.
+2. `pnpm bkos:hash-password` — generates a new `BKOS_PASSWORD_HASH`.
 3. Replace the old hash in `.env`.
 4. Restart the service (`pm2 restart bkos` or `systemctl restart bkos`).
 5. All existing sessions are still valid until they expire. To revoke

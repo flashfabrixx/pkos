@@ -25,7 +25,7 @@ Generate the password hash and session secret on a workstation:
 
 ```bash
 pnpm install
-pnpm setup:password   # paste output into BKOS_PASSWORD_HASH
+pnpm bkos:hash-password   # paste output into BKOS_PASSWORD_HASH
 openssl rand -base64 48   # paste into SESSION_SECRET
 ```
 

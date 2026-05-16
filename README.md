@@ -29,7 +29,7 @@ entity graph, action reminders and outbound webhooks.
 git clone https://github.com/your-org/bkos.git
 cd bkos
 pnpm install
-pnpm setup            # interactive: creates .env, password, secret;
+pnpm bkos:setup       # interactive: creates .env, password, secret;
                       # starts Postgres; applies migrations.
 pnpm dev
 ```
@@ -37,7 +37,7 @@ pnpm dev
 Visit <http://localhost:3000> and log in with the credentials the
 setup tool printed.
 
-Want to do it by hand? `pnpm setup:password`, write `.env`,
+Want to do it by hand? `pnpm bkos:hash-password`, write `.env`,
 `docker compose up -d postgres`, `pnpm db:migrate`, `pnpm dev`.
 
 ## Production deployment

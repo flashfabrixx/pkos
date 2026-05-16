@@ -28,11 +28,11 @@ export default defineNitroPlugin(async () => {
 
   if (!passwordHash && !password) {
     errors.push(
-      'No credentials configured. Run `pnpm setup:password` to generate BKOS_PASSWORD_HASH for your .env.'
+      'No credentials configured. Run `pnpm bkos:hash-password` to generate BKOS_PASSWORD_HASH for your .env.'
     )
   } else if (!passwordHash && password) {
     warnings.push(
-      'BKOS_PASSWORD is set as plaintext. Generate a hash with `pnpm setup:password` and use BKOS_PASSWORD_HASH instead.'
+      'BKOS_PASSWORD is set as plaintext. Generate a hash with `pnpm bkos:hash-password` and use BKOS_PASSWORD_HASH instead.'
     )
     if (password === 'change-me') {
       errors.push('BKOS_PASSWORD is still the placeholder value. Pick a real password.')

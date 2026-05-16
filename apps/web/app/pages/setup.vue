@@ -85,7 +85,7 @@ const passwordOk = computed(() => Boolean(checks.value?.password_hash))
         </h2>
         <p v-if="passwordOk">A hashed password is set for <code>BKOS_USERNAME</code>.</p>
         <p v-else>
-          Run <code>pnpm setup:password</code> to generate
+          Run <code>pnpm bkos:hash-password</code> to generate
           <code>BKOS_PASSWORD_HASH</code>, paste it into <code>.env</code>, restart.
         </p>
       </li>
