@@ -97,6 +97,17 @@ async function importFiles(files: FileList | File[]) {
   fileError.value = ''
   importPending.value = true
   try {
+    // Single-file PDF / unsupported binary path: upload server-side so
+    // pdfjs / mammoth / OCR run in Node and we get a real capture with an
+    // attachment row, not just text in a textarea.
+    if (list.length === 1) {
+      const file = list[0]!
+      if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
+        await uploadToServer(file)
+        return
+      }
+    }
+
     const imported = await Promise.all(list.map(async (file) => ({
       title: fileTitle(file),
       text: await extractFileText(file)
@@ -117,6 +128,17 @@ async function importFiles(files: FileList | File[]) {
     importPending.value = false
     dragActive.value = false
   }
+}
+
+async function uploadToServer(file: File) {
+  const body = new FormData()
+  body.append('file', file)
+  body.append('sourceType', form.sourceType || 'other')
+  body.append('confidentiality', form.confidentiality || 'private')
+  body.append('capturedAt', form.capturedAt || new Date().toISOString().slice(0, 10))
+  if (form.title) body.append('title', form.title)
+  const result = await $fetch<{ documentId: string }>('/api/v1/captures/upload', { method: 'POST', body })
+  await navigateTo(`/documents/${result.documentId}`)
 }
 
 async function handleDrop(event: DragEvent) {

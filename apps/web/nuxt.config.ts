@@ -11,6 +11,8 @@ export default defineNuxtConfig({
     sessionSecret: process.env.SESSION_SECRET || '',
     databaseUrl: process.env.DATABASE_URL || 'postgres://bkos:bkos@localhost:5433/bkos',
     vaultPath: process.env.BKOS_VAULT_PATH || '../../vault',
+    filesPath: process.env.BKOS_FILES_PATH || '../../files',
+    maxUploadMb: process.env.BKOS_MAX_UPLOAD_MB || '25',
     extractorProvider: process.env.BKOS_EXTRACTOR_PROVIDER || 'placeholder',
     openRouterApiKey: process.env.OPENROUTER_API_KEY || '',
     openRouterModel: process.env.OPENROUTER_MODEL || 'openai/gpt-4.1-mini',
