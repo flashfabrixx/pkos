@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "nuxt dev --host 0.0.0.0",
-    "build": "nuxt build",
+    "dev": "nuxt dev --host 0.0.0.0 --dotenv ../../.env",
+    "build": "nuxt build --dotenv ../../.env",
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
