@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import type { ActionItem, ActionStatus } from '@bkos/core'
 import { AdjustmentsHorizontalIcon, CalendarDaysIcon, CheckCircleIcon, ChevronRightIcon, TrashIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { useI18n } from 'vue-i18n'
 import { sourceTypeIcon } from '~/utils/source-type'
 import { colorFor } from '~/utils/hash-color'
 import { useSessionState } from '~/composables/useSessionState'
 import { useInfiniteList } from '~/composables/useInfiniteList'
+
+const { t } = useI18n()
+useHead({ title: () => t('actions.title') })
 
 type ActionFilterStatus = ActionStatus | 'all'
 type EditableField = 'title' | 'dueDate' | null

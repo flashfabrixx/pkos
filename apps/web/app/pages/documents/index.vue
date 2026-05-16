@@ -8,6 +8,7 @@ import { sourceTypeIcon } from '~/utils/source-type'
 import { useInfiniteList } from '~/composables/useInfiniteList'
 
 const { t } = useI18n()
+useHead({ title: () => t('captures.title') })
 
 interface DocRow {
   id: string

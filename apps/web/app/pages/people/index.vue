@@ -13,6 +13,7 @@ import { colorFor } from '~/utils/hash-color'
 import { useInfiniteList } from '~/composables/useInfiniteList'
 
 const { t } = useI18n()
+useHead({ title: () => t('people.title') })
 
 interface PersonRow {
   id: string

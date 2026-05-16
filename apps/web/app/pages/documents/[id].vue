@@ -143,6 +143,8 @@ const people = computed(() => data.value?.people || [])
 const projects = computed(() => data.value?.projects || [])
 const tags = computed(() => data.value?.tags || [])
 
+useHead({ title: () => document.value?.title || 'Capture' })
+
 const actions = ref<ActionRow[]>([])
 const openQuestions = ref<OpenQuestionRow[]>([])
 const decisions = ref<DecisionRow[]>([])

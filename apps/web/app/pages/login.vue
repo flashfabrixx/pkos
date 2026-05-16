@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 definePageMeta({ layout: 'empty' })
 
 const { t } = useI18n()
+useHead({ title: () => t('login.title') })
 const step = ref<'password' | 'totp'>('password')
 const username = ref('')
 const password = ref('')

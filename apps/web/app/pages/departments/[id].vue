@@ -59,6 +59,7 @@ async function removeMember(membershipId: string) {
 }
 
 const dept = computed(() => data.value?.department)
+useHead({ title: () => dept.value?.name || 'Department' })
 </script>
 
 <template>

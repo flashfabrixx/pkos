@@ -20,6 +20,8 @@ export default defineNuxtConfig({
   app: {
     head: {
       viewport: 'width=device-width, initial-scale=1, viewport-fit=cover'
+      // titleTemplate lives in the layouts so we can use a function
+      // (nuxt.config's app.head only accepts strings here).
     }
   },
   runtimeConfig: {

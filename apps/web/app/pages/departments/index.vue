@@ -9,6 +9,7 @@ import { useI18n } from 'vue-i18n'
 import { useInfiniteList } from '~/composables/useInfiniteList'
 
 const { t } = useI18n()
+useHead({ title: () => t('departments.title') })
 
 interface DepartmentRow {
   id: string

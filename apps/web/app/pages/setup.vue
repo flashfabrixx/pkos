@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { CheckCircleIcon, ExclamationCircleIcon, SparklesIcon } from '@heroicons/vue/24/outline'
+import { useI18n } from 'vue-i18n'
 
 definePageMeta({ layout: 'empty' })
+
+const { t } = useI18n()
+useHead({ title: () => t('setup.title') })
 
 interface SetupStatus {
   completed: boolean

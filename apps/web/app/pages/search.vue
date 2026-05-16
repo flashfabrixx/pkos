@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { FolderIcon, HashtagIcon, UsersIcon } from '@heroicons/vue/24/outline'
+import { useI18n } from 'vue-i18n'
 import { colorFor } from '~/utils/hash-color'
+
+const { t } = useI18n()
+useHead({ title: () => t('search.title') })
 
 const SOURCE_TYPES = ['meeting', 'voice_note', 'conversation', 'reflection', 'other'] as const
 const LANGS = [

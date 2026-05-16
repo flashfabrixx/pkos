@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+useHead({ title: () => t('audit.title') })
 
 interface AuditEvent {
   id: string
