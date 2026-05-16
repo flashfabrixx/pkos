@@ -14,6 +14,7 @@
   "common": {
     "loading": "Loading…",
     "load_more": "Load more",
+    "end_of_list": "End of list",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -24,24 +25,155 @@
     "done": "Done",
     "system": "System",
     "light": "Light",
-    "dark": "Dark"
+    "dark": "Dark",
+    "yes": "Yes",
+    "no": "No",
+    "remove": "Remove",
+    "copy": "Copy",
+    "all": "All",
+    "any": "Any",
+    "search": "Search",
+    "type": "Type",
+    "language": "Language",
+    "from": "From",
+    "to": "To",
+    "apply": "Apply",
+    "filter": "Filter",
+    "close": "Close",
+    "next": "Next",
+    "submit": "Submit",
+    "name": "Name",
+    "title": "Title",
+    "description": "Description",
+    "comment": "Comment",
+    "comments": "Comments"
+  },
+  "login": {
+    "title": "Sign in",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "invalid": "Invalid credentials.",
+    "twofa_code": "6-digit code",
+    "twofa_submit": "Verify"
+  },
+  "setup": {
+    "title": "Welcome to BKOS",
+    "subtitle": "A few quick checks before you go.",
+    "session_secret": "Session secret",
+    "session_secret_ok": "A strong SESSION_SECRET is configured.",
+    "admin_password": "Admin password",
+    "embeddings": "Embeddings (optional)",
+    "run_test": "Run test",
+    "followups_title": "Optional follow-ups",
+    "finish": "Finish setup",
+    "finishing": "Finishing…"
   },
   "captures": {
     "title": "Captures",
-    "empty": "No captures yet."
+    "eyebrow": "Inbox",
+    "empty": "No captures yet.",
+    "processing": "Processing",
+    "failed": "Processing failed",
+    "summary_placeholder": "Paste or drop a meeting transcript, voice-note transcript, conversation note, or business reflection…",
+    "submit": "Capture",
+    "drop_files": "Drop files to import",
+    "language_auto": "Auto · detect",
+    "reprocess": "Reprocess",
+    "reprocessing": "Reprocessing…",
+    "delete_confirm": "Move this capture to trash? You can restore it later from the trash page."
+  },
+  "actions": {
+    "title": "Actions",
+    "eyebrow": "Workflow",
+    "empty": "No actions match these filters.",
+    "loading": "Loading actions…",
+    "task": "Task",
+    "assignee": "Assignee",
+    "due": "Due date",
+    "source": "Source",
+    "today": "Today",
+    "set_due": "Set due date",
+    "all_projects": "All projects",
+    "open_detail": "Open action detail"
+  },
+  "people": {
+    "title": "People",
+    "eyebrow": "Directory",
+    "empty": "No people captured yet.",
+    "add": "Add person",
+    "select": "Select",
+    "merge": "Merge"
+  },
+  "projects": {
+    "title": "Projects",
+    "eyebrow": "Directory",
+    "empty": "No projects yet.",
+    "add": "Add project"
+  },
+  "tags": {
+    "title": "Tags",
+    "eyebrow": "Directory",
+    "empty": "No tags yet.",
+    "add": "Add tag"
+  },
+  "graph": {
+    "title": "Knowledge graph",
+    "eyebrow": "Visualize"
   },
   "trash": {
     "title": "Trash",
+    "eyebrow": "System",
     "empty": "Trash is empty.",
+    "section_captures": "Captures",
+    "section_entities": "Entities",
+    "section_actions": "Actions",
+    "section_comments": "Comments",
     "restore": "Restore",
-    "purge": "Delete permanently",
+    "purge": "Delete",
     "confirm_purge": "Permanently delete this item? This cannot be undone."
   },
   "search": {
     "title": "Search knowledge",
+    "eyebrow": "Retrieve",
     "placeholder": "What did we discuss about AI training, roadmap, staffing…",
+    "submit": "Search",
+    "submitting": "Searching…",
     "no_matches": "No matches found.",
     "mode_hybrid": "hybrid",
-    "mode_lexical": "lexical"
+    "mode_lexical": "lexical",
+    "facet_type": "Type",
+    "facet_language": "Language",
+    "facet_from": "From",
+    "facet_to": "To",
+    "entities_heading": "Entities",
+    "documents_heading": "Documents"
+  },
+  "settings": {
+    "title": "Security",
+    "eyebrow": "Settings",
+    "twofa_title": "Two-factor authentication",
+    "api_keys_title": "API keys",
+    "api_keys_intro": "Programmatic access for the BKOS REST API at /api/v1/*. Use as Authorization: Bearer <key>.",
+    "api_keys_name": "Key name",
+    "api_keys_create": "Create key",
+    "api_keys_creating": "Creating…",
+    "api_keys_revoke": "Revoke",
+    "api_keys_revoke_confirm": "Revoke this API key? Applications using it will start failing immediately.",
+    "api_keys_empty": "No keys yet. Create one above to start posting captures from external tools."
+  },
+  "audit": {
+    "title": "Audit log",
+    "eyebrow": "Admin",
+    "filter_placeholder": "Filter by action (e.g. auth.login)",
+    "download_csv": "Download CSV",
+    "empty": "No audit events.",
+    "when": "When",
+    "actor": "Actor",
+    "action": "Action",
+    "resource": "Resource",
+    "ip": "IP",
+    "meta": "Meta"
   }
 }

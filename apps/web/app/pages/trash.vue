@@ -9,6 +9,9 @@ import {
   UsersIcon,
   FolderIcon
 } from '@heroicons/vue/24/outline'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 type TrashKind = 'documents' | 'entities' | 'actions' | 'comments'
 
@@ -38,7 +41,7 @@ async function restore(kind: TrashKind, id: string) {
 }
 
 async function purge(kind: TrashKind, id: string) {
-  if (!confirm('Permanently delete this item? This cannot be undone.')) return
+  if (!confirm(t('trash.confirm_purge'))) return
   try {
     await $fetch('/api/trash/purge', { method: 'POST', body: { kind, id } })
     await refresh()
@@ -63,19 +66,19 @@ const totalCount = computed(() => {
       <section class="panel">
         <div class="section-head">
           <div>
-            <p class="eyebrow">System</p>
-            <h1>Trash</h1>
+            <p class="eyebrow">{{ t('trash.eyebrow') }}</p>
+            <h1>{{ t('trash.title') }}</h1>
           </div>
         </div>
 
-        <p v-if="pending" class="muted">Loading…</p>
-        <p v-else-if="!totalCount" class="muted">Trash is empty.</p>
+        <p v-if="pending" class="muted">{{ t('common.loading') }}</p>
+        <p v-else-if="!totalCount" class="muted">{{ t('trash.empty') }}</p>
 
         <template v-else>
           <section v-if="data?.documents.length" class="trash-section">
             <h2 class="trash-section-title">
               <DocumentTextIcon class="size-4" aria-hidden="true" />
-              <span>Captures</span>
+              <span>{{ t('trash.section_captures') }}</span>
               <span class="muted">{{ data.documents.length }}</span>
             </h2>
             <ul class="trash-list">
@@ -85,11 +88,11 @@ const totalCount = computed(() => {
                 <div class="trash-row-actions">
                   <button type="button" class="trash-btn" @click="restore('documents', doc.id)">
                     <ArrowUturnLeftIcon class="size-4" aria-hidden="true" />
-                    <span>Restore</span>
+                    <span>{{ t('trash.restore') }}</span>
                   </button>
                   <button type="button" class="trash-btn trash-btn--danger" @click="purge('documents', doc.id)">
                     <TrashIcon class="size-4" aria-hidden="true" />
-                    <span>Delete</span>
+                    <span>{{ t('trash.purge') }}</span>
                   </button>
                 </div>
               </li>
@@ -99,7 +102,7 @@ const totalCount = computed(() => {
           <section v-if="data?.entities.length" class="trash-section">
             <h2 class="trash-section-title">
               <UsersIcon class="size-4" aria-hidden="true" />
-              <span>Entities</span>
+              <span>{{ t('trash.section_entities') }}</span>
               <span class="muted">{{ data.entities.length }}</span>
             </h2>
             <ul class="trash-list">
@@ -112,11 +115,11 @@ const totalCount = computed(() => {
                 <div class="trash-row-actions">
                   <button type="button" class="trash-btn" @click="restore('entities', ent.id)">
                     <ArrowUturnLeftIcon class="size-4" aria-hidden="true" />
-                    <span>Restore</span>
+                    <span>{{ t('trash.restore') }}</span>
                   </button>
                   <button type="button" class="trash-btn trash-btn--danger" @click="purge('entities', ent.id)">
                     <TrashIcon class="size-4" aria-hidden="true" />
-                    <span>Delete</span>
+                    <span>{{ t('trash.purge') }}</span>
                   </button>
                 </div>
               </li>
@@ -126,7 +129,7 @@ const totalCount = computed(() => {
           <section v-if="data?.actions.length" class="trash-section">
             <h2 class="trash-section-title">
               <ClipboardDocumentCheckIcon class="size-4" aria-hidden="true" />
-              <span>Actions</span>
+              <span>{{ t('trash.section_actions') }}</span>
               <span class="muted">{{ data.actions.length }}</span>
             </h2>
             <ul class="trash-list">
@@ -139,11 +142,11 @@ const totalCount = computed(() => {
                 <div class="trash-row-actions">
                   <button type="button" class="trash-btn" @click="restore('actions', act.id)">
                     <ArrowUturnLeftIcon class="size-4" aria-hidden="true" />
-                    <span>Restore</span>
+                    <span>{{ t('trash.restore') }}</span>
                   </button>
                   <button type="button" class="trash-btn trash-btn--danger" @click="purge('actions', act.id)">
                     <TrashIcon class="size-4" aria-hidden="true" />
-                    <span>Delete</span>
+                    <span>{{ t('trash.purge') }}</span>
                   </button>
                 </div>
               </li>
@@ -153,7 +156,7 @@ const totalCount = computed(() => {
           <section v-if="data?.comments.length" class="trash-section">
             <h2 class="trash-section-title">
               <ChatBubbleLeftIcon class="size-4" aria-hidden="true" />
-              <span>Comments</span>
+              <span>{{ t('trash.section_comments') }}</span>
               <span class="muted">{{ data.comments.length }}</span>
             </h2>
             <ul class="trash-list">
@@ -166,11 +169,11 @@ const totalCount = computed(() => {
                 <div class="trash-row-actions">
                   <button type="button" class="trash-btn" @click="restore('comments', cmt.id)">
                     <ArrowUturnLeftIcon class="size-4" aria-hidden="true" />
-                    <span>Restore</span>
+                    <span>{{ t('trash.restore') }}</span>
                   </button>
                   <button type="button" class="trash-btn trash-btn--danger" @click="purge('comments', cmt.id)">
                     <TrashIcon class="size-4" aria-hidden="true" />
-                    <span>Delete</span>
+                    <span>{{ t('trash.purge') }}</span>
                   </button>
                 </div>
               </li>

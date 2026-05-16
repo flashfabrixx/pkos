@@ -8,8 +8,11 @@ import {
   UsersIcon,
   XMarkIcon
 } from '@heroicons/vue/24/outline'
+import { useI18n } from 'vue-i18n'
 import { colorFor } from '~/utils/hash-color'
 import { useInfiniteList } from '~/composables/useInfiniteList'
+
+const { t } = useI18n()
 
 interface PersonRow {
   id: string
@@ -76,8 +79,8 @@ function formatDate(value: string | null | undefined, fallback = '') {
       <section class="panel">
         <div class="section-head entity-index-head">
           <div>
-            <p class="eyebrow">Directory</p>
-            <h1>People</h1>
+            <p class="eyebrow">{{ t('people.eyebrow') }}</p>
+            <h1>{{ t('people.title') }}</h1>
           </div>
           <div class="entity-index-head-right">
             <button
@@ -91,7 +94,7 @@ function formatDate(value: string | null | undefined, fallback = '') {
             </button>
             <button type="button" class="entity-index-add" @click="createOpen = true">
               <PlusIcon class="size-4" aria-hidden="true" />
-              <span>Add person</span>
+              <span>{{ t('people.add') }}</span>
             </button>
           </div>
         </div>
@@ -103,7 +106,7 @@ function formatDate(value: string | null | undefined, fallback = '') {
             class="entity-index-bulkbar-action"
             :disabled="selectedIds.size < 2"
             @click="openMerge"
-          >Merge</button>
+          >{{ t('people.merge') }}</button>
           <button type="button" class="entity-index-bulkbar-close" @click="toggleMultiEdit">
             <XMarkIcon class="size-4" aria-hidden="true" />
           </button>
@@ -117,8 +120,8 @@ function formatDate(value: string | null | undefined, fallback = '') {
           @merged="onMerged"
         />
 
-        <p v-if="loading" class="muted">Loading…</p>
-        <p v-else-if="!people.length" class="muted">No people captured yet.</p>
+        <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
+        <p v-else-if="!people.length" class="muted">{{ t('people.empty') }}</p>
 
         <ul v-else class="doc-list entity-index-list" :class="{ 'is-multi-edit': multiEdit }">
           <li

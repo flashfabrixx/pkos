@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
 definePageMeta({ layout: 'empty' })
 
+const { t } = useI18n()
 const step = ref<'password' | 'totp'>('password')
 const username = ref('')
 const password = ref('')
@@ -69,30 +72,29 @@ function backToPassword() {
     <form v-if="step === 'password'" class="login-panel" @submit.prevent="submitPassword">
       <div>
         <p class="eyebrow">BKOS</p>
-        <h1>Sign in</h1>
+        <h1>{{ t('login.title') }}</h1>
       </div>
       <label>
-        Username
+        {{ t('login.username') }}
         <input v-model="username" autocomplete="username" autofocus>
       </label>
       <label>
-        Password
+        {{ t('login.password') }}
         <input v-model="password" type="password" autocomplete="current-password">
       </label>
       <p v-if="error" class="error">{{ error }}</p>
       <button type="submit" :disabled="pending">
-        {{ pending ? 'Signing in...' : 'Sign in' }}
+        {{ pending ? t('login.submitting') : t('login.submit') }}
       </button>
     </form>
 
     <form v-else class="login-panel" @submit.prevent="submitTotp">
       <div>
         <p class="eyebrow">BKOS · Step 2</p>
-        <h1>Two-factor code</h1>
-        <p class="muted">Enter the 6-digit code from your authenticator app — or a backup code if you lost the device.</p>
+        <h1>{{ t('login.twofa_code') }}</h1>
       </div>
       <label>
-        Code
+        {{ t('login.twofa_code') }}
         <input
           v-model="code"
           type="text"
@@ -105,9 +107,9 @@ function backToPassword() {
       </label>
       <p v-if="error" class="error">{{ error }}</p>
       <button type="submit" :disabled="pending || !code.trim()">
-        {{ pending ? 'Verifying...' : 'Verify' }}
+        {{ pending ? t('login.submitting') : t('login.twofa_submit') }}
       </button>
-      <button type="button" class="login-link" @click="backToPassword">Use a different account</button>
+      <button type="button" class="login-link" @click="backToPassword">{{ t('common.close') }}</button>
     </form>
   </main>
 </template>

@@ -1,36 +1,20 @@
 <script setup lang="ts">
 import {
   ChartBarSquareIcon,
-  ComputerDesktopIcon,
   Cog6ToothIcon,
   FolderIcon,
   HashtagIcon,
   InboxIcon,
   MagnifyingGlassIcon,
-  MoonIcon,
   PencilSquareIcon,
   QueueListIcon,
   RectangleStackIcon,
-  SunIcon,
   TrashIcon,
   UsersIcon
 } from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
-const { choice, cycle } = useTheme()
-const { locale, setLocale, available } = useLocaleSwitch()
-
-const themeIcon = computed(() =>
-  choice.value === 'dark' ? MoonIcon : choice.value === 'light' ? SunIcon : ComputerDesktopIcon
-)
-const themeLabel = computed(() => t(`common.${choice.value}`))
-
-function nextLocale() {
-  const i = available.indexOf(locale.value as 'en' | 'de')
-  const next = available[(i + 1) % available.length]
-  if (next) setLocale(next)
-}
 
 const open = defineModel<boolean>('commandPaletteOpen', { default: false })
 
@@ -100,13 +84,6 @@ function isItemActive(path: string) {
     </nav>
 
     <div class="app-sidebar-footer">
-      <button type="button" class="app-sidebar-theme" :title="`Theme: ${themeLabel} (click to cycle)`" @click="cycle">
-        <component :is="themeIcon" class="size-4" aria-hidden="true" />
-        <span>{{ themeLabel }}</span>
-      </button>
-      <button type="button" class="app-sidebar-theme" :title="`Locale: ${locale} (click to cycle)`" @click="nextLocale">
-        <span class="app-sidebar-locale-code">{{ String(locale).toUpperCase() }}</span>
-      </button>
       <div class="app-sidebar-footer-user-row">
         <span class="app-sidebar-footer-label">Signed in</span>
         <span class="app-sidebar-footer-user">marcel</span>

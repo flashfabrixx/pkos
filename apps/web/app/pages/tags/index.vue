@@ -7,8 +7,11 @@ import {
   Squares2X2Icon,
   XMarkIcon
 } from '@heroicons/vue/24/outline'
+import { useI18n } from 'vue-i18n'
 import { colorFor } from '~/utils/hash-color'
 import { useInfiniteList } from '~/composables/useInfiniteList'
+
+const { t } = useI18n()
 
 interface TagRow {
   id: string
@@ -66,8 +69,8 @@ function formatDate(value: string | null | undefined, fallback = '') {
       <section class="panel">
         <div class="section-head entity-index-head">
           <div>
-            <p class="eyebrow">Directory</p>
-            <h1>Tags</h1>
+            <p class="eyebrow">{{ t('tags.eyebrow') }}</p>
+            <h1>{{ t('tags.title') }}</h1>
           </div>
           <div class="entity-index-head-right">
             <button type="button" class="entity-index-select" :class="{ 'is-active': multiEdit }" @click="toggleMultiEdit">
@@ -76,7 +79,7 @@ function formatDate(value: string | null | undefined, fallback = '') {
             </button>
             <button type="button" class="entity-index-add" @click="createOpen = true">
               <PlusIcon class="size-4" aria-hidden="true" />
-              <span>Add tag</span>
+              <span>{{ t('tags.add') }}</span>
             </button>
           </div>
         </div>
@@ -92,8 +95,8 @@ function formatDate(value: string | null | undefined, fallback = '') {
         <EntityCreateDialog v-model:open="createOpen" kind="tag" @created="onCreated" />
         <EntityMergeDialog v-model:open="mergeOpen" kind="tag" :candidates="selectedCandidates" @merged="onMerged" />
 
-        <p v-if="loading" class="muted">Loading…</p>
-        <p v-else-if="!tags.length" class="muted">No tags yet.</p>
+        <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
+        <p v-else-if="!tags.length" class="muted">{{ t('tags.empty') }}</p>
 
         <ul v-else class="doc-list entity-index-list" :class="{ 'is-multi-edit': multiEdit }">
           <li
