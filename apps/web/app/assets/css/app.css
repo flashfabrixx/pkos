@@ -3687,6 +3687,102 @@ mark {
   gap: 12px;
 }
 
+.settings-api-key-create {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.settings-api-key-create label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.settings-api-key-create input {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  font-size: 13px;
+}
+
+.settings-api-key-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-api-key-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 6px 14px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #fafbfc;
+  border: 1px solid #edf0f4;
+}
+
+.settings-api-key-row.is-revoked {
+  opacity: 0.55;
+}
+
+.settings-api-key-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+  font-size: 13px;
+}
+
+.settings-api-key-main code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: #475569;
+}
+
+.settings-api-key-revoked {
+  font-size: 11px;
+  font-weight: 600;
+  color: #b91c1c;
+  text-transform: uppercase;
+}
+
+.settings-api-key-meta {
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+.settings-api-key-revoke {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 5px;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.settings-api-key-revoke:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
 .settings-backup-codes h3 {
   margin: 0;
   font-size: 14px;

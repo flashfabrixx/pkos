@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ShieldCheckIcon, ShieldExclamationIcon } from '@heroicons/vue/24/outline'
+import { KeyIcon, PlusIcon, ShieldCheckIcon, ShieldExclamationIcon, TrashIcon } from '@heroicons/vue/24/outline'
 
 interface Status {
   enabled: boolean
@@ -8,7 +8,62 @@ interface Status {
   backup_codes_total: number
 }
 
+interface ApiKeyRow {
+  id: string
+  name: string
+  prefix: string
+  scopes: string[]
+  actor: string
+  last_used_at: string | null
+  created_at: string
+  revoked_at: string | null
+}
+
 const { data, refresh } = await useFetch<Status>('/api/auth/2fa/status')
+
+const { data: keysData, refresh: refreshKeys } = await useFetch<{ keys: ApiKeyRow[] }>('/api/settings/api-keys')
+const apiKeys = computed(() => keysData.value?.keys || [])
+const newKeyName = ref('')
+const creating = ref(false)
+const newlyCreated = ref<{ name: string, plaintext: string } | null>(null)
+const keysError = ref<string | null>(null)
+
+async function createApiKey() {
+  if (!newKeyName.value.trim()) return
+  creating.value = true
+  keysError.value = null
+  try {
+    const result = await $fetch<{ name: string, plaintext: string }>('/api/settings/api-keys', {
+      method: 'POST',
+      body: { name: newKeyName.value.trim() }
+    })
+    newlyCreated.value = { name: result.name, plaintext: result.plaintext }
+    newKeyName.value = ''
+    await refreshKeys()
+  } catch (error: any) {
+    keysError.value = error?.data?.statusMessage || error?.message || 'Failed to create key'
+  } finally {
+    creating.value = false
+  }
+}
+
+async function revokeApiKey(id: string) {
+  if (!confirm('Revoke this API key? Applications using it will start failing immediately.')) return
+  try {
+    await $fetch(`/api/settings/api-keys/${id}`, { method: 'DELETE' })
+    await refreshKeys()
+  } catch (error) {
+    console.error('Failed to revoke key', error)
+  }
+}
+
+function copyToClipboard(value: string) {
+  navigator.clipboard?.writeText(value)
+}
+
+function dismissCreated() {
+  newlyCreated.value = null
+}
 
 const phase = ref<'idle' | 'enrolling' | 'verifying' | 'showing-backup-codes'>('idle')
 const enrollSecret = ref('')
@@ -171,6 +226,63 @@ function copyBackupCodes() {
               <button type="button" class="settings-primary" @click="finishBackupCodes">I've saved them</button>
             </div>
           </div>
+        </section>
+
+        <section class="settings-section">
+          <header class="settings-section-head">
+            <KeyIcon class="size-5 text-slate-500" aria-hidden="true" />
+            <div>
+              <h2>API keys</h2>
+              <p class="muted">Programmatic access for the BKOS REST API at <code>/api/v1/*</code>. Use as <code>Authorization: Bearer &lt;key&gt;</code>.</p>
+            </div>
+          </header>
+
+          <div v-if="newlyCreated" class="settings-backup-codes">
+            <h3>New key created — copy it now</h3>
+            <p class="muted">This is the only time the full key is shown. Store it in your secrets manager.</p>
+            <pre class="settings-backup-list">{{ newlyCreated.plaintext }}</pre>
+            <div class="settings-enroll-actions">
+              <button type="button" class="settings-secondary" @click="copyToClipboard(newlyCreated!.plaintext)">Copy</button>
+              <button type="button" class="settings-primary" @click="dismissCreated">Done</button>
+            </div>
+          </div>
+
+          <form class="settings-api-key-create" @submit.prevent="createApiKey">
+            <label>
+              Key name
+              <input v-model="newKeyName" type="text" maxlength="120" placeholder="e.g. Shortcuts iPhone">
+            </label>
+            <button type="submit" class="settings-primary" :disabled="!newKeyName.trim() || creating">
+              <PlusIcon class="size-4" aria-hidden="true" />
+              {{ creating ? 'Creating…' : 'Create key' }}
+            </button>
+            <p v-if="keysError" class="error">{{ keysError }}</p>
+          </form>
+
+          <ul v-if="apiKeys.length" class="settings-api-key-list">
+            <li v-for="key in apiKeys" :key="key.id" class="settings-api-key-row" :class="{ 'is-revoked': key.revoked_at }">
+              <div class="settings-api-key-main">
+                <strong>{{ key.name }}</strong>
+                <code>bkos_{{ key.prefix }}_…</code>
+                <span class="muted">{{ key.scopes.join(' · ') }}</span>
+                <span v-if="key.revoked_at" class="settings-api-key-revoked">revoked</span>
+              </div>
+              <div class="settings-api-key-meta">
+                <span class="muted">created {{ formatBrowserDate(key.created_at) }}</span>
+                <span v-if="key.last_used_at" class="muted">last used {{ formatBrowserDate(key.last_used_at) }}</span>
+              </div>
+              <button
+                v-if="!key.revoked_at"
+                type="button"
+                class="settings-api-key-revoke"
+                @click="revokeApiKey(key.id)"
+              >
+                <TrashIcon class="size-4" aria-hidden="true" />
+                <span>Revoke</span>
+              </button>
+            </li>
+          </ul>
+          <p v-else class="muted">No keys yet. Create one above to start posting captures from external tools.</p>
         </section>
       </section>
     </main>

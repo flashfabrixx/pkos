@@ -5,6 +5,19 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
 
+### B3 — REST API v1 + API keys
+- Migration `0014_api_keys.sql` adds the `api_keys` table (`prefix`,
+  scrypt-hashed secret, scopes, actor, last-used, revoked-at).
+- `apps/web/server/utils/api-keys.ts` generates `bkos_<prefix>_<secret>`
+  tokens; only prefix + hash are persisted.
+- `apps/web/server/utils/auth.ts` gains `getApiKeyAuth` and
+  `requireAuthOrApiKey(scope?)` — accepts session cookie *or* Bearer key.
+- Public REST surface: `POST /api/v1/captures`, `GET /api/v1/captures/:id`,
+  `GET /api/v1/entities` (filterable, paginated).
+- Settings page gains a key-management section; revocation is soft so
+  history survives.
+- New `docs/api.md` reference.
+
 ### B2 — Observability
 - Structured JSON logger (`pino`) at `apps/web/server/utils/logger.ts`. Dev
   output is pretty-printed; production is JSON for journald / Loki / etc.

@@ -33,7 +33,7 @@ Sprints bauen auf dem Logger, Health-Endpoint und den API-Keys auf.
 - Strukturierte Request-Logs mit `req_id` und Auth-Subject.
 - Docker-Compose Healthcheck auf `/healthz` einrichten.
 
-### B3 — REST-API & API-Keys  `todo`
+### B3 — REST-API & API-Keys  `done`
 - Migration: `api_keys` Tabelle (`id`, `name`, `hashed_key`, `prefix`,
   `scopes`, `last_used_at`, `created_at`, `revoked_at`).
 - Auth-Middleware: Cookie *oder* `Authorization: Bearer bkos_*` für `/api/v1/**`.
