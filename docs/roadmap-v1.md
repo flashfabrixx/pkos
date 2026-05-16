@@ -161,7 +161,7 @@ Macht BKOS in fremde Stacks integrierbar und produktiv deploybar.
 - `bkos:import` als Gegenstück, idempotent über `external_id`.
 - Doku in `docs/backup.md`, inkl. Postgres-Dump-Variante.
 
-### B17 — Production-Deployment  `todo`
+### B17 — Production-Deployment  `done`
 - `docker-compose.prod.yml`: Web + Postgres + (optional) Ollama, ohne
   exponierte DB-Ports, Volumes für Storage und PG-Data.
 - Reverse-Proxy-Beispiel mit Caddy *und* Traefik in `infra/reverse-proxy/`.

@@ -5,6 +5,22 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
 
+### B17 — Production deployment
+- `apps/web/Dockerfile`: multi-stage build (deps → builder → runtime),
+  non-root user, tini PID-1, healthcheck on `/api/healthz`.
+- `docker-compose.prod.yml`: web + Postgres, no exposed DB port, volumes
+  for vault and uploaded files, health-gated dependency on Postgres.
+- `infra/reverse-proxy/Caddyfile` and `infra/reverse-proxy/traefik.yml`
+  example TLS configurations with `/api/auth/*` rate-limit middleware.
+- `.env.prod.example` mirrors `.env.example` with explicit MUST-CHANGE
+  markers and prod defaults.
+- `docs/deployment.md` walks an operator from a clean VM to a running
+  BKOS in under 15 minutes, plus update + backup procedures.
+- **Zero-trust deployment guide**: Tailscale (private overlay, MagicDNS,
+  ACL tags) and Cloudflare Access (cloudflared tunnel + SSO + MFA +
+  WAF) sections cover production setups that never expose a public
+  port. Includes optional JWT verification for defence-in-depth.
+
 ### B16 — Backup / restore CLI
 - `scripts/bkos-export.mjs`: streams DB rows as JSONL + copies referenced
   attachments into a tar.gz with a `manifest.json` (schema version,

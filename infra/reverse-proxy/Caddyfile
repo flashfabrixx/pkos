@@ -1,0 +1,20 @@
+# BKOS behind Caddy. Replace bkos.example.com with your domain. Caddy
+# automatically obtains a Let's Encrypt cert when run on a host with
+# ports 80 and 443 reachable from the internet.
+
+bkos.example.com {
+    encode zstd gzip
+    # Rate-limit login + 2FA; the app already rate-limits per IP but a
+    # reverse-proxy layer keeps the upstream cold.
+    @auth path /api/auth/*
+    rate_limit @auth 10r/m
+    reverse_proxy bkos-web:3000 {
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
+        header_up X-Request-ID {request_id}
+    }
+    log {
+        output file /var/log/caddy/bkos.log
+        format json
+    }
+}

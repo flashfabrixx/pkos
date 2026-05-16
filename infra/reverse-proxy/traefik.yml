@@ -1,0 +1,36 @@
+# Sketch for Traefik v3 in front of docker-compose.prod.yml. Drop into
+# /etc/traefik/dynamic/bkos.yml after wiring Traefik's static config
+# (entry points, ACME resolver).
+
+http:
+  routers:
+    bkos:
+      rule: "Host(`bkos.example.com`)"
+      entryPoints:
+        - websecure
+      service: bkos
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - bkos-headers
+        - bkos-rate-auth
+
+  services:
+    bkos:
+      loadBalancer:
+        servers:
+          - url: "http://bkos-web:3000"
+        passHostHeader: true
+
+  middlewares:
+    bkos-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+    bkos-rate-auth:
+      rateLimit:
+        # Match Caddy's /api/auth/* throttle (10 req/min from any single
+        # IP). Stops a brute-force of POST /api/auth/login before the
+        # rate-limit utility inside BKOS even sees it.
+        average: 10
+        period: 1m
