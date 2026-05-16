@@ -14,6 +14,7 @@
   "common": {
     "loading": "Lädt…",
     "load_more": "Mehr laden",
+    "end_of_list": "Ende der Liste",
     "save": "Speichern",
     "cancel": "Abbrechen",
     "delete": "Löschen",
@@ -24,24 +25,155 @@
     "done": "Erledigt",
     "system": "System",
     "light": "Hell",
-    "dark": "Dunkel"
+    "dark": "Dunkel",
+    "yes": "Ja",
+    "no": "Nein",
+    "remove": "Entfernen",
+    "copy": "Kopieren",
+    "all": "Alle",
+    "any": "Beliebig",
+    "search": "Suchen",
+    "type": "Typ",
+    "language": "Sprache",
+    "from": "Von",
+    "to": "Bis",
+    "apply": "Anwenden",
+    "filter": "Filter",
+    "close": "Schließen",
+    "next": "Weiter",
+    "submit": "Absenden",
+    "name": "Name",
+    "title": "Titel",
+    "description": "Beschreibung",
+    "comment": "Kommentar",
+    "comments": "Kommentare"
+  },
+  "login": {
+    "title": "Anmelden",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "submit": "Anmelden",
+    "submitting": "Anmelden…",
+    "invalid": "Ungültige Zugangsdaten.",
+    "twofa_code": "6-stelliger Code",
+    "twofa_submit": "Bestätigen"
+  },
+  "setup": {
+    "title": "Willkommen bei BKOS",
+    "subtitle": "Ein paar kurze Checks, bevor es losgeht.",
+    "session_secret": "Session-Secret",
+    "session_secret_ok": "Ein starkes SESSION_SECRET ist konfiguriert.",
+    "admin_password": "Admin-Passwort",
+    "embeddings": "Embeddings (optional)",
+    "run_test": "Test ausführen",
+    "followups_title": "Optionale Folgeschritte",
+    "finish": "Setup abschließen",
+    "finishing": "Wird abgeschlossen…"
   },
   "captures": {
     "title": "Captures",
-    "empty": "Noch keine Captures."
+    "eyebrow": "Inbox",
+    "empty": "Noch keine Captures.",
+    "processing": "Wird verarbeitet",
+    "failed": "Verarbeitung fehlgeschlagen",
+    "summary_placeholder": "Meeting-Transkript, Voice-Note, Gespräch oder Reflexion einfügen oder hier ablegen…",
+    "submit": "Aufnehmen",
+    "drop_files": "Dateien zum Importieren ablegen",
+    "language_auto": "Auto · erkennen",
+    "reprocess": "Neu verarbeiten",
+    "reprocessing": "Wird neu verarbeitet…",
+    "delete_confirm": "Diesen Capture in den Papierkorb verschieben? Du kannst ihn später wiederherstellen."
+  },
+  "actions": {
+    "title": "Aufgaben",
+    "eyebrow": "Workflow",
+    "empty": "Keine Aufgaben passen zu den Filtern.",
+    "loading": "Lade Aufgaben…",
+    "task": "Aufgabe",
+    "assignee": "Zugewiesen",
+    "due": "Fälligkeit",
+    "source": "Quelle",
+    "today": "Heute",
+    "set_due": "Fälligkeit setzen",
+    "all_projects": "Alle Projekte",
+    "open_detail": "Aufgaben-Detail öffnen"
+  },
+  "people": {
+    "title": "Personen",
+    "eyebrow": "Verzeichnis",
+    "empty": "Noch keine Personen erfasst.",
+    "add": "Person hinzufügen",
+    "select": "Auswählen",
+    "merge": "Zusammenführen"
+  },
+  "projects": {
+    "title": "Projekte",
+    "eyebrow": "Verzeichnis",
+    "empty": "Noch keine Projekte.",
+    "add": "Projekt hinzufügen"
+  },
+  "tags": {
+    "title": "Tags",
+    "eyebrow": "Verzeichnis",
+    "empty": "Noch keine Tags.",
+    "add": "Tag hinzufügen"
+  },
+  "graph": {
+    "title": "Wissensgraph",
+    "eyebrow": "Visualisieren"
   },
   "trash": {
     "title": "Papierkorb",
+    "eyebrow": "System",
     "empty": "Der Papierkorb ist leer.",
+    "section_captures": "Captures",
+    "section_entities": "Entitäten",
+    "section_actions": "Aufgaben",
+    "section_comments": "Kommentare",
     "restore": "Wiederherstellen",
     "purge": "Endgültig löschen",
     "confirm_purge": "Dieses Element endgültig löschen? Das lässt sich nicht rückgängig machen."
   },
   "search": {
     "title": "Wissen durchsuchen",
+    "eyebrow": "Abrufen",
     "placeholder": "Was haben wir zu KI-Training, Roadmap, Staffing besprochen…",
+    "submit": "Suchen",
+    "submitting": "Suche läuft…",
     "no_matches": "Keine Treffer.",
     "mode_hybrid": "hybrid",
-    "mode_lexical": "lexikalisch"
+    "mode_lexical": "lexikalisch",
+    "facet_type": "Typ",
+    "facet_language": "Sprache",
+    "facet_from": "Von",
+    "facet_to": "Bis",
+    "entities_heading": "Entitäten",
+    "documents_heading": "Dokumente"
+  },
+  "settings": {
+    "title": "Sicherheit",
+    "eyebrow": "Einstellungen",
+    "twofa_title": "Zwei-Faktor-Authentifizierung",
+    "api_keys_title": "API-Schlüssel",
+    "api_keys_intro": "Programmatischer Zugriff auf die BKOS-REST-API unter /api/v1/*. Verwende sie als Authorization: Bearer <key>.",
+    "api_keys_name": "Name des Schlüssels",
+    "api_keys_create": "Schlüssel erstellen",
+    "api_keys_creating": "Wird erstellt…",
+    "api_keys_revoke": "Widerrufen",
+    "api_keys_revoke_confirm": "Diesen API-Schlüssel widerrufen? Anwendungen, die ihn nutzen, schlagen sofort fehl.",
+    "api_keys_empty": "Noch keine Schlüssel. Erstelle einen oben, um Captures aus externen Tools posten zu können."
+  },
+  "audit": {
+    "title": "Audit-Log",
+    "eyebrow": "Admin",
+    "filter_placeholder": "Nach Aktion filtern (z. B. auth.login)",
+    "download_csv": "CSV herunterladen",
+    "empty": "Keine Audit-Einträge.",
+    "when": "Wann",
+    "actor": "Akteur",
+    "action": "Aktion",
+    "resource": "Ressource",
+    "ip": "IP",
+    "meta": "Meta"
   }
 }

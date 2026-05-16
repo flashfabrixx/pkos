@@ -3,8 +3,11 @@ import {
   ArrowPathIcon,
   ExclamationTriangleIcon
 } from '@heroicons/vue/24/outline'
+import { useI18n } from 'vue-i18n'
 import { sourceTypeIcon } from '~/utils/source-type'
 import { useInfiniteList } from '~/composables/useInfiniteList'
+
+const { t } = useI18n()
 
 interface DocRow {
   id: string
@@ -46,13 +49,13 @@ function formatDate(value: string | null | undefined, fallback = '') {
       <section class="panel">
         <div class="section-head">
           <div>
-            <p class="eyebrow">Inbox</p>
-            <h1>Captures</h1>
+            <p class="eyebrow">{{ t('captures.eyebrow') }}</p>
+            <h1>{{ t('captures.title') }}</h1>
           </div>
         </div>
 
-        <p v-if="loading" class="muted">Loading…</p>
-        <p v-else-if="!documents.length" class="muted">No captures yet.</p>
+        <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
+        <p v-else-if="!documents.length" class="muted">{{ t('captures.empty') }}</p>
 
         <ul v-else class="doc-list inbox-list">
           <li v-for="doc in documents" :key="doc.id" class="doc-list-row inbox-row">
@@ -68,11 +71,11 @@ function formatDate(value: string | null | undefined, fallback = '') {
             <div class="inbox-meta">
               <span v-if="isProcessing(doc)" class="status-pill status-pill--pending">
                 <ArrowPathIcon class="size-3.5 status-pill-spin" aria-hidden="true" />
-                <span>Processing</span>
+                <span>{{ t('captures.processing') }}</span>
               </span>
               <span v-else-if="isFailed(doc)" class="status-pill status-pill--error">
                 <ExclamationTriangleIcon class="size-3.5" aria-hidden="true" />
-                <span>Failed</span>
+                <span>{{ t('captures.failed') }}</span>
               </span>
               <span class="inbox-source">{{ doc.source_type }}</span>
               <span class="entity-doc-date">{{ formatDate(doc.captured_at || doc.created_at) }}</span>

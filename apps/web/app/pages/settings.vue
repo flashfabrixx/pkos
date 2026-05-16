@@ -1,5 +1,32 @@
 <script setup lang="ts">
-import { KeyIcon, PlusIcon, ShieldCheckIcon, ShieldExclamationIcon, TrashIcon } from '@heroicons/vue/24/outline'
+import {
+  ComputerDesktopIcon,
+  KeyIcon,
+  LanguageIcon,
+  MoonIcon,
+  PaintBrushIcon,
+  PlusIcon,
+  ShieldCheckIcon,
+  ShieldExclamationIcon,
+  SunIcon,
+  TrashIcon
+} from '@heroicons/vue/24/outline'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+const { choice: themeChoice, apply: applyTheme } = useTheme()
+const { locale, setLocale, available: localeOptions } = useLocaleSwitch()
+
+const THEME_OPTIONS = [
+  { value: 'system' as const, icon: ComputerDesktopIcon },
+  { value: 'light' as const, icon: SunIcon },
+  { value: 'dark' as const, icon: MoonIcon }
+]
+
+const LOCALE_LABELS: Record<string, string> = {
+  en: 'English',
+  de: 'Deutsch'
+}
 
 interface Status {
   enabled: boolean
@@ -147,10 +174,56 @@ function copyBackupCodes() {
       <section class="panel">
         <div class="section-head">
           <div>
-            <p class="eyebrow">Settings</p>
-            <h1>Security</h1>
+            <p class="eyebrow">{{ t('settings.eyebrow') }}</p>
+            <h1>{{ t('settings.title') }}</h1>
           </div>
         </div>
+
+        <section class="settings-section">
+          <header class="settings-section-head">
+            <PaintBrushIcon class="size-5 text-slate-500" aria-hidden="true" />
+            <div>
+              <h2>Appearance</h2>
+              <p class="muted">Light, dark, or follow the operating system.</p>
+            </div>
+          </header>
+          <div class="settings-segmented">
+            <button
+              v-for="opt in THEME_OPTIONS"
+              :key="opt.value"
+              type="button"
+              class="settings-segment"
+              :class="{ 'is-active': themeChoice === opt.value }"
+              @click="applyTheme(opt.value)"
+            >
+              <component :is="opt.icon" class="size-4" aria-hidden="true" />
+              <span>{{ t(`common.${opt.value}`) }}</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <header class="settings-section-head">
+            <LanguageIcon class="size-5 text-slate-500" aria-hidden="true" />
+            <div>
+              <h2>Language</h2>
+              <p class="muted">Display language for the BKOS interface.</p>
+            </div>
+          </header>
+          <div class="settings-segmented">
+            <button
+              v-for="code in localeOptions"
+              :key="code"
+              type="button"
+              class="settings-segment"
+              :class="{ 'is-active': locale === code }"
+              @click="setLocale(code)"
+            >
+              <span class="settings-segment-code">{{ code.toUpperCase() }}</span>
+              <span>{{ LOCALE_LABELS[code] || code }}</span>
+            </button>
+          </div>
+        </section>
 
         <section class="settings-section">
           <header class="settings-section-head">

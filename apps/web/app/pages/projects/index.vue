@@ -8,8 +8,11 @@ import {
   Squares2X2Icon,
   XMarkIcon
 } from '@heroicons/vue/24/outline'
+import { useI18n } from 'vue-i18n'
 import { colorFor } from '~/utils/hash-color'
 import { useInfiniteList } from '~/composables/useInfiniteList'
+
+const { t } = useI18n()
 
 interface ProjectRow {
   id: string
@@ -69,8 +72,8 @@ function formatDate(value: string | null | undefined, fallback = '') {
       <section class="panel">
         <div class="section-head entity-index-head">
           <div>
-            <p class="eyebrow">Directory</p>
-            <h1>Projects</h1>
+            <p class="eyebrow">{{ t('projects.eyebrow') }}</p>
+            <h1>{{ t('projects.title') }}</h1>
           </div>
           <div class="entity-index-head-right">
             <button type="button" class="entity-index-select" :class="{ 'is-active': multiEdit }" @click="toggleMultiEdit">
@@ -79,7 +82,7 @@ function formatDate(value: string | null | undefined, fallback = '') {
             </button>
             <button type="button" class="entity-index-add" @click="createOpen = true">
               <PlusIcon class="size-4" aria-hidden="true" />
-              <span>Add project</span>
+              <span>{{ t('projects.add') }}</span>
             </button>
           </div>
         </div>
@@ -95,8 +98,8 @@ function formatDate(value: string | null | undefined, fallback = '') {
         <EntityCreateDialog v-model:open="createOpen" kind="project" @created="onCreated" />
         <EntityMergeDialog v-model:open="mergeOpen" kind="project" :candidates="selectedCandidates" @merged="onMerged" />
 
-        <p v-if="loading" class="muted">Loading…</p>
-        <p v-else-if="!projects.length" class="muted">No projects yet.</p>
+        <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
+        <p v-else-if="!projects.length" class="muted">{{ t('projects.empty') }}</p>
 
         <ul v-else class="doc-list entity-index-list" :class="{ 'is-multi-edit': multiEdit }">
           <li
