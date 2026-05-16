@@ -13,6 +13,12 @@ export default defineNuxtConfig({
     vaultPath: process.env.BKOS_VAULT_PATH || '../../vault',
     filesPath: process.env.BKOS_FILES_PATH || '../../files',
     maxUploadMb: process.env.BKOS_MAX_UPLOAD_MB || '25',
+    mailHost: process.env.MAIL_HOST || '',
+    mailPort: process.env.MAIL_PORT || '993',
+    mailUser: process.env.MAIL_USER || '',
+    mailPassword: process.env.MAIL_PASSWORD || '',
+    mailSecure: process.env.MAIL_SECURE || 'true',
+    mailFromAllow: process.env.MAIL_FROM_ALLOW || '',
     extractorProvider: process.env.BKOS_EXTRACTOR_PROVIDER || 'placeholder',
     openRouterApiKey: process.env.OPENROUTER_API_KEY || '',
     openRouterModel: process.env.OPENROUTER_MODEL || 'openai/gpt-4.1-mini',
@@ -31,6 +37,12 @@ export default defineNuxtConfig({
   nitro: {
     externals: {
       inline: ['@bkos/core', '@bkos/ingest', '@bkos/retrieval']
+    },
+    experimental: { tasks: true },
+    scheduledTasks: {
+      // Poll the IMAP inbox every 5 minutes when MAIL_HOST is set.
+      // The task is a no-op when unset, so this is safe to always wire.
+      '*/5 * * * *': ['email:poll']
     }
   },
   vite: {

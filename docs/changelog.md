@@ -5,6 +5,21 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
 
+### B5 — Email-to-inbox (IMAP)
+- Migration `0016_email_ingest.sql` adds `email_ingest_log` for
+  message-id dedupe.
+- `apps/web/server/utils/email-ingest.ts` ingests structured incoming
+  emails through the existing capture pipeline; sender allow-list +
+  attachment routing via the B4 file store.
+- `apps/web/server/utils/imap.ts` polls INBOX via `imapflow` /
+  `mailparser`, marks messages Seen on success.
+- `apps/web/server/tasks/email-poll.ts` registered as a Nitro scheduled
+  task at `*/5 * * * *`; no-op when `MAIL_HOST` is empty.
+- New env: `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASSWORD`,
+  `MAIL_SECURE`, `MAIL_FROM_ALLOW`.
+- `docs/email-setup.md` covers self-hosted (Postal, Haraka/Dovecot) and
+  cloud-mailbox setups.
+
 ### B4 — File uploads + extraction
 - Migration `0015_attachments.sql` adds `document_attachments` with sha256,
   size, mime and storage path; cascades on document delete.
