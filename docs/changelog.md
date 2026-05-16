@@ -5,6 +5,22 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
 
+### B11-13 — UI polish (i18n + responsive + dark mode)
+- **Tokens**: `:root` extended with a full surface/text/border/accent
+  token set, plus a `:root[data-theme="dark"]` override and a
+  `prefers-color-scheme: dark` fallback. About 50 high-traffic hex
+  literals migrated to tokens (full migration is incremental).
+- **Theme toggle**: `useTheme()` composable persists choice in
+  `localStorage`; sidebar footer button cycles system → light → dark.
+- **Responsive**: mobile menu button + off-canvas drawer below 900px;
+  viewport meta wired in `nuxt.config.app.head`.
+- **i18n**: `vue-i18n` plugin with bundled `en.json` and `de.json`
+  message catalogs; first-visit default reads `navigator.language` and
+  later honours `localStorage.bkos.locale`. Sidebar labels migrated;
+  remaining strings extracted incrementally. `useLocaleSwitch()`
+  composable + chip toggle in the footer.
+- Bundle-parity Vitest spec keeps EN and DE keys in lockstep.
+
 ### B10 — Action reminders
 - `utils/mailer.ts`: cached nodemailer transport built from SMTP env;
   no-op transport (logs intended send) when SMTP_HOST is unset.

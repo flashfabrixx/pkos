@@ -4,6 +4,11 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-05-15',
   devtools: { enabled: true },
   css: ['~/assets/css/app.css'],
+  app: {
+    head: {
+      viewport: 'width=device-width, initial-scale=1, viewport-fit=cover'
+    }
+  },
   runtimeConfig: {
     username: process.env.BKOS_USERNAME || 'marcel',
     password: process.env.BKOS_PASSWORD || '',

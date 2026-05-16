@@ -1,0 +1,47 @@
+{
+  "nav": {
+    "capture": "Aufnehmen",
+    "captures": "Captures",
+    "actions": "Aufgaben",
+    "people": "Personen",
+    "projects": "Projekte",
+    "tags": "Tags",
+    "graph": "Graph",
+    "trash": "Papierkorb",
+    "settings": "Einstellungen",
+    "search": "Suche"
+  },
+  "common": {
+    "loading": "Lädt…",
+    "load_more": "Mehr laden",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "restore": "Wiederherstellen",
+    "edit": "Bearbeiten",
+    "create": "Erstellen",
+    "open": "Öffnen",
+    "done": "Erledigt",
+    "system": "System",
+    "light": "Hell",
+    "dark": "Dunkel"
+  },
+  "captures": {
+    "title": "Captures",
+    "empty": "Noch keine Captures."
+  },
+  "trash": {
+    "title": "Papierkorb",
+    "empty": "Der Papierkorb ist leer.",
+    "restore": "Wiederherstellen",
+    "purge": "Endgültig löschen",
+    "confirm_purge": "Dieses Element endgültig löschen? Das lässt sich nicht rückgängig machen."
+  },
+  "search": {
+    "title": "Wissen durchsuchen",
+    "placeholder": "Was haben wir zu KI-Training, Roadmap, Staffing besprochen…",
+    "no_matches": "Keine Treffer.",
+    "mode_hybrid": "hybrid",
+    "mode_lexical": "lexikalisch"
+  }
+}

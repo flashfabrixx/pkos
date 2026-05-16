@@ -1,0 +1,47 @@
+{
+  "nav": {
+    "capture": "Capture",
+    "captures": "Captures",
+    "actions": "Actions",
+    "people": "People",
+    "projects": "Projects",
+    "tags": "Tags",
+    "graph": "Graph",
+    "trash": "Trash",
+    "settings": "Settings",
+    "search": "Search"
+  },
+  "common": {
+    "loading": "Loading…",
+    "load_more": "Load more",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "restore": "Restore",
+    "edit": "Edit",
+    "create": "Create",
+    "open": "Open",
+    "done": "Done",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "captures": {
+    "title": "Captures",
+    "empty": "No captures yet."
+  },
+  "trash": {
+    "title": "Trash",
+    "empty": "Trash is empty.",
+    "restore": "Restore",
+    "purge": "Delete permanently",
+    "confirm_purge": "Permanently delete this item? This cannot be undone."
+  },
+  "search": {
+    "title": "Search knowledge",
+    "placeholder": "What did we discuss about AI training, roadmap, staffing…",
+    "no_matches": "No matches found.",
+    "mode_hybrid": "hybrid",
+    "mode_lexical": "lexical"
+  }
+}

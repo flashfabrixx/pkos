@@ -1,17 +1,35 @@
 <script setup lang="ts">
 import {
   ChartBarSquareIcon,
+  ComputerDesktopIcon,
   Cog6ToothIcon,
   FolderIcon,
   HashtagIcon,
   InboxIcon,
   MagnifyingGlassIcon,
+  MoonIcon,
   PencilSquareIcon,
   QueueListIcon,
   RectangleStackIcon,
+  SunIcon,
   TrashIcon,
   UsersIcon
 } from '@heroicons/vue/24/outline'
+
+const { t } = useI18n()
+const { choice, cycle } = useTheme()
+const { locale, setLocale, available } = useLocaleSwitch()
+
+const themeIcon = computed(() =>
+  choice.value === 'dark' ? MoonIcon : choice.value === 'light' ? SunIcon : ComputerDesktopIcon
+)
+const themeLabel = computed(() => t(`common.${choice.value}`))
+
+function nextLocale() {
+  const i = available.indexOf(locale.value as 'en' | 'de')
+  const next = available[(i + 1) % available.length]
+  if (next) setLocale(next)
+}
 
 const open = defineModel<boolean>('commandPaletteOpen', { default: false })
 
@@ -25,17 +43,17 @@ function openCommandPalette() {
   open.value = true
 }
 
-const navItems = [
-  { to: '/', label: 'Capture', icon: PencilSquareIcon },
-  { to: '/documents', label: 'Captures', icon: InboxIcon },
-  { to: '/actions', label: 'Actions', icon: QueueListIcon, badge: () => openActions.value },
-  { to: '/people', label: 'People', icon: UsersIcon },
-  { to: '/projects', label: 'Projects', icon: FolderIcon },
-  { to: '/tags', label: 'Tags', icon: HashtagIcon },
-  { to: '/graph', label: 'Graph', icon: ChartBarSquareIcon },
-  { to: '/trash', label: 'Trash', icon: TrashIcon },
-  { to: '/settings', label: 'Settings', icon: Cog6ToothIcon }
-] as const
+const navItems = computed(() => [
+  { to: '/', label: t('nav.capture'), icon: PencilSquareIcon },
+  { to: '/documents', label: t('nav.captures'), icon: InboxIcon },
+  { to: '/actions', label: t('nav.actions'), icon: QueueListIcon, badge: () => openActions.value },
+  { to: '/people', label: t('nav.people'), icon: UsersIcon },
+  { to: '/projects', label: t('nav.projects'), icon: FolderIcon },
+  { to: '/tags', label: t('nav.tags'), icon: HashtagIcon },
+  { to: '/graph', label: t('nav.graph'), icon: ChartBarSquareIcon },
+  { to: '/trash', label: t('nav.trash'), icon: TrashIcon },
+  { to: '/settings', label: t('nav.settings'), icon: Cog6ToothIcon }
+])
 
 const route = useRoute()
 function isItemActive(path: string) {
@@ -59,7 +77,7 @@ function isItemActive(path: string) {
       @click="openCommandPalette"
     >
       <MagnifyingGlassIcon class="size-4" aria-hidden="true" />
-      <span>Search</span>
+      <span>{{ t('nav.search') }}</span>
       <kbd class="app-sidebar-kbd">⌘K</kbd>
     </button>
 
@@ -67,7 +85,7 @@ function isItemActive(path: string) {
       <NuxtLink
         v-for="item in navItems"
         :key="item.to"
-        :to="item.to"
+        :to="item.to as string"
         class="app-sidebar-nav-item"
         :class="{ 'is-active': isItemActive(item.to) }"
       >
@@ -81,8 +99,17 @@ function isItemActive(path: string) {
     </nav>
 
     <div class="app-sidebar-footer">
-      <span class="app-sidebar-footer-label">Signed in</span>
-      <span class="app-sidebar-footer-user">marcel</span>
+      <button type="button" class="app-sidebar-theme" :title="`Theme: ${themeLabel} (click to cycle)`" @click="cycle">
+        <component :is="themeIcon" class="size-4" aria-hidden="true" />
+        <span>{{ themeLabel }}</span>
+      </button>
+      <button type="button" class="app-sidebar-theme" :title="`Locale: ${locale} (click to cycle)`" @click="nextLocale">
+        <span class="app-sidebar-locale-code">{{ String(locale).toUpperCase() }}</span>
+      </button>
+      <div class="app-sidebar-footer-user-row">
+        <span class="app-sidebar-footer-label">Signed in</span>
+        <span class="app-sidebar-footer-user">marcel</span>
+      </div>
     </div>
   </aside>
 </template>
