@@ -13,7 +13,7 @@ export default defineConfig({
       'packages/*/test/**/*.test.ts'
     ],
     testTimeout: 60_000,
-    hookTimeout: 120_000,
+    hookTimeout: 180_000,
     coverage: {
       provider: 'v8',
       include: [

@@ -4,6 +4,7 @@
     "captures": "Captures",
     "actions": "Actions",
     "people": "People",
+    "departments": "Departments",
     "projects": "Projects",
     "tags": "Tags",
     "graph": "Graph",
@@ -105,6 +106,20 @@
     "add": "Add person",
     "select": "Select",
     "merge": "Merge"
+  },
+  "departments": {
+    "title": "Departments",
+    "eyebrow": "Organisation",
+    "empty": "No departments yet.",
+    "add": "Add department",
+    "subdepartments": "Sub-departments",
+    "members_title": "Members",
+    "projects_title": "Projects",
+    "no_people": "No members assigned yet.",
+    "no_projects": "No projects assigned yet.",
+    "add_person": "Add person",
+    "add_project": "Add project",
+    "remove_confirm": "Remove this assignment from the department?"
   },
   "projects": {
     "title": "Projects",

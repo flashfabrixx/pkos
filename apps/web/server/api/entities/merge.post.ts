@@ -13,7 +13,7 @@ const schema = z.object({
   description: z.string().trim().max(2000).nullable().optional()
 })
 
-const MERGEABLE_TYPES = new Set(['person', 'project', 'tag'])
+const MERGEABLE_TYPES = new Set(['person', 'project', 'tag', 'department'])
 
 export default defineEventHandler(async (event) => {
   const actor = requireAuth(event)

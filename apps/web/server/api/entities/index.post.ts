@@ -5,9 +5,10 @@ import { withTransaction } from '../../utils/db'
 import { upsertEntity } from '../../utils/graph'
 
 const schema = z.object({
-  type: z.enum(['person', 'project', 'tag']),
+  type: z.enum(['person', 'project', 'tag', 'department']),
   name: z.string().trim().min(1).max(200),
-  description: z.string().trim().max(2000).nullable().optional()
+  description: z.string().trim().max(2000).nullable().optional(),
+  parent_id: z.string().uuid().optional()
 })
 
 export default defineEventHandler(async (event) => {
@@ -23,6 +24,14 @@ export default defineEventHandler(async (event) => {
            SET metadata = metadata || $1::jsonb, updated_at = now()
            WHERE id = $2`,
           [JSON.stringify({ description: body.description }), ref.id]
+        )
+      }
+      if (body.parent_id && body.type === 'department') {
+        // Hierarchy is only meaningful for departments. We don't validate
+        // for cycles here — a future migration could add a trigger.
+        await client.query(
+          `UPDATE entities SET parent_id = $1, updated_at = now() WHERE id = $2 AND type = 'department'`,
+          [body.parent_id, ref.id]
         )
       }
       return ref

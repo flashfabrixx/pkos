@@ -7,7 +7,7 @@ export type SourceType = typeof sourceTypes[number]
 export type Confidentiality = typeof confidentialityLevels[number]
 export type ActionStatus = typeof actionStatuses[number]
 export type OpenQuestionStatus = typeof openQuestionStatuses[number]
-export type EntityType = 'document' | 'person' | 'project' | 'topic' | 'decision' | 'insight' | 'question' | 'tag'
+export type EntityType = 'document' | 'person' | 'project' | 'topic' | 'decision' | 'insight' | 'question' | 'tag' | 'department'
 export type RelationType =
   | 'mentioned_with'
   | 'belongs_to_project'

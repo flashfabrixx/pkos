@@ -4,6 +4,7 @@
     "captures": "Captures",
     "actions": "Aufgaben",
     "people": "Personen",
+    "departments": "Abteilungen",
     "projects": "Projekte",
     "tags": "Tags",
     "graph": "Graph",
@@ -105,6 +106,20 @@
     "add": "Person hinzufügen",
     "select": "Auswählen",
     "merge": "Zusammenführen"
+  },
+  "departments": {
+    "title": "Abteilungen",
+    "eyebrow": "Organisation",
+    "empty": "Noch keine Abteilungen.",
+    "add": "Abteilung hinzufügen",
+    "subdepartments": "Unter-Abteilungen",
+    "members_title": "Mitglieder",
+    "projects_title": "Projekte",
+    "no_people": "Noch keine Mitglieder zugeordnet.",
+    "no_projects": "Noch keine Projekte zugeordnet.",
+    "add_person": "Person hinzufügen",
+    "add_project": "Projekt hinzufügen",
+    "remove_confirm": "Diese Zuordnung aus der Abteilung entfernen?"
   },
   "projects": {
     "title": "Projekte",

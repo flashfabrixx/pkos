@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  BuildingOffice2Icon,
   ChartBarSquareIcon,
   Cog6ToothIcon,
   FolderIcon,
@@ -33,6 +34,7 @@ const navItems = computed(() => [
   { to: '/documents', label: t('nav.captures'), icon: InboxIcon },
   { to: '/actions', label: t('nav.actions'), icon: QueueListIcon, badge: () => openActions.value },
   { to: '/people', label: t('nav.people'), icon: UsersIcon },
+  { to: '/departments', label: t('nav.departments'), icon: BuildingOffice2Icon },
   { to: '/projects', label: t('nav.projects'), icon: FolderIcon },
   { to: '/tags', label: t('nav.tags'), icon: HashtagIcon },
   { to: '/graph', label: t('nav.graph'), icon: ChartBarSquareIcon },

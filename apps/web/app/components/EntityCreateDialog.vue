@@ -7,7 +7,7 @@ import {
   TransitionRoot
 } from '@headlessui/vue'
 
-type Kind = 'person' | 'project' | 'tag'
+type Kind = 'person' | 'project' | 'tag' | 'department'
 
 const open = defineModel<boolean>('open', { default: false })
 
@@ -27,6 +27,7 @@ const error = ref<string | null>(null)
 const heading = computed(() => {
   if (props.kind === 'person') return 'Add person'
   if (props.kind === 'project') return 'Add project'
+  if (props.kind === 'department') return 'Add department'
   return 'Add tag'
 })
 const subheading = computed(() => `Create a new ${props.kind} entity. You can refine details on the next page.`)
