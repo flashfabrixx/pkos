@@ -1,4 +1,14 @@
+import { fileURLToPath } from 'node:url'
+import { dirname, resolve } from 'node:path'
+import { config as loadDotenv } from 'dotenv'
+import { expand as expandDotenv } from 'dotenv-expand'
 import tailwindcss from '@tailwindcss/vite'
+
+// Nuxt's CLI `--dotenv` flag is unreliable across versions for runtimeConfig
+// defaults that read process.env at config-load time. Load the repo-root
+// .env eagerly here and expand `${VAR}` references so DATABASE_URL=… works.
+const here = dirname(fileURLToPath(import.meta.url))
+expandDotenv(loadDotenv({ path: resolve(here, '../../.env'), override: false }))
 
 export default defineNuxtConfig({
   compatibilityDate: '2026-05-15',
