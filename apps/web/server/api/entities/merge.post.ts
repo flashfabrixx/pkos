@@ -1,6 +1,7 @@
 import { createError, readBody } from 'h3'
 import { z } from 'zod'
 import { requireAuth } from '../../utils/auth'
+import { recordAudit } from '../../utils/audit'
 import { withTransaction } from '../../utils/db'
 import { canonicalize } from '../../utils/canonicalize'
 import { recordActivity } from '../../utils/entity-activity'
@@ -15,7 +16,7 @@ const schema = z.object({
 const MERGEABLE_TYPES = new Set(['person', 'project', 'tag'])
 
 export default defineEventHandler(async (event) => {
-  requireAuth(event)
+  const actor = requireAuth(event)
   const body = schema.parse(await readBody(event))
   const allIds = [body.primaryId, ...body.mergeIds]
   if (allIds.includes(body.primaryId) === false || body.mergeIds.includes(body.primaryId)) {
@@ -132,6 +133,14 @@ export default defineEventHandler(async (event) => {
     // Delete the merged-out entities
     await client.query(`DELETE FROM entities WHERE id = ANY($1::uuid[])`, [body.mergeIds])
 
+    await recordAudit({
+      event,
+      actor,
+      action: 'entity.merge',
+      resourceKind: 'entity',
+      resourceId: body.primaryId,
+      meta: { merged_ids: body.mergeIds }
+    })
     return { merged: true, primaryId: body.primaryId, mergedCount: body.mergeIds.length }
   })
 })
