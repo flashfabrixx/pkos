@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
-import { createError, getCookie, setCookie, type H3Event } from 'h3'
+import { createError, getCookie, getRequestHeader, setCookie, type H3Event } from 'h3'
 import { query } from './db'
+import { parseKeyString, verifySecret, type ApiKeyScope } from './api-keys'
 
 const cookieName = 'bkos_session'
 const maxAgeSeconds = 60 * 60 * 24 * 14
@@ -86,6 +87,56 @@ export function requireAuth(event: H3Event) {
     throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
   }
   return user
+}
+
+export interface AuthedRequest {
+  actor: string
+  /** 'session' when authenticated via cookie, 'api_key' when via Bearer token. */
+  via: 'session' | 'api_key'
+  /** API key scopes when via='api_key'; the full set when via='session'. */
+  scopes: string[]
+  apiKeyId?: string
+}
+
+/**
+ * Look up the API key from the Authorization: Bearer header and verify it
+ * against `api_keys.hashed_key`. Returns the matched row (with actor and
+ * scopes) or null. Touches `last_used_at` on a hit.
+ */
+export async function getApiKeyAuth(event: H3Event): Promise<AuthedRequest | null> {
+  const header = getRequestHeader(event, 'authorization') || ''
+  if (!header.startsWith('Bearer ')) return null
+  const parsed = parseKeyString(header.slice(7).trim())
+  if (!parsed) return null
+  const result = await query<{ id: string, hashed_key: string, scopes: string[], actor: string }>(
+    `SELECT id, hashed_key, scopes, actor FROM api_keys WHERE prefix = $1 AND revoked_at IS NULL`,
+    [parsed.prefix]
+  )
+  const row = result.rows[0]
+  if (!row) return null
+  const ok = await verifySecret(parsed.secret, row.hashed_key)
+  if (!ok) return null
+  // Best-effort update; failure to write `last_used_at` should not block auth.
+  query(`UPDATE api_keys SET last_used_at = now() WHERE id = $1`, [row.id]).catch(() => undefined)
+  return { actor: row.actor, via: 'api_key', scopes: row.scopes, apiKeyId: row.id }
+}
+
+/**
+ * Accept either a logged-in session cookie or a valid API key. Endpoints
+ * under `/api/v1/*` should call this; UI endpoints under `/api/*` keep
+ * using `requireAuth` for the cookie-only path.
+ */
+export async function requireAuthOrApiKey(event: H3Event, requiredScope?: ApiKeyScope): Promise<AuthedRequest> {
+  const session = getSessionUser(event)
+  if (session) return { actor: session, via: 'session', scopes: ['*'] }
+  const apiKey = await getApiKeyAuth(event)
+  if (apiKey) {
+    if (requiredScope && !apiKey.scopes.includes(requiredScope) && !apiKey.scopes.includes('*')) {
+      throw createError({ statusCode: 403, statusMessage: `API key missing scope: ${requiredScope}` })
+    }
+    return apiKey
+  }
+  throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
 }
 
 function sign(payload: string, secret: string) {
