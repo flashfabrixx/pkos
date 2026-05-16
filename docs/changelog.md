@@ -5,6 +5,11 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
 
+### Final pass — README + docs index
+- Top-level README rewritten with quickstart + production-deploy
+  pointer + capability summary + zero-trust reference.
+- `docs/index.md` lists every doc file for easy navigation.
+
 ### B17 — Production deployment
 - `apps/web/Dockerfile`: multi-stage build (deps → builder → runtime),
   non-root user, tini PID-1, healthcheck on `/api/healthz`.
