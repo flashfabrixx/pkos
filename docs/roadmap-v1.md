@@ -58,7 +58,7 @@ wirklich „Knowledge Capture" statt nur „Knowledge Viewer".
   Vision-Provider).
 - UI: Drag-and-Drop in der Capture-Inbox.
 
-### B5 — Email-Inbox  `todo`  *(braucht B3, optional B4)*
+### B5 — Email-Inbox  `done`  *(braucht B3, optional B4)*
 - IMAP-Poller als Nitro-Scheduled-Task (`mailparser`-basiert), Konfig via
   ENV (`MAIL_HOST`, `MAIL_USER`, …).
 - Mapping: Sender → Person-Entity (Auto-Match), Subject → Title, Body →
