@@ -8,10 +8,10 @@ interface ActionRow {
   status: string
   due_date: string | null
   document_id: string
-  document_title: string
-  document_source_type: string
-  person_id: string | null
-  person_name: string | null
+  document_title?: string
+  document_source_type?: string
+  person_id?: string | null
+  person_name?: string | null
 }
 
 interface CommentRow {

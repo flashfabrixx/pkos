@@ -1,0 +1,33 @@
+# Keep the Docker build context small. Anything not listed here ships
+# into the image's COPY layer, which both slows builds and bakes secrets
+# into intermediate layers.
+
+# Local install / build artifacts
+**/node_modules
+**/.nuxt
+**/.output
+**/dist
+
+# Editor / IDE
+.vscode
+.idea
+**/.DS_Store
+
+# Local secrets
+.env
+.env.*
+!.env.example
+!.env.prod.example
+
+# Git
+.git
+.gitignore
+
+# Tests + tooling
+coverage
+.cache
+.claude
+
+# Local data + uploads
+vault
+files

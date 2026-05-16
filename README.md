@@ -77,5 +77,4 @@ pnpm test:cov     # with coverage
 
 ## License
 
-This project is under active pre-1.0 development. License file lands
-with the `v1.0.0` tag.
+Apache License 2.0 — see [LICENSE](./LICENSE).

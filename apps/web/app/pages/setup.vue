@@ -17,7 +17,7 @@ const embeddingTest = ref<{ ok: boolean, provider: string, dim: number, model?: 
 const finishing = ref(false)
 
 async function testEmbedding() {
-  embeddingTest.value = await $fetch('/api/setup/test-embedding', { method: 'POST' })
+  embeddingTest.value = await $fetch<typeof embeddingTest.value>('/api/setup/test-embedding', { method: 'POST' })
 }
 
 async function finish() {
@@ -30,7 +30,10 @@ async function finish() {
         mail_configured: false
       }
     })
-    await navigateTo('/')
+    // Setup completion does not authenticate the operator — they still
+    // need to sign in. Send them to /login rather than / so auth.global
+    // doesn't immediately bounce them.
+    await navigateTo('/login')
   } finally {
     finishing.value = false
   }
@@ -38,7 +41,7 @@ async function finish() {
 
 onMounted(async () => {
   if (data.value?.completed) {
-    await navigateTo('/')
+    await navigateTo('/login')
   }
   await refresh()
 })
