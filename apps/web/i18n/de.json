@@ -60,7 +60,7 @@
     "twofa_submit": "Bestätigen"
   },
   "setup": {
-    "title": "Willkommen bei BKOS",
+    "title": "Willkommen bei PKOS",
     "subtitle": "Ein paar kurze Checks, bevor es losgeht.",
     "session_secret": "Session-Secret",
     "session_secret_ok": "Ein starkes SESSION_SECRET ist konfiguriert.",
@@ -178,7 +178,7 @@
     "nav_data": "Daten",
     "twofa_title": "Zwei-Faktor-Authentifizierung",
     "api_keys_title": "API-Schlüssel",
-    "api_keys_intro": "Programmatischer Zugriff auf die BKOS-REST-API unter /api/v1/*. Verwende sie als Authorization: Bearer <key>.",
+    "api_keys_intro": "Programmatischer Zugriff auf die PKOS-REST-API unter /api/v1/*. Verwende sie als Authorization: Bearer <key>.",
     "api_keys_name": "Name des Schlüssels",
     "api_keys_create": "Schlüssel erstellen",
     "api_keys_creating": "Wird erstellt…",

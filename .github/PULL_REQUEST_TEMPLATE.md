@@ -1,4 +1,4 @@
-<!-- Thank you for contributing to BKOS! A few prompts to keep the
+<!-- Thank you for contributing to PKOS! A few prompts to keep the
      review productive: -->
 
 ## Summary

@@ -1,6 +1,6 @@
 # Security
 
-BKOS is built to be self-hosted on a small VM, behind a reverse proxy with
+PKOS is built to be self-hosted on a small VM, behind a reverse proxy with
 TLS. The defaults are designed to refuse to start in unsafe configurations
 so first-time deployers are nudged into safe choices.
 
@@ -20,21 +20,21 @@ Every value here is required for the server to boot in production.
 
 | Variable | Purpose |
 | --- | --- |
-| `BKOS_USERNAME` | Login name |
-| `BKOS_PASSWORD_HASH` | Hashed password (generate with `pnpm bkos:hash-password`) |
+| `PKOS_USERNAME` | Login name |
+| `PKOS_PASSWORD_HASH` | Hashed password (generate with `pnpm pkos:hash-password`) |
 | `SESSION_SECRET` | Cookie + AES key derivation. **At least 32 chars.** `openssl rand -base64 48` |
 | `POSTGRES_PASSWORD` | DB password used by both compose and the app |
 | `DATABASE_URL` | Full Postgres connection string |
 
-The legacy `BKOS_PASSWORD` (plaintext) is accepted as a one-time bootstrap
+The legacy `PKOS_PASSWORD` (plaintext) is accepted as a one-time bootstrap
 fallback. The server prints a security warning on every startup until you
-replace it with `BKOS_PASSWORD_HASH`.
+replace it with `PKOS_PASSWORD_HASH`.
 
 ## Generating credentials
 
 ```bash
 # Password hash (asks twice, prints the hash for your .env)
-pnpm bkos:hash-password
+pnpm pkos:hash-password
 
 # Session secret
 openssl rand -base64 48
@@ -59,9 +59,9 @@ one good for a single login.
 ### Lost or forgotten password
 
 1. SSH to the server.
-2. `pnpm bkos:hash-password` — generates a new `BKOS_PASSWORD_HASH`.
+2. `pnpm pkos:hash-password` — generates a new `PKOS_PASSWORD_HASH`.
 3. Replace the old hash in `.env`.
-4. Restart the service (`pm2 restart bkos` or `systemctl restart bkos`).
+4. Restart the service (`pm2 restart pkos` or `systemctl restart pkos`).
 5. All existing sessions are still valid until they expire. To revoke
    them now, also bump `SESSION_SECRET` (this invalidates all cookies).
 
@@ -79,7 +79,7 @@ invalid; users sign in again.
 
 ### Lost the database
 
-The vault directory (`BKOS_VAULT_PATH`, default `./vault`) contains a
+The vault directory (`PKOS_VAULT_PATH`, default `./vault`) contains a
 human-readable markdown copy of every captured document, so you can rebuild
 the knowledge base from a vault backup. Entity relationships, comments and
 action items live only in Postgres, though — take regular `pg_dump` backups.

@@ -1,13 +1,13 @@
 # Contributing
 
-Welcome. Hands-on guide for working on BKOS.
+Welcome. Hands-on guide for working on PKOS.
 
 ## Local setup
 
 ```bash
 pnpm install
 cp .env.example .env
-# fill in BKOS_PASSWORD_HASH, SESSION_SECRET, POSTGRES_PASSWORD …
+# fill in PKOS_PASSWORD_HASH, SESSION_SECRET, POSTGRES_PASSWORD …
 docker compose up -d postgres
 pnpm db:migrate
 pnpm dev
@@ -15,7 +15,7 @@ pnpm dev
 
 ## Tests
 
-BKOS uses [Vitest](https://vitest.dev) with [Testcontainers](https://node.testcontainers.org)
+PKOS uses [Vitest](https://vitest.dev) with [Testcontainers](https://node.testcontainers.org)
 for integration tests. Each integration suite spins up a real `pgvector/pgvector:pg16`
 container, applies every migration, and tears it down afterwards.
 

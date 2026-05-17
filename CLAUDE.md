@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project shape
 
-BKOS is a self-hosted, **single-user** Business Knowledge Operating System: ingests text / file / IMAP / web-clipped content, runs it through an extractor + embedding pipeline, and exposes it via hybrid search, an entity graph, action board, and a versioned REST API.
+PKOS is a self-hosted, **single-user** Private Knowledge Operating System: ingests text / file / IMAP / web-clipped content, runs it through an extractor + embedding pipeline, and exposes it via hybrid search, an entity graph, action board, and a versioned REST API.
 
 This is a pnpm workspace with one Nuxt 4 app (`apps/web`) and three workspace libraries (`packages/core`, `packages/ingest`, `packages/retrieval`) that are inlined into the Nitro bundle (see `nuxt.config.ts → nitro.externals.inline`). The app talks to Postgres + pgvector — there is no other backend service.
 
@@ -12,7 +12,7 @@ This is a pnpm workspace with one Nuxt 4 app (`apps/web`) and three workspace li
 
 ```bash
 pnpm install
-pnpm bkos:setup        # interactive: writes .env, hashes password, starts pg, runs migrations
+pnpm pkos:setup        # interactive: writes .env, hashes password, starts pg, runs migrations
 pnpm dev               # Nuxt dev server on :3000 (binds 0.0.0.0)
 pnpm build             # nuxt build (production bundle for apps/web)
 pnpm typecheck         # vue-tsc via nuxt typecheck (apps/web only)
@@ -30,26 +30,26 @@ pnpm db:reset          # drop + recreate schema (destructive)
 pnpm db:embed          # backfill embeddings for existing rows
 pnpm db:detect-language
 
-pnpm bkos:hash-password
-pnpm bkos:reset-2fa
-pnpm bkos:export       # JSONL backup
-pnpm bkos:import
+pnpm pkos:hash-password
+pnpm pkos:reset-2fa
+pnpm pkos:export       # JSONL backup
+pnpm pkos:import
 ```
 
-The `bkos:*` prefix is intentional — the scripts were namespaced to avoid collisions with pnpm built-ins (`pnpm setup`, `pnpm import`, etc.). See commit `233cf6d`.
+The `pkos:*` prefix is intentional — the scripts were namespaced to avoid collisions with pnpm built-ins (`pnpm setup`, `pnpm import`, etc.). See commit `233cf6d`.
 
 ## Architecture
 
 **Nuxt 4 + Nitro, server-rendered.** Routes live under `apps/web/app/pages/` (Vue 3), API handlers under `apps/web/server/api/`. Two API surfaces:
 
-- `apps/web/server/api/v1/*` — versioned public REST API. Accepts either the session cookie **or** `Authorization: Bearer bkos_*` API keys. Documented in `docs/api.md`.
+- `apps/web/server/api/v1/*` — versioned public REST API. Accepts either the session cookie **or** `Authorization: Bearer pkos_*` API keys. Documented in `docs/api.md`.
 - Everything else under `server/api/` — internal UI endpoints, cookie auth only.
 
 **Shared server utilities are in `apps/web/server/utils/`.** Nitro auto-imports from here, so most handlers don't import explicitly. The most load-bearing files:
 
 - `db.ts` — single `pg.Pool` singleton + `withTransaction(fn)` helper. Always use these, never `new pg.Client()`.
-- `auth.ts` — HMAC-SHA256 signed session cookies (`bkos_session`, 14d). A module-scoped `minIatSeconds` rejects tokens minted before the last revocation; it's seeded from `auth_config` at boot and bumped on logout. **Don't add per-request DB lookups for session validity** — that revocation checkpoint is the whole reason it's sync-readable.
-- `api-keys.ts` — `bkos_<prefix>_<secret>` format, scrypt-hashed at rest; verified in `auth.ts`.
+- `auth.ts` — HMAC-SHA256 signed session cookies (`pkos_session`, 14d). A module-scoped `minIatSeconds` rejects tokens minted before the last revocation; it's seeded from `auth_config` at boot and bumped on logout. **Don't add per-request DB lookups for session validity** — that revocation checkpoint is the whole reason it's sync-readable.
+- `api-keys.ts` — `pkos_<prefix>_<secret>` format, scrypt-hashed at rest; verified in `auth.ts`.
 - `extractor.ts`, `embedding.ts` — pluggable providers (`openrouter | ollama | placeholder` / `bge-m3 | openai | placeholder`). Placeholder is the default so the app boots without external services.
 - `audit.ts`, `webhook-deliver.ts`, `action-reminder.ts`, `email-ingest.ts`, `suggest-links.ts` — each is paired with a scheduled task under `server/tasks/`.
 
@@ -57,14 +57,14 @@ The `bkos:*` prefix is intentional — the scripts were namespaced to avoid coll
 
 - `*/5 * * * *` `email:poll` — IMAP poll, no-op if `MAIL_HOST` unset
 - `0 2 * * *` `suggestions:entities` — nightly entity-link suggestion recompute
-- `0 7 * * *` `reminders:actions` — daily action digest email, no-op if `SMTP_HOST`/`BKOS_REMINDER_EMAIL` unset
+- `0 7 * * *` `reminders:actions` — daily action digest email, no-op if `SMTP_HOST`/`PKOS_REMINDER_EMAIL` unset
 - `*/1 * * * *` `webhook:retry` — drain pending webhook deliveries with backoff
 
 **Server middleware** in `apps/web/server/middleware/` runs in filename order: `00.security-headers → 01.csrf-origin → 02.request-log → 03.onboarding`. The numeric prefix matters; preserve it when adding new middleware.
 
 **Database.** Postgres + pgvector (`pgvector/pgvector:pg16`). Migrations are append-only SQL files in `infra/migrations/NNNN_name.sql`, applied in lexical order by both `scripts/migrate.mjs` (prod) and the testcontainer (`apps/web/test/setup/pg.ts`). Never edit a migration that has shipped — add the next number.
 
-**Core types** are exported from `packages/core/src/index.ts` (`SourceType`, `EntityType`, `ActionStatus`, etc.). Import via `@bkos/core`. Same for `@bkos/ingest`, `@bkos/retrieval`. These three packages are *not* built — Nitro inlines them, so changes are picked up immediately.
+**Core types** are exported from `packages/core/src/index.ts` (`SourceType`, `EntityType`, `ActionStatus`, etc.). Import via `@pkos/core`. Same for `@pkos/ingest`, `@pkos/retrieval`. These three packages are *not* built — Nitro inlines them, so changes are picked up immediately.
 
 ## Testing
 

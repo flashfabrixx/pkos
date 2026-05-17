@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Before filing, consider whether the [discussions board](https://github.com/marcel-klein/bkos/discussions) is a better fit — small ideas and "would anyone use this?" questions thrive there.
+        Before filing, consider whether the [discussions board](https://github.com/marcel-klein/pkos/discussions) is a better fit — small ideas and "would anyone use this?" questions thrive there.
 
   - type: textarea
     id: problem
@@ -20,7 +20,7 @@ body:
     id: proposal
     attributes:
       label: Proposal
-      description: How should BKOS solve this? Sketches and UI screenshots welcome.
+      description: How should PKOS solve this? Sketches and UI screenshots welcome.
       placeholder: A "Deliveries" tab on each webhook subscription showing the last 20 deliveries with status code, response time, response body.
     validations:
       required: true
@@ -37,5 +37,5 @@ body:
     attributes:
       label: Scope check
       options:
-        - label: This fits BKOS's single-user, self-hosted positioning (not a multi-tenant SaaS feature).
+        - label: This fits PKOS's single-user, self-hosted positioning (not a multi-tenant SaaS feature).
           required: true

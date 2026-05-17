@@ -1,4 +1,4 @@
-# BKOS Roadmap — Public 1.0 / 1.1
+# PKOS Roadmap — Public 1.0 / 1.1
 
 Sprint-Plan für die Must-have- und Should-have-Features bis zur ersten öffentlichen
 Self-host-Version. Jeder Batch ist als eigener Worktree-PR vorgesehen und
@@ -36,7 +36,7 @@ Sprints bauen auf dem Logger, Health-Endpoint und den API-Keys auf.
 ### B3 — REST-API & API-Keys  `done`
 - Migration: `api_keys` Tabelle (`id`, `name`, `hashed_key`, `prefix`,
   `scopes`, `last_used_at`, `created_at`, `revoked_at`).
-- Auth-Middleware: Cookie *oder* `Authorization: Bearer bkos_*` für `/api/v1/**`.
+- Auth-Middleware: Cookie *oder* `Authorization: Bearer pkos_*` für `/api/v1/**`.
 - Versionierte Public-API unter `/api/v1`: `POST /captures`,
   `GET /captures/:id`, `GET /entities`, `POST /entities`.
 - Settings-Seite zum Erstellen/Widerrufen von Keys (Key nur einmalig sichtbar).
@@ -46,7 +46,7 @@ Sprints bauen auf dem Logger, Health-Endpoint und den API-Keys auf.
 
 ## Sprint 2 — Capture-Eingänge
 
-Senkt die Hürde, etwas in BKOS reinzubekommen. Ab hier wird das Tool
+Senkt die Hürde, etwas in PKOS reinzubekommen. Ab hier wird das Tool
 wirklich „Knowledge Capture" statt nur „Knowledge Viewer".
 
 ### B4 — Datei-Uploads  `done`
@@ -143,7 +143,7 @@ Aus dem rohen Tool wird ein benutzbares Produkt für Self-Hoster.
 
 ## Sprint 5 — Integration & Hardening
 
-Macht BKOS in fremde Stacks integrierbar und produktiv deploybar.
+Macht PKOS in fremde Stacks integrierbar und produktiv deploybar.
 
 ### B15 — Outgoing Webhooks  `done`
 - Migration: `webhook_subscriptions` (`url`, `secret`, `events`,
@@ -151,14 +151,14 @@ Macht BKOS in fremde Stacks integrierbar und produktiv deploybar.
 - Event-Bus (intern): `capture.created`, `capture.processed`,
   `action.created`, `action.completed`, `entity.merged`, …
 - Delivery-Worker mit Retry (exponential backoff, max 5), HMAC-SHA-256-
-  Signatur im `X-BKOS-Signature`-Header.
+  Signatur im `X-PKOS-Signature`-Header.
 - Settings-Seite: Subscribe, Test-Delivery, Delivery-Log.
 
 ### B16 — Backup & Export  `done`  *(braucht B1)*
-- `pnpm bkos:export` CLI: Workspace → tar.gz mit `documents.jsonl`,
+- `pnpm pkos:export` CLI: Workspace → tar.gz mit `documents.jsonl`,
   `entities.jsonl`, `actions.jsonl`, `assets/` (Files aus B4).
 - Markdown-Variante: Pro Capture ein `.md`-File mit Frontmatter.
-- `bkos:import` als Gegenstück, idempotent über `external_id`.
+- `pkos:import` als Gegenstück, idempotent über `external_id`.
 - Doku in `docs/backup.md`, inkl. Postgres-Dump-Variante.
 
 ### B17 — Production-Deployment  `done`

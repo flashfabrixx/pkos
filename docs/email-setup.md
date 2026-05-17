@@ -1,6 +1,6 @@
-# Email → BKOS
+# Email → PKOS
 
-BKOS can ingest unread mail from any IMAP-reachable inbox and turn each
+PKOS can ingest unread mail from any IMAP-reachable inbox and turn each
 message into a capture. The flow is:
 
 1. A scheduled task (every 5 minutes by default) opens the configured
@@ -16,7 +16,7 @@ message into a capture. The flow is:
 ```env
 MAIL_HOST=imap.example.com
 MAIL_PORT=993
-MAIL_USER=bkos@example.com
+MAIL_USER=pkos@example.com
 MAIL_PASSWORD=app-password
 MAIL_SECURE=true
 MAIL_FROM_ALLOW=marcel@example.com,team@example.com
@@ -30,23 +30,23 @@ internet.
 
 ### Self-hosted with [Postal](https://postal.atech.media/)
 
-Set up Postal in a private network. Create a mailbox `bkos@yourdomain`,
-connect BKOS via IMAP (typically port 993 with TLS). Postal's
-incoming-route DSL can forward only specific addresses into the BKOS
+Set up Postal in a private network. Create a mailbox `pkos@yourdomain`,
+connect PKOS via IMAP (typically port 993 with TLS). Postal's
+incoming-route DSL can forward only specific addresses into the PKOS
 mailbox — useful if you also want to email yourself colleagues' replies
 without leaking everything.
 
 ### Self-hosted with [Haraka](https://haraka.github.io/)
 
 Use Haraka as the SMTP receiver and have it deliver into a Dovecot
-mailbox; BKOS then polls Dovecot via IMAP. Suitable if you already run
+mailbox; PKOS then polls Dovecot via IMAP. Suitable if you already run
 postfix/dovecot. The same `MAIL_FROM_ALLOW` env shapes who can land
 captures.
 
 ### Cloud (Gmail / Fastmail / Outlook)
 
 Provision an app password (Gmail: Security → App passwords; Fastmail:
-Settings → Password & security → Mail/IMAP/SMTP passwords). Point BKOS
+Settings → Password & security → Mail/IMAP/SMTP passwords). Point PKOS
 at the provider's IMAP host. For Gmail use `imap.gmail.com:993` and the
 Gmail account email as `MAIL_USER`. Note that consumer-grade Gmail
 rate-limits aggressive polling — every 5 minutes is well under the cap.

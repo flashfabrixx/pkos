@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to BKOS that affect operators or users. Each entry is
+All notable changes to PKOS that affect operators or users. Each entry is
 keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
@@ -29,7 +29,7 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
   round-trip, and revoked-key → 401.
 
 ### Interactive CLI setup
-- `pnpm bkos:setup` walks the operator through choosing a username/password,
+- `pnpm pkos:setup` walks the operator through choosing a username/password,
   generates SESSION_SECRET + POSTGRES_PASSWORD, writes/merges `.env`,
   brings Postgres up, applies migrations, and marks setup_state as
   complete so the in-app wizard is skipped.
@@ -78,19 +78,19 @@ including zero-trust setups (Tailscale + Cloudflare Access).
 - `.env.prod.example` mirrors `.env.example` with explicit MUST-CHANGE
   markers and prod defaults.
 - `docs/deployment.md` walks an operator from a clean VM to a running
-  BKOS in under 15 minutes, plus update + backup procedures.
+  PKOS in under 15 minutes, plus update + backup procedures.
 - **Zero-trust deployment guide**: Tailscale (private overlay, MagicDNS,
   ACL tags) and Cloudflare Access (cloudflared tunnel + SSO + MFA +
   WAF) sections cover production setups that never expose a public
   port. Includes optional JWT verification for defence-in-depth.
 
 ### B16 — Backup / restore CLI
-- `scripts/bkos-export.mjs`: streams DB rows as JSONL + copies referenced
+- `scripts/pkos-export.mjs`: streams DB rows as JSONL + copies referenced
   attachments into a tar.gz with a `manifest.json` (schema version,
   counts, timestamp). Optional `--include-trashed` flag.
-- `scripts/bkos-import.mjs`: idempotent upsert by `id` for all known
+- `scripts/pkos-import.mjs`: idempotent upsert by `id` for all known
   tables; `--dry-run` reports counts without committing.
-- `pnpm bkos:export` and `pnpm bkos:import` scripts at the repo root.
+- `pnpm pkos:export` and `pnpm pkos:import` scripts at the repo root.
 - `tar` (^7.4) added as a workspace dependency.
 - New `docs/backup.md` describes the JSONL path, the raw `pg_dump`
   alternative, and the vault rsync option.
@@ -133,7 +133,7 @@ including zero-trust setups (Tailscale + Cloudflare Access).
   viewport meta wired in `nuxt.config.app.head`.
 - **i18n**: `vue-i18n` plugin with bundled `en.json` and `de.json`
   message catalogs; first-visit default reads `navigator.language` and
-  later honours `localStorage.bkos.locale`. Sidebar labels migrated;
+  later honours `localStorage.pkos.locale`. Sidebar labels migrated;
   remaining strings extracted incrementally. `useLocaleSwitch()`
   composable + chip toggle in the footer.
 - Bundle-parity Vitest spec keeps EN and DE keys in lockstep.
@@ -145,7 +145,7 @@ including zero-trust setups (Tailscale + Cloudflare Access).
   groups overdue vs today and composes a plain-text digest.
 - Nitro scheduled task `reminders:actions` runs daily at 07:00.
 - New env: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`,
-  `SMTP_SECURE`, `SMTP_FROM`, `BKOS_REMINDER_EMAIL`.
+  `SMTP_SECURE`, `SMTP_FROM`, `PKOS_REMINDER_EMAIL`.
 
 ### B9 — Onboarding wizard
 - Migration `0018_setup_state.sql` adds a singleton `setup_state` row.
@@ -189,7 +189,7 @@ including zero-trust setups (Tailscale + Cloudflare Access).
 - `utils/url-fetch.ts`: hostname must resolve to a public IP (loopback,
   RFC1918, link-local, IPv6 ULA all blocked); response size capped at
   5 MB; 8s timeout; final-URL re-checked after redirects.
-- New page `/settings/clipper` shows a draggable "Save to BKOS"
+- New page `/settings/clipper` shows a draggable "Save to PKOS"
   bookmarklet pre-filled with the chosen API key and the host origin.
 - Vitest spec for the SSRF guard.
 
@@ -212,7 +212,7 @@ including zero-trust setups (Tailscale + Cloudflare Access).
 - Migration `0015_attachments.sql` adds `document_attachments` with sha256,
   size, mime and storage path; cascades on document delete.
 - `apps/web/server/utils/storage.ts`: pluggable `FileStore` interface with a
-  local-disk implementation under `BKOS_FILES_PATH` (sharded by first two
+  local-disk implementation under `PKOS_FILES_PATH` (sharded by first two
   hex chars of the file id).
 - `apps/web/server/utils/file-extract.ts`: best-effort text extraction —
   text/* verbatim, PDF via `pdfjs-dist`, DOCX via `mammoth`. Falls back to
@@ -223,12 +223,12 @@ including zero-trust setups (Tailscale + Cloudflare Access).
 - Capture page now routes single-file PDF drops through the upload
   endpoint and navigates to the new capture; text formats keep the
   existing client-side flow.
-- New env: `BKOS_FILES_PATH=./files`, `BKOS_MAX_UPLOAD_MB=25`.
+- New env: `PKOS_FILES_PATH=./files`, `PKOS_MAX_UPLOAD_MB=25`.
 
 ### B3 — REST API v1 + API keys
 - Migration `0014_api_keys.sql` adds the `api_keys` table (`prefix`,
   scrypt-hashed secret, scopes, actor, last-used, revoked-at).
-- `apps/web/server/utils/api-keys.ts` generates `bkos_<prefix>_<secret>`
+- `apps/web/server/utils/api-keys.ts` generates `pkos_<prefix>_<secret>`
   tokens; only prefix + hash are persisted.
 - `apps/web/server/utils/auth.ts` gains `getApiKeyAuth` and
   `requireAuthOrApiKey(scope?)` — accepts session cookie *or* Bearer key.

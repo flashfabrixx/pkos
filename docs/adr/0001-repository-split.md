@@ -1,19 +1,19 @@
-# ADR-0001: Separate BKOS Repository
+# ADR-0001: Separate PKOS Repository
 
 **Status:** Accepted
 **Date:** 2026-05-15
 
 ## Context
 
-PKOS started as a personal knowledge and operations system. BKOS has a different operating context: business transcripts, employee and colleague conversations, structured action tracking, stronger authentication requirements, and stricter data classification.
+PKOS started as a personal knowledge and operations system. PKOS has a different operating context: business transcripts, employee and colleague conversations, structured action tracking, stronger authentication requirements, and stricter data classification.
 
-Keeping BKOS inside PKOS would couple two systems with different privacy boundaries, deployment concerns, and product surfaces.
+Keeping PKOS inside PKOS would couple two systems with different privacy boundaries, deployment concerns, and product surfaces.
 
 ## Decision
 
-BKOS is a standalone repository.
+PKOS is a standalone repository.
 
-PKOS may be used as a reference implementation for capture, indexing, search, and markdown-based storage, but BKOS owns its own application structure, schemas, auth, deployment, and data model.
+PKOS may be used as a reference implementation for capture, indexing, search, and markdown-based storage, but PKOS owns its own application structure, schemas, auth, deployment, and data model.
 
 ## Consequences
 

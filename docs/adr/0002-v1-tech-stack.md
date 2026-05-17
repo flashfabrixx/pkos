@@ -1,11 +1,11 @@
-# ADR-0002: BKOS v1 Tech Stack
+# ADR-0002: PKOS v1 Tech Stack
 
 **Status:** Accepted
 **Date:** 2026-05-15
 
 ## Context
 
-BKOS v1 needs a working vertical slice: login, capture, processing, durable storage, Markdown archive, search, and action tracking.
+PKOS v1 needs a working vertical slice: login, capture, processing, durable storage, Markdown archive, search, and action tracking.
 
 The system should avoid becoming a distributed AI platform before the core workflow is validated.
 

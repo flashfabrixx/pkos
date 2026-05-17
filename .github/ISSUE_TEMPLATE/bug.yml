@@ -12,7 +12,7 @@ body:
     attributes:
       label: What happened?
       description: Describe the bug. What did you expect, what did you get?
-      placeholder: I tried to upload a 30 MB PDF and the request failed with 413, even though BKOS_MAX_UPLOAD_MB is 50.
+      placeholder: I tried to upload a 30 MB PDF and the request failed with 413, even though PKOS_MAX_UPLOAD_MB is 50.
     validations:
       required: true
 
@@ -30,7 +30,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: BKOS version
+      label: PKOS version
       description: Output of `git rev-parse --short HEAD` or the release tag.
       placeholder: v0.1.0 or 7c9bbff
     validations:

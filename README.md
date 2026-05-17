@@ -1,7 +1,7 @@
-# BKOS — Business Knowledge Operating System
+# PKOS — Private Knowledge Operating System
 
 Self-hosted knowledge capture, processing, retrieval and action
-tracking. BKOS turns meeting transcripts, voice notes, emails and
+tracking. PKOS turns meeting transcripts, voice notes, emails and
 clipped web pages into a queryable knowledge base with semantic search,
 entity graph, action reminders and outbound webhooks.
 
@@ -26,10 +26,10 @@ entity graph, action reminders and outbound webhooks.
 ## 5-minute quickstart (local dev)
 
 ```bash
-git clone https://github.com/your-org/bkos.git
-cd bkos
+git clone https://github.com/your-org/pkos.git
+cd pkos
 pnpm install
-pnpm bkos:setup       # interactive: creates .env, password, secret;
+pnpm pkos:setup       # interactive: creates .env, password, secret;
                       # starts Postgres; applies migrations.
 pnpm dev
 ```
@@ -37,7 +37,7 @@ pnpm dev
 Visit <http://localhost:3000> and log in with the credentials the
 setup tool printed.
 
-Want to do it by hand? `pnpm bkos:hash-password`, write `.env`,
+Want to do it by hand? `pnpm pkos:hash-password`, write `.env`,
 `docker compose up -d postgres`, `pnpm db:migrate`, `pnpm dev`.
 
 ## Production deployment
@@ -49,7 +49,7 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
 
 See [`docs/deployment.md`](docs/deployment.md) for the full guide,
 including TLS via Caddy or Traefik and **zero-trust** options
-(Tailscale + Cloudflare Access) that never expose BKOS to the public
+(Tailscale + Cloudflare Access) that never expose PKOS to the public
 internet.
 
 ## Documentation
@@ -60,7 +60,7 @@ internet.
 | Changelog                 | [`docs/changelog.md`](docs/changelog.md)   |
 | Public REST API           | [`docs/api.md`](docs/api.md)               |
 | Security model            | [`docs/security.md`](docs/security.md)     |
-| Email → BKOS              | [`docs/email-setup.md`](docs/email-setup.md) |
+| Email → PKOS              | [`docs/email-setup.md`](docs/email-setup.md) |
 | Backup & restore          | [`docs/backup.md`](docs/backup.md)         |
 | Deployment (incl. zero-trust) | [`docs/deployment.md`](docs/deployment.md) |
 | Contributing              | [`docs/contributing.md`](docs/contributing.md) |

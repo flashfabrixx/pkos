@@ -1,6 +1,6 @@
-# BKOS deployment
+# PKOS deployment
 
-End-to-end guide for putting BKOS on a small VM in under 15 minutes.
+End-to-end guide for putting PKOS on a small VM in under 15 minutes.
 The default stack is Docker Compose, Postgres + pgvector, and a TLS
 reverse proxy. Two zero-trust options at the bottom (Tailscale,
 Cloudflare Access) are strongly recommended for any deployment that
@@ -15,8 +15,8 @@ isn't strictly localhost.
 ## 1. Clone, build, configure
 
 ```bash
-git clone https://github.com/your-org/bkos.git
-cd bkos
+git clone https://github.com/your-org/pkos.git
+cd pkos
 cp .env.prod.example .env.prod
 $EDITOR .env.prod   # fill in every "MUST CHANGE" line
 ```
@@ -25,7 +25,7 @@ Generate the password hash and session secret on a workstation:
 
 ```bash
 pnpm install
-pnpm bkos:hash-password   # paste output into BKOS_PASSWORD_HASH
+pnpm pkos:hash-password   # paste output into PKOS_PASSWORD_HASH
 openssl rand -base64 48   # paste into SESSION_SECRET
 ```
 
@@ -55,7 +55,7 @@ docker run -d --name caddy \
   -p 80:80 -p 443:443 \
   -v $PWD/infra/reverse-proxy/Caddyfile:/etc/caddy/Caddyfile:ro \
   -v caddy_data:/data -v caddy_config:/config \
-  --network bkos_default \
+  --network pkos_default \
   caddy:2
 ```
 
@@ -85,11 +85,11 @@ fast same-version recovery. See [`backup.md`](./backup.md) for both.
 Schedule a daily cron:
 
 ```cron
-0 3 * * *  cd /srv/bkos && docker compose -f docker-compose.prod.yml \
-            exec -T web pnpm bkos:export --out /data/files/backups/bkos-$(date +\%F).tar.gz
+0 3 * * *  cd /srv/pkos && docker compose -f docker-compose.prod.yml \
+            exec -T web pnpm pkos:export --out /data/files/backups/pkos-$(date +\%F).tar.gz
 ```
 
-Don't forget to copy the `bkos_files` and `bkos_vault` volumes
+Don't forget to copy the `pkos_files` and `pkos_vault` volumes
 alongside Postgres — attachments and the markdown vault live outside
 the database.
 
@@ -97,15 +97,15 @@ the database.
 
 # Zero-trust access (recommended)
 
-Even with a reverse proxy in front, exposing BKOS on the public
+Even with a reverse proxy in front, exposing PKOS on the public
 internet means accepting bots scanning `/api/auth/login` continuously.
 The setups below put authentication *before* the network reaches
-BKOS at all.
+PKOS at all.
 
 ## Option A — Tailscale (recommended for solo / small teams)
 
 Tailscale gives you a private overlay network keyed to your
-identity provider (Google, Microsoft, GitHub, …). BKOS becomes
+identity provider (Google, Microsoft, GitHub, …). PKOS becomes
 reachable only from your own devices; no port is exposed to the
 public internet.
 
@@ -115,7 +115,7 @@ public internet.
 
    ```bash
    curl -fsSL https://tailscale.com/install.sh | sh
-   sudo tailscale up --auth-key=tskey-... --hostname=bkos
+   sudo tailscale up --auth-key=tskey-... --hostname=pkos
    ```
 
 2. Enable the *Tailscale Serve* feature so the node terminates TLS
@@ -123,10 +123,10 @@ public internet.
 
    ```bash
    sudo tailscale serve --bg --https=443 http://127.0.0.1:3000
-   sudo tailscale cert bkos.<tailnet>.ts.net   # optional: also issue cert
+   sudo tailscale cert pkos.<tailnet>.ts.net   # optional: also issue cert
    ```
 
-3. Visit `https://bkos.<your-tailnet>.ts.net` from any device that has
+3. Visit `https://pkos.<your-tailnet>.ts.net` from any device that has
    logged into your Tailscale account. The reverse proxy (Caddy /
    Traefik) and any open port 80/443 can be removed entirely.
 
@@ -135,11 +135,11 @@ public internet.
 
 ### Hardening checklist
 
-- Restrict the node with an **ACL tag** (e.g. `tag:bkos`) and an ACL
+- Restrict the node with an **ACL tag** (e.g. `tag:pkos`) and an ACL
   rule that lets only `group:owners` reach it.
 - Enable **device approval** so a newly-joined laptop can't pull
   captures until you click *approve*.
-- Set BKOS to bind to the `tailscale0` interface only:
+- Set PKOS to bind to the `tailscale0` interface only:
 
   ```yaml
   ports:
@@ -156,11 +156,11 @@ public internet.
 
 - No public port. No bots. No certificate hassle.
 - Identity comes from your IdP (Google / Microsoft / GitHub) via
-  Tailscale, layered on top of BKOS's own 2FA.
+  Tailscale, layered on top of PKOS's own 2FA.
 
 ## Option B — Cloudflare Access (recommended for shared deployments)
 
-Cloudflare Access fronts BKOS with Cloudflare's global edge and
+Cloudflare Access fronts PKOS with Cloudflare's global edge and
 enforces SSO + policy *before* a request hits your server. Works well
 when you want to share a workspace with collaborators who don't all
 have Tailscale.
@@ -174,18 +174,18 @@ have Tailscale.
    ```bash
    curl -fsSL https://pkg.cloudflare.com/install.sh | sh
    cloudflared tunnel login
-   cloudflared tunnel create bkos
-   cloudflared tunnel route dns bkos bkos.example.com
+   cloudflared tunnel create pkos
+   cloudflared tunnel route dns pkos pkos.example.com
    ```
 
 3. Configure the tunnel ingress at
    `~/.cloudflared/config.yml`:
 
    ```yaml
-   tunnel: bkos
-   credentials-file: /etc/cloudflared/bkos.json
+   tunnel: pkos
+   credentials-file: /etc/cloudflared/pkos.json
    ingress:
-     - hostname: bkos.example.com
+     - hostname: pkos.example.com
        service: http://127.0.0.1:3000
        originRequest:
          noTLSVerify: true
@@ -199,13 +199,13 @@ have Tailscale.
    ```
 
 5. In the **Zero Trust** dashboard, add an **Application** for
-   `bkos.example.com` and a **Policy** like
+   `pkos.example.com` and a **Policy** like
 
    - Action: *Allow*
    - Include: *Emails ending in `@your-domain.com`* (or your IdP group)
    - Require: *Purpose justification* + *MFA*
 
-6. Tell BKOS to trust the Cloudflare Access JWT for the audit log:
+6. Tell PKOS to trust the Cloudflare Access JWT for the audit log:
 
    ```env
    # In .env.prod
@@ -213,7 +213,7 @@ have Tailscale.
    # Cf-Access-Authenticated-User-Email, Cf-Access-Jwt-Assertion
    ```
 
-   BKOS doesn't currently validate the JWT itself — Access has already
+   PKOS doesn't currently validate the JWT itself — Access has already
    approved the user before traffic reaches the tunnel. If you want
    defence-in-depth, add a small middleware that verifies the JWT
    against the team's public keys at
@@ -230,14 +230,14 @@ have Tailscale.
 
 ### Result
 
-- BKOS sits behind Cloudflare's WAF, rate limiting and bot mitigation
+- PKOS sits behind Cloudflare's WAF, rate limiting and bot mitigation
   for free.
-- Identity + MFA + policy live in Cloudflare; BKOS still requires its
+- Identity + MFA + policy live in Cloudflare; PKOS still requires its
   own password and 2FA as a second factor.
 - Tunnel is outbound-only — no public ingress on the VM.
 
 ## Combine both
 
 For high-stakes private deployments: put Tailscale around the
-**operator** SSH and `cloudflared` around the **user** HTTPS. BKOS
+**operator** SSH and `cloudflared` around the **user** HTTPS. PKOS
 itself never needs a public IP.

@@ -5,7 +5,7 @@
 
 ## Context
 
-BKOS v1 stores documents, people, projects, tags, action items, decisions, insights, and chunks. These are useful, but they do not yet form a traversable knowledge graph.
+PKOS v1 stores documents, people, projects, tags, action items, decisions, insights, and chunks. These are useful, but they do not yet form a traversable knowledge graph.
 
 The desired next step is a "knowledge wave": entities and relationships that accumulate over time and can be queried, visualized, and exported into Obsidian-compatible Markdown.
 
@@ -41,7 +41,7 @@ Supported v1.1 relation types:
 - `question_about`
 - `tagged_as`
 
-Markdown archive output should include wikilinks for people, projects, tags, decisions, insights, and open questions. Obsidian can render those links, but BKOS remains the operational graph source.
+Markdown archive output should include wikilinks for people, projects, tags, decisions, insights, and open questions. Obsidian can render those links, but PKOS remains the operational graph source.
 
 ## Consequences
 
