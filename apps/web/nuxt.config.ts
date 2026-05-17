@@ -55,7 +55,7 @@ export default defineNuxtConfig({
     embeddingModel: process.env.BKOS_EMBEDDING_MODEL || '',
     openAIApiKey: process.env.OPENAI_API_KEY || '',
     public: {
-      appName: process.env.NUXT_PUBLIC_APP_NAME || 'BKOS'
+      appName: process.env.NUXT_PUBLIC_APP_NAME || 'PKOS'
     }
   },
   typescript: {
@@ -63,7 +63,7 @@ export default defineNuxtConfig({
   },
   nitro: {
     externals: {
-      inline: ['@bkos/core', '@bkos/ingest', '@bkos/retrieval']
+      inline: ['@pkos/core', '@pkos/ingest', '@pkos/retrieval']
     },
     experimental: { tasks: true },
     scheduledTasks: {

@@ -1,5 +1,5 @@
 # Multi-stage build for the BKOS Nuxt app.
-# Run from the repo root: `docker build -f apps/web/Dockerfile -t bkos-web .`
+# Run from the repo root: `docker build -f apps/web/Dockerfile -t pkos-web .`
 
 # ---- deps ----
 FROM node:20-alpine AS deps
@@ -8,7 +8,7 @@ WORKDIR /repo
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/
 COPY packages packages
-RUN pnpm install --frozen-lockfile --filter @bkos/web... --filter "./packages/*"
+RUN pnpm install --frozen-lockfile --filter @pkos/web... --filter "./packages/*"
 
 # ---- builder ----
 FROM node:20-alpine AS builder
@@ -16,7 +16,7 @@ RUN corepack enable
 WORKDIR /repo
 COPY --from=deps /repo /repo
 COPY . .
-RUN pnpm --filter @bkos/web build
+RUN pnpm --filter @pkos/web build
 
 # ---- runtime ----
 FROM node:20-alpine AS runtime

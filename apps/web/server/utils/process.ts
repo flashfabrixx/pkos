@@ -1,5 +1,5 @@
 import type pg from 'pg'
-import type { CaptureInput, EntityType, ExtractedKnowledge } from '@bkos/core'
+import type { CaptureInput, EntityType, ExtractedKnowledge } from '@pkos/core'
 import { writeArchive } from './archive'
 import { detectLanguage } from './detect-language'
 import { embedTexts, vectorToPg } from './embedding'

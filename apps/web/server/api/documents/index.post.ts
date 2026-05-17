@@ -1,6 +1,6 @@
 import { createError, readBody } from 'h3'
 import { z } from 'zod'
-import { sourceTypes, confidentialityLevels, type CaptureInput } from '@bkos/core'
+import { sourceTypes, confidentialityLevels, type CaptureInput } from '@pkos/core'
 import { requireAuth } from '../../utils/auth'
 import { withTransaction } from '../../utils/db'
 import { emitEvent } from '../../utils/events'

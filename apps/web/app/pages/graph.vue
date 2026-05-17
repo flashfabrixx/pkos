@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { GraphEdge, GraphNode } from '@bkos/core'
+import type { GraphEdge, GraphNode } from '@pkos/core'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()

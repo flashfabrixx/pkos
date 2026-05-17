@@ -1,4 +1,4 @@
-import type { CaptureInput, ExtractedKnowledge } from '@bkos/core'
+import type { CaptureInput, ExtractedKnowledge } from '@pkos/core'
 
 const ACTION_RE = /\b(action|todo|follow[- ]?up|nächster schritt|naechster schritt|muss|müssen|muessen|bitte|ich werde|wir werden|should|need to)\b/i
 const DECISION_RE = /\b(decision|decided|entscheidung|entschieden|beschlossen|wir machen|wir nehmen|festgelegt)\b/i

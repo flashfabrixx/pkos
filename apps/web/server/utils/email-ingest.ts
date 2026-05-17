@@ -1,4 +1,4 @@
-import type { CaptureInput, Confidentiality, SourceType } from '@bkos/core'
+import type { CaptureInput, Confidentiality, SourceType } from '@pkos/core'
 import { withTransaction } from './db'
 import { prepareInput } from './extractor'
 import { logger } from './logger'

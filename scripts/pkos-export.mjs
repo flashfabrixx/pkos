@@ -2,7 +2,7 @@
 // BKOS workspace export.
 //
 // Usage:
-//   node scripts/bkos-export.mjs --out backup.tar.gz [--include-trashed]
+//   node scripts/pkos-export.mjs --out backup.tar.gz [--include-trashed]
 //
 // Produces a tar.gz with:
 //   manifest.json           — schema version + counts + creation time
@@ -26,7 +26,7 @@ import pg from 'pg'
 import * as tar from 'tar'
 
 const args = parseArgs(process.argv.slice(2))
-const outPath = args.out || 'bkos-backup.tar.gz'
+const outPath = args.out || 'pkos-backup.tar.gz'
 const includeTrashed = Boolean(args['include-trashed'])
 const filesPath = resolve(process.env.BKOS_FILES_PATH || './files')
 
@@ -34,20 +34,20 @@ const client = new pg.Client({ connectionString: process.env.DATABASE_URL })
 await client.connect()
 
 try {
-  console.log(`[bkos-export] writing ${outPath}…`)
+  console.log(`[pkos-export] writing ${outPath}…`)
   const stagingRoot = await stage(client, filesPath, includeTrashed)
 
   await new Promise((res, rej) => {
     tar.c({ gzip: true, cwd: stagingRoot, file: outPath }, ['.'])
       .then(res, rej)
   })
-  console.log(`[bkos-export] done.`)
+  console.log(`[pkos-export] done.`)
 } finally {
   await client.end()
 }
 
 async function stage(client, filesPath, includeTrashed) {
-  const root = `/tmp/bkos-export-${Date.now()}`
+  const root = `/tmp/pkos-export-${Date.now()}`
   await mkdir(root, { recursive: true })
 
   const tables = [
@@ -78,7 +78,7 @@ async function stage(client, filesPath, includeTrashed) {
       const data = await readFile(sourcePath)
       await writeFile(destPath, data)
     } catch (error) {
-      console.warn(`[bkos-export] missing file ${sourcePath}: ${error.message}`)
+      console.warn(`[pkos-export] missing file ${sourcePath}: ${error.message}`)
     }
   }
 

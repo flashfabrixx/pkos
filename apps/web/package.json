@@ -1,5 +1,5 @@
 {
-  "name": "@bkos/web",
+  "name": "@pkos/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,9 +9,9 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
-    "@bkos/core": "workspace:*",
-    "@bkos/ingest": "workspace:*",
-    "@bkos/retrieval": "workspace:*",
+    "@pkos/core": "workspace:*",
+    "@pkos/ingest": "workspace:*",
+    "@pkos/retrieval": "workspace:*",
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",
     "clsx": "^2.1.1",

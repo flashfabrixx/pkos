@@ -1,6 +1,6 @@
 import { createError, getRouterParam, readBody } from 'h3'
 import { z } from 'zod'
-import { openQuestionStatuses } from '@bkos/core'
+import { openQuestionStatuses } from '@pkos/core'
 import { requireAuth } from '../../utils/auth'
 import { query } from '../../utils/db'
 

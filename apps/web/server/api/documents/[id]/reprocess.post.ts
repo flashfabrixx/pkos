@@ -1,5 +1,5 @@
 import { createError, getRouterParam } from 'h3'
-import type { CaptureInput, Confidentiality, SourceType } from '@bkos/core'
+import type { CaptureInput, Confidentiality, SourceType } from '@pkos/core'
 import { requireAuth } from '../../../utils/auth'
 import { withTransaction } from '../../../utils/db'
 import { prepareInput } from '../../../utils/extractor'

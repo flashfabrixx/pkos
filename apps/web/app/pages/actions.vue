@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ActionItem, ActionStatus } from '@bkos/core'
+import type { ActionItem, ActionStatus } from '@pkos/core'
 import { AdjustmentsHorizontalIcon, CalendarDaysIcon, CheckCircleIcon, ChevronRightIcon, TrashIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
 import { sourceTypeIcon } from '~/utils/source-type'

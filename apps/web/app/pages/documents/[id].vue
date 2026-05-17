@@ -28,7 +28,7 @@ import {
   SparklesIcon as SparklesSolid
 } from '@heroicons/vue/24/solid'
 import { sourceTypeIcon } from '~/utils/source-type'
-import type { ActionStatus, OpenQuestionStatus } from '@bkos/core'
+import type { ActionStatus, OpenQuestionStatus } from '@pkos/core'
 
 const LANGUAGE_OPTIONS: Array<{ code: string, label: string }> = [
   { code: 'en', label: 'English' },

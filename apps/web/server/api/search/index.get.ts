@@ -1,5 +1,5 @@
 import { getQuery } from 'h3'
-import { makeExcerpt } from '@bkos/retrieval'
+import { makeExcerpt } from '@pkos/retrieval'
 import { requireAuth } from '../../utils/auth'
 import { query } from '../../utils/db'
 import { embedTexts, vectorToPg } from '../../utils/embedding'

@@ -1,5 +1,5 @@
-import type { CaptureInput, ExtractedKnowledge } from '@bkos/core'
-import { deriveCaptureMetadata, extractKnowledge } from '@bkos/ingest'
+import type { CaptureInput, ExtractedKnowledge } from '@pkos/core'
+import { deriveCaptureMetadata, extractKnowledge } from '@pkos/ingest'
 
 type CaptureDraft = Omit<CaptureInput, 'title'> & { title?: string }
 

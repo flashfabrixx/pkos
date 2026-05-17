@@ -1,5 +1,5 @@
 {
-  "name": "@bkos/retrieval",
+  "name": "@pkos/retrieval",
   "private": true,
   "type": "module",
   "exports": {

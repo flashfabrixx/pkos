@@ -1,5 +1,5 @@
 import type pg from 'pg'
-import type { EntityType, ExtractedKnowledge, RelationType } from '@bkos/core'
+import type { EntityType, ExtractedKnowledge, RelationType } from '@pkos/core'
 import { embedTexts, vectorToPg } from './embedding'
 import { recordActivity } from './entity-activity'
 

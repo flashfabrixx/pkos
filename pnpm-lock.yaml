@@ -57,21 +57,21 @@ importers:
 
   apps/web:
     dependencies:
-      '@bkos/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@bkos/ingest':
-        specifier: workspace:*
-        version: link:../../packages/ingest
-      '@bkos/retrieval':
-        specifier: workspace:*
-        version: link:../../packages/retrieval
       '@headlessui/vue':
         specifier: ^1.7.23
         version: 1.7.23(vue@3.5.34(typescript@5.9.3))
       '@heroicons/vue':
         specifier: ^2.2.0
         version: 2.2.0(vue@3.5.34(typescript@5.9.3))
+      '@pkos/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@pkos/ingest':
+        specifier: workspace:*
+        version: link:../../packages/ingest
+      '@pkos/retrieval':
+        specifier: workspace:*
+        version: link:../../packages/retrieval
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -144,7 +144,7 @@ importers:
 
   packages/ingest:
     dependencies:
-      '@bkos/core':
+      '@pkos/core':
         specifier: workspace:*
         version: link:../core
 

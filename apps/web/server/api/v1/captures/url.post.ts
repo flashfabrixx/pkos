@@ -1,6 +1,6 @@
 import { createError, readBody } from 'h3'
 import { z } from 'zod'
-import type { CaptureInput, Confidentiality } from '@bkos/core'
+import type { CaptureInput, Confidentiality } from '@pkos/core'
 import { requireAuthOrApiKey } from '../../../utils/auth'
 import { withTransaction } from '../../../utils/db'
 import { prepareInput } from '../../../utils/extractor'

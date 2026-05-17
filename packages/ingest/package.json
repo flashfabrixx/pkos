@@ -1,11 +1,11 @@
 {
-  "name": "@bkos/ingest",
+  "name": "@pkos/ingest",
   "private": true,
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@bkos/core": "workspace:*"
+    "@pkos/core": "workspace:*"
   }
 }

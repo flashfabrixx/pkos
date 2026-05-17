@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
-import type { CaptureInput, ExtractedKnowledge } from '@bkos/core'
+import type { CaptureInput, ExtractedKnowledge } from '@pkos/core'
 
 export async function writeArchive(documentId: string, input: CaptureInput, extracted: ExtractedKnowledge) {
   const config = useRuntimeConfig()

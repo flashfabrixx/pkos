@@ -2,7 +2,7 @@
 // BKOS workspace import.
 //
 // Usage:
-//   node scripts/bkos-import.mjs --in backup.tar.gz [--dry-run]
+//   node scripts/pkos-import.mjs --in backup.tar.gz [--dry-run]
 //
 // Idempotent over its `id` columns: re-running the import is a no-op
 // unless rows in the archive have newer `updated_at`. The schema
@@ -20,13 +20,13 @@ import * as tar from 'tar'
 const args = parseArgs(process.argv.slice(2))
 const inPath = args.in
 if (!inPath) {
-  console.error('usage: bkos-import --in backup.tar.gz [--dry-run]')
+  console.error('usage: pkos-import --in backup.tar.gz [--dry-run]')
   process.exit(2)
 }
 const dryRun = Boolean(args['dry-run'])
 
-const workdir = await mkdtemp(join(tmpdir(), 'bkos-import-'))
-console.log(`[bkos-import] extracting to ${workdir}…`)
+const workdir = await mkdtemp(join(tmpdir(), 'pkos-import-'))
+console.log(`[pkos-import] extracting to ${workdir}…`)
 await pipeline(createReadStream(inPath), tar.x({ cwd: workdir }))
 
 const manifest = JSON.parse(await readFile(join(workdir, 'manifest.json'), 'utf8'))
@@ -79,14 +79,14 @@ try {
 
   if (dryRun) {
     await client.query('ROLLBACK')
-    console.log(`[bkos-import] dry-run: would have imported`, counters)
+    console.log(`[pkos-import] dry-run: would have imported`, counters)
   } else {
     await client.query('COMMIT')
-    console.log(`[bkos-import] done`, counters)
+    console.log(`[pkos-import] done`, counters)
   }
 } catch (error) {
   await client.query('ROLLBACK')
-  console.error(`[bkos-import] failed: ${error.message}`)
+  console.error(`[pkos-import] failed: ${error.message}`)
   process.exit(1)
 } finally {
   await client.end()

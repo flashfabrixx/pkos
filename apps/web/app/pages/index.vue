@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
-import type { DocumentListItem, SourceType, Confidentiality } from '@bkos/core'
+import type { DocumentListItem, SourceType, Confidentiality } from '@pkos/core'
 import {
   BuildingOffice2Icon,
   ChatBubbleLeftRightIcon,

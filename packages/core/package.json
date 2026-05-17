@@ -1,5 +1,5 @@
 {
-  "name": "@bkos/core",
+  "name": "@pkos/core",
   "private": true,
   "type": "module",
   "exports": {

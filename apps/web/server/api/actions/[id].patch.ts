@@ -1,6 +1,6 @@
 import { createError, getRouterParam, readBody } from 'h3'
 import { z } from 'zod'
-import { actionStatuses } from '@bkos/core'
+import { actionStatuses } from '@pkos/core'
 import { requireAuth } from '../../utils/auth'
 import { query, withTransaction } from '../../utils/db'
 import { recordActivity } from '../../utils/entity-activity'
