@@ -1,0 +1,63 @@
+version: 2
+
+updates:
+  # Root + apps/web + packages/* are picked up automatically by pnpm
+  # workspaces; one ecosystem entry per directory keeps PRs scoped.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 5
+    groups:
+      # Group minor + patch into one PR per area. Major bumps still
+      # land as individual PRs so they get scrutiny.
+      dev-dependencies:
+        dependency-type: development
+        update-types: [minor, patch]
+      runtime-dependencies:
+        dependency-type: production
+        update-types: [minor, patch]
+    ignore:
+      # Pin manually — these touch a lot of files when bumped.
+      - dependency-name: nuxt
+        update-types: [version-update:semver-major]
+      - dependency-name: vue
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: npm
+    directory: /apps/web
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 5
+    groups:
+      dev-dependencies:
+        dependency-type: development
+        update-types: [minor, patch]
+      runtime-dependencies:
+        dependency-type: production
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Berlin
+    groups:
+      actions:
+        update-types: [minor, patch]
+
+  - package-ecosystem: docker
+    directory: /apps/web
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Berlin

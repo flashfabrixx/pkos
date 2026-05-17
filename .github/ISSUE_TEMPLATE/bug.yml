@@ -1,0 +1,73 @@
+name: Bug report
+description: Something's broken or behaving unexpectedly.
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. The clearer the report, the faster the fix.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug. What did you expect, what did you get?
+      placeholder: I tried to upload a 30 MB PDF and the request failed with 413, even though BKOS_MAX_UPLOAD_MB is 50.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to /
+        2. Drop a 30 MB PDF onto the capture textarea
+        3. Observe …
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: BKOS version
+      description: Output of `git rev-parse --short HEAD` or the release tag.
+      placeholder: v0.1.0 or 7c9bbff
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: Install method
+      options:
+        - docker compose (production)
+        - pnpm dev (local)
+        - other
+    validations:
+      required: true
+
+  - type: input
+    id: postgres
+    attributes:
+      label: Postgres version
+      placeholder: pgvector/pgvector:pg16
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Paste output from `docker compose logs web` or the dev server. Strip secrets first.
+      render: shell
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing issues and didn't find a duplicate.
+          required: true
+        - label: I'm running a supported version (latest release or main).
+          required: true

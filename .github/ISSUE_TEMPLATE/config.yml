@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or discussion
+    url: https://github.com/marcel-klein/bkos/discussions
+    about: Ask a question, share how you're using BKOS, or propose a direction before opening an issue.
+  - name: Security vulnerability
+    url: https://github.com/marcel-klein/bkos/security/advisories/new
+    about: Privately report a vulnerability via GitHub Security Advisories. Do NOT open a public issue.
