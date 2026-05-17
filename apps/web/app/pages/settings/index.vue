@@ -220,7 +220,7 @@ function copyBackupCodes() {
         ? 'Enabled — your account asks for a 6-digit code at login.'
         : 'Disabled — only a password protects your account.'"
     >
-      <div v-if="data?.enabled" class="divide-y divide-border-subtle border-t border-border-subtle text-sm leading-6">
+      <div v-if="data?.enabled" class="divide-y divide-border-subtle text-sm leading-6">
         <div class="py-6 sm:flex">
           <dt class="font-medium text-text-strong sm:w-64 sm:flex-none sm:pr-6">Status</dt>
           <dd class="mt-1 flex items-center gap-3 sm:mt-0">
@@ -246,7 +246,7 @@ function copyBackupCodes() {
         </div>
       </div>
 
-      <div v-else-if="phase === 'idle'" class="border-t border-border-subtle pt-6">
+      <div v-else-if="phase === 'idle'">
         <p class="text-sm leading-6 text-text-soft">Protect your BKOS account with an authenticator app (1Password, Authy, Google Authenticator, etc.).</p>
         <div class="mt-4 flex items-center gap-3">
           <UiButton :loading="pending" @click="startEnroll">
@@ -258,7 +258,7 @@ function copyBackupCodes() {
         <p v-if="error" class="mt-3 text-xs text-danger">{{ error }}</p>
       </div>
 
-      <div v-else-if="phase === 'verifying'" class="space-y-4 border-t border-border-subtle pt-6">
+      <div v-else-if="phase === 'verifying'" class="space-y-4">
         <ol class="list-decimal space-y-2 pl-5 text-sm text-text-soft">
           <li>Open your authenticator app and add a new entry.</li>
           <li>
@@ -292,7 +292,7 @@ function copyBackupCodes() {
         </form>
       </div>
 
-      <div v-else-if="phase === 'showing-backup-codes'" class="space-y-3 border-t border-border-subtle pt-6">
+      <div v-else-if="phase === 'showing-backup-codes'" class="space-y-3">
         <h3 class="text-sm font-semibold text-text-strong">Save your backup codes</h3>
         <p class="text-xs text-muted">Each code works once. Use one if you lose access to your authenticator. Store them somewhere safe — they will not be shown again.</p>
         <pre class="overflow-auto rounded-card bg-surface-2 p-3 font-mono text-xs leading-relaxed text-text">{{ backupCodes.join('\n') }}</pre>
@@ -317,7 +317,7 @@ function copyBackupCodes() {
         </div>
       </div>
 
-      <form class="grid gap-3 border-t border-border-subtle pt-6 sm:grid-cols-[1fr_auto] sm:items-end" @submit.prevent="createApiKey">
+      <form class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end" @submit.prevent="createApiKey">
         <UiField :label="t('settings.api_keys_name')">
           <template #default="{ id }">
             <UiInput :id="id" v-model="newKeyName" type="text" maxlength="120" placeholder="e.g. Shortcuts iPhone" />

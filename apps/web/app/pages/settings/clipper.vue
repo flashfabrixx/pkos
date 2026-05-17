@@ -30,7 +30,7 @@ function copyToClipboard(value: string) {
       title="Web clipper"
       description="The clipper sends the current tab's URL, the page title and any text you have selected to /api/v1/captures/url. The server re-fetches the page (SSRF-safe) to canonicalize the title and a short description, then runs your normal capture pipeline."
     >
-      <dl class="divide-y divide-border-subtle border-t border-border-subtle text-sm leading-6">
+      <dl class="divide-y divide-border-subtle text-sm leading-6">
         <div class="py-6 sm:flex">
           <dt class="font-medium text-text-strong sm:w-64 sm:flex-none sm:pr-6">1. Paste your API key</dt>
           <dd class="mt-1 sm:mt-0 sm:flex-auto">

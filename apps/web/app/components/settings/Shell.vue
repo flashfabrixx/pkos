@@ -30,31 +30,33 @@ function isActive(path: string) {
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl lg:flex lg:gap-x-16 lg:px-8">
+  <div>
     <h1 class="sr-only">{{ t('settings.title') }}</h1>
 
-    <aside class="flex overflow-x-auto border-b border-border-subtle py-4 lg:block lg:w-64 lg:flex-none lg:border-0 lg:py-12">
-      <nav class="flex-none px-4 sm:px-6 lg:px-0">
-        <ul role="list" class="flex gap-x-3 gap-y-1 whitespace-nowrap lg:flex-col">
+    <!-- Secondary navigation as underlined tabs. The strip's border-b
+         doubles as the divider between sub-nav and content. -->
+    <header class="sticky top-0 z-10 border-b border-border-default bg-app/95 backdrop-blur supports-[backdrop-filter]:bg-app/80">
+      <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <ul
+          role="list"
+          class="-mb-px flex gap-x-6 overflow-x-auto whitespace-nowrap text-sm font-medium"
+          aria-label="Settings"
+        >
           <li v-for="item in navItems" :key="item.to">
             <NuxtLink
               :to="item.to"
               :class="[
-                'group flex gap-x-3 rounded-md py-2 pl-2 pr-3 text-sm font-semibold transition-colors',
+                'inline-flex items-center gap-x-2 border-b-2 px-1 pb-3 pt-4 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
                 isActive(item.to)
-                  ? 'bg-soft text-accent'
-                  : 'text-text-soft hover:bg-soft hover:text-accent'
+                  ? 'border-accent text-accent'
+                  : 'border-transparent text-muted hover:border-border-strong hover:text-text'
               ]"
               :aria-current="isActive(item.to) ? 'page' : undefined"
             >
               <component
                 :is="item.icon"
-                :class="[
-                  'size-5 shrink-0 transition-colors',
-                  isActive(item.to)
-                    ? 'text-accent'
-                    : 'text-muted group-hover:text-accent'
-                ]"
+                class="size-4 shrink-0"
+                :class="isActive(item.to) ? 'text-accent' : 'text-muted-soft'"
                 aria-hidden="true"
               />
               {{ item.label }}
@@ -62,12 +64,12 @@ function isActive(path: string) {
           </li>
         </ul>
       </nav>
-    </aside>
+    </header>
 
-    <main class="px-4 py-10 sm:px-6 lg:flex-auto lg:px-0 lg:py-12">
-      <div class="mx-auto max-w-2xl space-y-12 sm:space-y-16 lg:mx-0 lg:max-w-none">
-        <slot />
-      </div>
-    </main>
+    <!-- Section stack. Each child <SettingsSection> renders its own
+         grid (title left on page bg, content card right). -->
+    <div class="divide-y divide-border-subtle">
+      <slot />
+    </div>
   </div>
 </template>

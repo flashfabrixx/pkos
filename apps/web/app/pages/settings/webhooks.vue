@@ -73,7 +73,7 @@ async function remove(id: string) {
         </div>
       </div>
 
-      <form class="grid gap-4 border-t border-border-subtle pt-6" @submit.prevent="createSubscription">
+      <form class="grid gap-4" @submit.prevent="createSubscription">
         <div class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
           <UiField label="Destination URL" required>
             <template #default="{ id }">

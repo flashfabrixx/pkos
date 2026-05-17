@@ -34,7 +34,7 @@ const purgeCommand = 'pnpm db:reset && rm -rf "$BKOS_FILES_PATH"/* "$BKOS_VAULT_
       title="Export your workspace"
       description="BKOS ships an offline export tool that bundles every document, entity, action, comment and attachment into a portable tar.gz archive. The archive is forward-compatible across BKOS versions and is the recommended way to migrate or back up a workspace."
     >
-      <dl class="divide-y divide-border-subtle border-t border-border-subtle text-sm leading-6">
+      <dl class="divide-y divide-border-subtle text-sm leading-6">
         <div class="py-6 sm:flex">
           <dt class="font-medium text-text-strong sm:w-64 sm:flex-none sm:pr-6">What's included</dt>
           <dd class="mt-1 sm:mt-0 sm:flex-auto">
@@ -99,9 +99,9 @@ const purgeCommand = 'pnpm db:reset && rm -rf "$BKOS_FILES_PATH"/* "$BKOS_VAULT_
       description="Permanently remove captures, entities, actions, comments, attachments and embeddings. There is no soft-delete here; the rows are gone. Export your workspace above before continuing."
       danger
     >
-      <div class="rounded-card border border-danger-border bg-danger-soft p-5">
-        <header class="flex items-start gap-3">
-          <ExclamationTriangleIcon class="size-6 shrink-0 text-danger" aria-hidden="true" />
+      <div class="space-y-6">
+        <div class="flex items-start gap-3 rounded-card border border-danger-border bg-danger-soft p-4">
+          <ExclamationTriangleIcon class="size-5 shrink-0 text-danger" aria-hidden="true" />
           <div class="space-y-1">
             <h3 class="text-sm font-semibold text-danger">This wipes your entire workspace</h3>
             <p class="text-sm text-text-soft">
@@ -112,9 +112,9 @@ const purgeCommand = 'pnpm db:reset && rm -rf "$BKOS_FILES_PATH"/* "$BKOS_VAULT_
               want a fully cold start.
             </p>
           </div>
-        </header>
+        </div>
 
-        <dl class="mt-4 space-y-4 text-sm">
+        <dl class="space-y-5 text-sm">
           <div>
             <dt class="font-medium text-text-strong">1. Confirm the phrase</dt>
             <dd class="mt-1">
