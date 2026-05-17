@@ -59,20 +59,12 @@ async function remove(id: string) {
 </script>
 
 <template>
-  <main class="mx-auto grid max-w-3xl gap-4 p-5">
-    <section class="space-y-4 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
-      <header>
-        <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">Settings</p>
-        <h1 class="text-xl font-semibold tracking-tight text-text-strong">Webhooks</h1>
-      </header>
-
-      <p class="text-sm text-text-soft">
-        BKOS POSTs a JSON payload to each subscribed URL when events occur.
-        Verify deliveries via the <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">X-BKOS-Signature: sha256=…</code>
-        header (HMAC-SHA-256 of the body, keyed by the secret shown once at creation).
-      </p>
-
-      <div v-if="newlyCreatedSecret" class="space-y-3 rounded-card border border-warning-border bg-warning-soft p-4">
+  <SettingsShell>
+    <SettingsSection
+      title="Outbound webhooks"
+      description="BKOS POSTs a JSON payload to each subscribed URL when events occur. Verify deliveries via the X-BKOS-Signature: sha256=… header (HMAC-SHA-256 of the body, keyed by the secret shown once at creation)."
+    >
+      <div v-if="newlyCreatedSecret" class="mb-6 space-y-3 rounded-card border border-warning-border bg-warning-soft p-4">
         <h3 class="text-sm font-semibold text-warning">Secret for {{ newlyCreatedSecret.url }}</h3>
         <p class="text-xs text-text-soft">Shown once. Store it before navigating away.</p>
         <pre class="overflow-auto rounded-card bg-surface-1 p-3 font-mono text-xs leading-relaxed text-text">{{ newlyCreatedSecret.secret }}</pre>
@@ -81,46 +73,52 @@ async function remove(id: string) {
         </div>
       </div>
 
-      <form class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end" @submit.prevent="createSubscription">
-        <UiField label="Destination URL" required>
-          <template #default="{ id }">
-            <UiInput :id="id" v-model="newUrl" type="url" required placeholder="https://example.com/hook" />
-          </template>
-        </UiField>
-        <UiButton type="submit" :loading="creating" :disabled="!newUrl">
-          <PlusIcon class="size-4" aria-hidden="true" />
-          {{ creating ? 'Creating…' : 'Add subscription' }}
-        </UiButton>
+      <form class="grid gap-4 border-t border-border-subtle pt-6" @submit.prevent="createSubscription">
+        <div class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+          <UiField label="Destination URL" required>
+            <template #default="{ id }">
+              <UiInput :id="id" v-model="newUrl" type="url" required placeholder="https://example.com/hook" />
+            </template>
+          </UiField>
+          <UiButton type="submit" :loading="creating" :disabled="!newUrl">
+            <PlusIcon class="size-4" aria-hidden="true" />
+            {{ creating ? 'Creating…' : 'Add subscription' }}
+          </UiButton>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-muted">Events</span>
+          <button
+            v-for="kind in EVENT_TYPES"
+            :key="kind"
+            type="button"
+            :class="[
+              'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors',
+              newEvents.has(kind)
+                ? 'bg-accent text-accent-fg'
+                : 'bg-soft text-text-soft hover:bg-surface-3'
+            ]"
+            @click="toggleEvent(kind)"
+          >{{ kind }}</button>
+          <span class="text-xs text-muted">(empty = all events)</span>
+        </div>
+        <p v-if="errMsg" class="text-xs text-danger">{{ errMsg }}</p>
       </form>
 
-      <div class="flex flex-wrap items-center gap-2">
-        <span class="text-xs font-semibold uppercase tracking-wider text-muted">Events</span>
-        <button
-          v-for="kind in EVENT_TYPES"
-          :key="kind"
-          type="button"
-          :class="[
-            'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors',
-            newEvents.has(kind)
-              ? 'bg-accent text-accent-fg'
-              : 'bg-soft text-text-soft hover:bg-surface-3'
-          ]"
-          @click="toggleEvent(kind)"
-        >{{ kind }}</button>
-        <span class="text-xs text-muted">(empty = all events)</span>
-      </div>
-      <p v-if="errMsg" class="text-xs text-danger">{{ errMsg }}</p>
-
-      <ul v-if="subscriptions.length" class="divide-y divide-border-subtle">
+      <ul
+        v-if="subscriptions.length"
+        role="list"
+        class="mt-6 divide-y divide-border-subtle border-t border-border-subtle text-sm leading-6"
+      >
         <li
           v-for="sub in subscriptions"
           :key="sub.id"
-          :class="['flex flex-wrap items-center gap-3 py-3', !sub.active && 'opacity-60']"
+          :class="['flex flex-wrap items-center gap-3 py-6', !sub.active && 'opacity-60']"
         >
           <div class="min-w-0 flex-1 space-y-0.5">
             <div class="flex flex-wrap items-center gap-2">
               <GlobeAltIcon class="size-4 text-muted" aria-hidden="true" />
-              <strong class="truncate text-sm text-text-strong">{{ sub.url }}</strong>
+              <strong class="truncate text-text-strong">{{ sub.url }}</strong>
               <span class="text-xs text-muted">{{ sub.events.length ? sub.events.join(' · ') : 'all events' }}</span>
               <UiBadge v-if="!sub.active" variant="danger">disabled</UiBadge>
             </div>
@@ -135,7 +133,7 @@ async function remove(id: string) {
           </UiButton>
         </li>
       </ul>
-      <p v-else class="text-sm text-muted">No webhook subscriptions yet.</p>
-    </section>
-  </main>
+      <p v-else class="mt-6 border-t border-border-subtle pt-6 text-sm text-muted">No webhook subscriptions yet.</p>
+    </SettingsSection>
+  </SettingsShell>
 </template>

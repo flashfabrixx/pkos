@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import {
   ComputerDesktopIcon,
-  KeyIcon,
-  LanguageIcon,
   MoonIcon,
-  PaintBrushIcon,
   PlusIcon,
   ShieldCheckIcon,
   ShieldExclamationIcon,
@@ -170,20 +167,11 @@ function copyBackupCodes() {
 </script>
 
 <template>
-  <main class="mx-auto grid max-w-3xl gap-4 p-5">
-    <header>
-      <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">{{ t('settings.eyebrow') }}</p>
-      <h1 class="text-xl font-semibold tracking-tight text-text-strong">{{ t('settings.title') }}</h1>
-    </header>
-
-    <section class="space-y-3 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
-      <header class="flex items-start gap-3">
-        <PaintBrushIcon class="size-5 shrink-0 text-muted" aria-hidden="true" />
-        <div>
-          <h2 class="text-sm font-semibold text-text-strong">Appearance</h2>
-          <p class="text-xs text-muted">Light, dark, or follow the operating system.</p>
-        </div>
-      </header>
+  <SettingsShell>
+    <SettingsSection
+      title="Appearance"
+      description="Light, dark, or follow the operating system."
+    >
       <div class="inline-flex gap-1 rounded-md border border-border-default bg-surface-2 p-1">
         <button
           v-for="opt in THEME_OPTIONS"
@@ -201,16 +189,12 @@ function copyBackupCodes() {
           <span>{{ t(`common.${opt.value}`) }}</span>
         </button>
       </div>
-    </section>
+    </SettingsSection>
 
-    <section class="space-y-3 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
-      <header class="flex items-start gap-3">
-        <LanguageIcon class="size-5 shrink-0 text-muted" aria-hidden="true" />
-        <div>
-          <h2 class="text-sm font-semibold text-text-strong">Language</h2>
-          <p class="text-xs text-muted">Display language for the BKOS interface.</p>
-        </div>
-      </header>
+    <SettingsSection
+      title="Language"
+      description="Display language for the BKOS interface."
+    >
       <div class="inline-flex gap-1 rounded-md border border-border-default bg-surface-2 p-1">
         <button
           v-for="code in localeOptions"
@@ -228,45 +212,53 @@ function copyBackupCodes() {
           <span>{{ LOCALE_LABELS[code] || code }}</span>
         </button>
       </div>
-    </section>
+    </SettingsSection>
 
-    <section class="space-y-4 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
-      <header class="flex items-start gap-3">
-        <component
-          :is="data?.enabled ? ShieldCheckIcon : ShieldExclamationIcon"
-          :class="['size-5 shrink-0', data?.enabled ? 'text-success' : 'text-warning']"
-          aria-hidden="true"
-        />
-        <div>
-          <h2 class="text-sm font-semibold text-text-strong">Two-factor authentication</h2>
-          <p class="text-xs text-muted">{{ data?.enabled ? 'Enabled — your account asks for a 6-digit code at login.' : 'Disabled — only a password protects your account.' }}</p>
+    <SettingsSection
+      :title="t('settings.twofa_title')"
+      :description="data?.enabled
+        ? 'Enabled — your account asks for a 6-digit code at login.'
+        : 'Disabled — only a password protects your account.'"
+    >
+      <div v-if="data?.enabled" class="divide-y divide-border-subtle border-t border-border-subtle text-sm leading-6">
+        <div class="py-6 sm:flex">
+          <dt class="font-medium text-text-strong sm:w-64 sm:flex-none sm:pr-6">Status</dt>
+          <dd class="mt-1 flex items-center gap-3 sm:mt-0">
+            <ShieldCheckIcon class="size-5 text-success" aria-hidden="true" />
+            <span class="text-text">Enabled — backup codes left {{ data.backup_codes_remaining }} / {{ data.backup_codes_total }}</span>
+          </dd>
         </div>
-      </header>
+        <div class="py-6 sm:flex">
+          <dt class="font-medium text-text-strong sm:w-64 sm:flex-none sm:pr-6">Disable</dt>
+          <dd class="mt-1 sm:mt-0 sm:flex-auto">
+            <form class="space-y-3" @submit.prevent="disable">
+              <UiField label="Current password" hint="Required to disable two-factor.">
+                <template #default="{ id }">
+                  <UiInput :id="id" v-model="disablePassword" type="password" autocomplete="current-password" />
+                </template>
+              </UiField>
+              <p v-if="error" class="text-xs text-danger">{{ error }}</p>
+              <UiButton type="submit" variant="danger" size="sm" :disabled="!disablePassword" :loading="pending">
+                {{ pending ? 'Disabling…' : 'Disable two-factor' }}
+              </UiButton>
+            </form>
+          </dd>
+        </div>
+      </div>
 
-      <div v-if="data?.enabled" class="space-y-3">
-        <p class="text-sm text-text">Backup codes left: <strong>{{ data.backup_codes_remaining }} / {{ data.backup_codes_total }}</strong></p>
-        <form class="space-y-3" @submit.prevent="disable">
-          <UiField label="Current password (required to disable 2FA)">
-            <template #default="{ id }">
-              <UiInput :id="id" v-model="disablePassword" type="password" autocomplete="current-password" />
-            </template>
-          </UiField>
-          <p v-if="error" class="text-xs text-danger">{{ error }}</p>
-          <UiButton type="submit" variant="danger" size="sm" :disabled="!disablePassword" :loading="pending">
-            {{ pending ? 'Disabling…' : 'Disable two-factor' }}
+      <div v-else-if="phase === 'idle'" class="border-t border-border-subtle pt-6">
+        <p class="text-sm leading-6 text-text-soft">Protect your BKOS account with an authenticator app (1Password, Authy, Google Authenticator, etc.).</p>
+        <div class="mt-4 flex items-center gap-3">
+          <UiButton :loading="pending" @click="startEnroll">
+            {{ pending ? 'Working…' : 'Enable two-factor' }}
           </UiButton>
-        </form>
+          <ShieldExclamationIcon class="size-5 text-warning" aria-hidden="true" />
+          <span class="text-sm text-warning">Only a password protects your account.</span>
+        </div>
+        <p v-if="error" class="mt-3 text-xs text-danger">{{ error }}</p>
       </div>
 
-      <div v-else-if="phase === 'idle'" class="space-y-3">
-        <p class="text-sm text-text-soft">Protect your BKOS account with an authenticator app (1Password, Authy, Google Authenticator, etc.).</p>
-        <UiButton :loading="pending" @click="startEnroll">
-          {{ pending ? 'Working…' : 'Enable two-factor' }}
-        </UiButton>
-        <p v-if="error" class="text-xs text-danger">{{ error }}</p>
-      </div>
-
-      <div v-else-if="phase === 'verifying'" class="space-y-3">
+      <div v-else-if="phase === 'verifying'" class="space-y-4 border-t border-border-subtle pt-6">
         <ol class="list-decimal space-y-2 pl-5 text-sm text-text-soft">
           <li>Open your authenticator app and add a new entry.</li>
           <li>
@@ -300,7 +292,7 @@ function copyBackupCodes() {
         </form>
       </div>
 
-      <div v-else-if="phase === 'showing-backup-codes'" class="space-y-3">
+      <div v-else-if="phase === 'showing-backup-codes'" class="space-y-3 border-t border-border-subtle pt-6">
         <h3 class="text-sm font-semibold text-text-strong">Save your backup codes</h3>
         <p class="text-xs text-muted">Each code works once. Use one if you lose access to your authenticator. Store them somewhere safe — they will not be shown again.</p>
         <pre class="overflow-auto rounded-card bg-surface-2 p-3 font-mono text-xs leading-relaxed text-text">{{ backupCodes.join('\n') }}</pre>
@@ -309,18 +301,13 @@ function copyBackupCodes() {
           <UiButton type="button" size="sm" @click="finishBackupCodes">I've saved them</UiButton>
         </div>
       </div>
-    </section>
+    </SettingsSection>
 
-    <section class="space-y-4 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
-      <header class="flex items-start gap-3">
-        <KeyIcon class="size-5 shrink-0 text-muted" aria-hidden="true" />
-        <div>
-          <h2 class="text-sm font-semibold text-text-strong">API keys</h2>
-          <p class="text-xs text-muted">Programmatic access for the BKOS REST API at <code class="rounded bg-soft px-1 py-0.5 font-mono text-[11px]">/api/v1/*</code>. Use as <code class="rounded bg-soft px-1 py-0.5 font-mono text-[11px]">Authorization: Bearer &lt;key&gt;</code>.</p>
-        </div>
-      </header>
-
-      <div v-if="newlyCreated" class="space-y-3 rounded-card border border-warning-border bg-warning-soft p-4">
+    <SettingsSection
+      :title="t('settings.api_keys_title')"
+      :description="t('settings.api_keys_intro')"
+    >
+      <div v-if="newlyCreated" class="mb-6 space-y-3 rounded-card border border-warning-border bg-warning-soft p-4">
         <h3 class="text-sm font-semibold text-warning">New key created — copy it now</h3>
         <p class="text-xs text-text-soft">This is the only time the full key is shown. Store it in your secrets manager.</p>
         <pre class="overflow-auto rounded-card bg-surface-1 p-3 font-mono text-xs leading-relaxed text-text">{{ newlyCreated.plaintext }}</pre>
@@ -330,28 +317,28 @@ function copyBackupCodes() {
         </div>
       </div>
 
-      <form class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end" @submit.prevent="createApiKey">
-        <UiField label="Key name">
+      <form class="grid gap-3 border-t border-border-subtle pt-6 sm:grid-cols-[1fr_auto] sm:items-end" @submit.prevent="createApiKey">
+        <UiField :label="t('settings.api_keys_name')">
           <template #default="{ id }">
             <UiInput :id="id" v-model="newKeyName" type="text" maxlength="120" placeholder="e.g. Shortcuts iPhone" />
           </template>
         </UiField>
         <UiButton type="submit" :disabled="!newKeyName.trim()" :loading="creating">
           <PlusIcon class="size-4" aria-hidden="true" />
-          {{ creating ? 'Creating…' : 'Create key' }}
+          {{ creating ? t('settings.api_keys_creating') : t('settings.api_keys_create') }}
         </UiButton>
         <p v-if="keysError" class="text-xs text-danger sm:col-span-2">{{ keysError }}</p>
       </form>
 
-      <ul v-if="apiKeys.length" class="divide-y divide-border-subtle">
+      <ul v-if="apiKeys.length" role="list" class="mt-6 divide-y divide-border-subtle border-t border-border-subtle text-sm leading-6">
         <li
           v-for="key in apiKeys"
           :key="key.id"
-          :class="['flex flex-wrap items-center gap-3 py-3', key.revoked_at && 'opacity-60']"
+          :class="['flex flex-wrap items-center gap-3 py-6', key.revoked_at && 'opacity-60']"
         >
           <div class="min-w-0 flex-1 space-y-0.5">
             <div class="flex flex-wrap items-baseline gap-2">
-              <strong class="text-sm text-text-strong">{{ key.name }}</strong>
+              <strong class="text-text-strong">{{ key.name }}</strong>
               <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs text-text-soft">bkos_{{ key.prefix }}_…</code>
               <span class="text-xs text-muted">{{ key.scopes.join(' · ') }}</span>
               <UiBadge v-if="key.revoked_at" variant="danger">revoked</UiBadge>
@@ -368,11 +355,11 @@ function copyBackupCodes() {
             @click="revokeApiKey(key.id)"
           >
             <TrashIcon class="size-4" aria-hidden="true" />
-            Revoke
+            {{ t('settings.api_keys_revoke') }}
           </UiButton>
         </li>
       </ul>
-      <p v-else class="text-sm text-muted">No keys yet. Create one above to start posting captures from external tools.</p>
-    </section>
-  </main>
+      <p v-else class="mt-6 border-t border-border-subtle pt-6 text-sm text-muted">{{ t('settings.api_keys_empty') }}</p>
+    </SettingsSection>
+  </SettingsShell>
 </template>
