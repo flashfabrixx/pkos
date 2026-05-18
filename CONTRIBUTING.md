@@ -7,10 +7,10 @@ maintained at the pace of one person plus contributors. The bar for
 
 ## Before you start
 
-- **Bug?** [Open an issue](https://github.com/marcel-klein/pkos/issues/new/choose)
+- **Bug?** [Open an issue](https://github.com/flashfabrixx/pkos/issues/new/choose)
   with the bug template. Don't send a PR without an issue unless the
   fix is one obvious line — we'd rather agree on the diagnosis first.
-- **Feature?** [Discussions](https://github.com/marcel-klein/pkos/discussions)
+- **Feature?** [Discussions](https://github.com/flashfabrixx/pkos/discussions)
   is the better place to float an idea. Things that fit PKOS's
   positioning (single-user, self-hosted, your-data) get a fast "yes";
   multi-tenant SaaS shapes get a fast "no". Save yourself the cycles.
@@ -22,7 +22,7 @@ maintained at the pace of one person plus contributors. The bar for
 ## Local setup
 
 ```bash
-git clone https://github.com/marcel-klein/pkos.git
+git clone https://github.com/flashfabrixx/pkos.git
 cd pkos
 pnpm install
 cp .env.example .env

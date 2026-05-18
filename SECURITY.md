@@ -7,8 +7,8 @@ tagged release. No back-porting to older tags during the 0.x cycle.
 
 | Version | Supported |
 | ------- | --------- |
-| 0.x (`main` + latest tag) | ✅ |
-| anything older than the latest 0.x tag | ❌ |
+| 0.x (`main` + latest tag) | Yes |
+| anything older than the latest 0.x tag | No |
 
 ## Reporting a vulnerability
 
@@ -16,11 +16,11 @@ tagged release. No back-porting to older tags during the 0.x cycle.
 the fix lands before the problem is known.
 
 1. **Preferred — GitHub Security Advisories.** Open a private advisory
-   at <https://github.com/marcel-klein/pkos/security/advisories/new>.
+   at <https://github.com/flashfabrixx/pkos/security/advisories/new>.
    This stays private until we publish it.
 2. **Fallback — Email.** Send the report to
    `security@`*your-domain* (or, until that mailbox exists,
-   `marcel-klein` via GitHub). PGP is available on request.
+   `flashfabrixx` via GitHub). PGP is available on request.
 
 Please include:
 

@@ -5,12 +5,12 @@
 > queryable knowledge base — and lets you actually have a conversation
 > with it, all from your own machine.
 
-[![CI](https://github.com/marcel-klein/pkos/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/marcel-klein/pkos/actions/workflows/ci.yml)
+[![CI](https://github.com/flashfabrixx/pkos/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/flashfabrixx/pkos/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&logoColor=white)](package.json)
 [![Tailwind v4](https://img.shields.io/badge/tailwind-v4-38bdf8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Roadmap: 1.0 ready](https://img.shields.io/badge/roadmap-1.0--ready-brightgreen)](docs/roadmap-v1.md)
-[![Sponsor](https://img.shields.io/badge/sponsor-on%20github-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/marcel-klein)
+[![Sponsor](https://img.shields.io/badge/sponsor-on%20github-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/flashfabrixx)
 
 ---
 
@@ -50,7 +50,7 @@ single-user, self-hosted is a wedge, not a weakness.
 ## 5-minute quickstart (local dev)
 
 ```bash
-git clone https://github.com/marcel-klein/pkos.git
+git clone https://github.com/flashfabrixx/pkos.git
 cd pkos
 pnpm install
 pnpm pkos:setup       # interactive: creates .env, hashes a password,
@@ -81,11 +81,11 @@ including TLS via Caddy or Traefik and **zero-trust** options
 internet.
 
 A signed multi-arch container image is published to
-`ghcr.io/marcel-klein/pkos:<tag>` on every tagged release — see the
+`ghcr.io/flashfabrixx/pkos:<tag>` on every tagged release — see the
 release workflow + cosign verification snippet below.
 
 ```bash
-docker pull ghcr.io/marcel-klein/pkos:latest
+docker pull ghcr.io/flashfabrixx/pkos:latest
 ```
 
 ## Documentation
@@ -125,7 +125,7 @@ under `apps/web/test/ui/` run without Docker.
 
 ## Community
 
-- **Discussions:** [github.com/marcel-klein/pkos/discussions](https://github.com/marcel-klein/pkos/discussions)
+- **Discussions:** [github.com/flashfabrixx/pkos/discussions](https://github.com/flashfabrixx/pkos/discussions)
   for questions, "would you accept a PR for X?", and how-are-you-using-it.
 - **Issues:** bug reports and accepted feature requests.
 - **Security:** private disclosure via [`SECURITY.md`](SECURITY.md) —
@@ -138,7 +138,7 @@ and you'd like to help keep it maintained:
 
 - **Star the repo** — GitHub's discovery surfaces lift starred repos,
   which brings the next contributor in.
-- **[Sponsor on GitHub](https://github.com/sponsors/marcel-klein)** —
+- **[Sponsor on GitHub](https://github.com/sponsors/flashfabrixx)** —
   any amount funds the time to keep shipping fixes and the chat
   workflow (see roadmap).
 - **File a clear bug report or thoughtful feature proposal** — those
