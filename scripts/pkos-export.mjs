@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// BKOS workspace export.
+// PKOS workspace export.
 //
 // Usage:
 //   node scripts/pkos-export.mjs --out backup.tar.gz [--include-trashed]
@@ -16,7 +16,7 @@
 // Hard rules: read-only on the database, append-only on the tar stream,
 // idempotent metadata (running twice produces byte-equal manifest minus
 // the timestamp). pg_dump still beats this for raw DB recovery; this
-// archive is portable across BKOS versions.
+// archive is portable across PKOS versions.
 
 import { createWriteStream } from 'node:fs'
 import { mkdir, readFile } from 'node:fs/promises'
@@ -28,7 +28,7 @@ import * as tar from 'tar'
 const args = parseArgs(process.argv.slice(2))
 const outPath = args.out || 'pkos-backup.tar.gz'
 const includeTrashed = Boolean(args['include-trashed'])
-const filesPath = resolve(process.env.BKOS_FILES_PATH || './files')
+const filesPath = resolve(process.env.PKOS_FILES_PATH || './files')
 
 const client = new pg.Client({ connectionString: process.env.DATABASE_URL })
 await client.connect()
@@ -83,7 +83,7 @@ async function stage(client, filesPath, includeTrashed) {
   }
 
   await writeFile(join(root, 'manifest.json'), JSON.stringify({
-    schema: 'bkos.v1',
+    schema: 'pkos.v1',
     exported_at: new Date().toISOString(),
     include_trashed: includeTrashed,
     counts

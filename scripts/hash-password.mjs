@@ -60,7 +60,7 @@ const salt = randomBytes(16)
 const derived = await scryptAsync(password, salt, KEY_LENGTH, SCRYPT_PARAMS)
 const hash = `scrypt$${SCRYPT_PARAMS.N}$${SCRYPT_PARAMS.r}$${SCRYPT_PARAMS.p}$${salt.toString('base64')}$${derived.toString('base64')}`
 
-console.log('\nAdd this line to your .env file (remove any BKOS_PASSWORD entry):')
+console.log('\nAdd this line to your .env file (remove any PKOS_PASSWORD entry):')
 console.log('')
-console.log(`BKOS_PASSWORD_HASH=${hash}`)
+console.log(`PKOS_PASSWORD_HASH=${hash}`)
 console.log('')

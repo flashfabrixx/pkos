@@ -2,7 +2,7 @@ import { readdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import pg from 'pg'
 
-const databaseUrl = process.env.DATABASE_URL || 'postgres://bkos:bkos@localhost:5433/bkos'
+const databaseUrl = process.env.DATABASE_URL || 'postgres://pkos:pkos@localhost:5433/pkos'
 const migrationsDir = new URL('../infra/migrations', import.meta.url)
 const client = new pg.Client({ connectionString: databaseUrl })
 

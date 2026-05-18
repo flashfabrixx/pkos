@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Interactive first-run setup for BKOS.
+// Interactive first-run setup for PKOS.
 //
 // Walks the operator through:
 //   1. Pick a username + password (or accept defaults).
@@ -92,10 +92,10 @@ function run(cmd, args, opts = {}) {
 }
 
 async function main() {
-  console.log('\nBKOS first-run setup\n────────────────────')
+  console.log('\nPKOS first-run setup\n────────────────────')
   const { parsed } = await readEnv()
 
-  const username = await ask('Username for the admin account', parsed.BKOS_USERNAME || 'admin')
+  const username = await ask('Username for the admin account', parsed.PKOS_USERNAME || 'admin')
   let password = await askSecret('Password (leave blank to generate a random one)')
   if (!password) {
     password = randomBytes(12).toString('base64url')
@@ -107,17 +107,17 @@ async function main() {
   const pgPassword = parsed.POSTGRES_PASSWORD || randomBytes(16).toString('hex')
 
   const updates = {
-    BKOS_USERNAME: username,
-    BKOS_PASSWORD_HASH: passwordHash,
+    PKOS_USERNAME: username,
+    PKOS_PASSWORD_HASH: passwordHash,
     SESSION_SECRET: sessionSecret,
-    POSTGRES_DB: parsed.POSTGRES_DB || 'bkos',
-    POSTGRES_USER: parsed.POSTGRES_USER || 'bkos',
+    POSTGRES_DB: parsed.POSTGRES_DB || 'pkos',
+    POSTGRES_USER: parsed.POSTGRES_USER || 'pkos',
     POSTGRES_PASSWORD: pgPassword,
-    DATABASE_URL: `postgres://${parsed.POSTGRES_USER || 'bkos'}:${pgPassword}@localhost:5433/${parsed.POSTGRES_DB || 'bkos'}`,
-    BKOS_VAULT_PATH: parsed.BKOS_VAULT_PATH || './vault',
-    BKOS_FILES_PATH: parsed.BKOS_FILES_PATH || './files',
-    BKOS_EXTRACTOR_PROVIDER: parsed.BKOS_EXTRACTOR_PROVIDER || 'placeholder',
-    BKOS_EMBEDDING_PROVIDER: parsed.BKOS_EMBEDDING_PROVIDER || 'placeholder'
+    DATABASE_URL: `postgres://${parsed.POSTGRES_USER || 'pkos'}:${pgPassword}@localhost:5433/${parsed.POSTGRES_DB || 'pkos'}`,
+    PKOS_VAULT_PATH: parsed.PKOS_VAULT_PATH || './vault',
+    PKOS_FILES_PATH: parsed.PKOS_FILES_PATH || './files',
+    PKOS_EXTRACTOR_PROVIDER: parsed.PKOS_EXTRACTOR_PROVIDER || 'placeholder',
+    PKOS_EMBEDDING_PROVIDER: parsed.PKOS_EMBEDDING_PROVIDER || 'placeholder'
   }
   await mergeEnv(updates)
   console.log(`\n  ✔ wrote ${envPath}`)
@@ -159,8 +159,8 @@ async function main() {
 
   // Make sure local vault/files dirs exist for the app
   await Promise.all([
-    ensureDir(resolve(repoRoot, updates.BKOS_VAULT_PATH)),
-    ensureDir(resolve(repoRoot, updates.BKOS_FILES_PATH))
+    ensureDir(resolve(repoRoot, updates.PKOS_VAULT_PATH)),
+    ensureDir(resolve(repoRoot, updates.PKOS_FILES_PATH))
   ])
 
   console.log('\n✔ Setup complete.')

@@ -15,14 +15,14 @@ if (existsSync(envPath)) {
   }
 }
 
-const provider = (process.env.BKOS_EMBEDDING_PROVIDER || 'placeholder').toLowerCase()
+const provider = (process.env.PKOS_EMBEDDING_PROVIDER || 'placeholder').toLowerCase()
 if (provider === 'placeholder') {
-  console.log('BKOS_EMBEDDING_PROVIDER is "placeholder" — nothing to backfill. Set it to "ollama" or "openai".')
+  console.log('PKOS_EMBEDDING_PROVIDER is "placeholder" — nothing to backfill. Set it to "ollama" or "openai".')
   process.exit(0)
 }
 
 const ollamaUrl = (process.env.OLLAMA_URL || 'http://127.0.0.1:11434').replace(/\/$/, '')
-const embeddingModel = process.env.BKOS_EMBEDDING_MODEL || (provider === 'openai' ? 'text-embedding-3-small' : 'bge-m3')
+const embeddingModel = process.env.PKOS_EMBEDDING_MODEL || (provider === 'openai' ? 'text-embedding-3-small' : 'bge-m3')
 const openAIKey = process.env.OPENAI_API_KEY || ''
 const databaseUrl = process.env.DATABASE_URL
 if (!databaseUrl) {

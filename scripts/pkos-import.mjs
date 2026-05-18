@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// BKOS workspace import.
+// PKOS workspace import.
 //
 // Usage:
 //   node scripts/pkos-import.mjs --in backup.tar.gz [--dry-run]
@@ -30,8 +30,8 @@ console.log(`[pkos-import] extracting to ${workdir}…`)
 await pipeline(createReadStream(inPath), tar.x({ cwd: workdir }))
 
 const manifest = JSON.parse(await readFile(join(workdir, 'manifest.json'), 'utf8'))
-if (manifest.schema !== 'bkos.v1') {
-  console.error(`Unsupported manifest schema: ${manifest.schema}. Run a matching BKOS version.`)
+if (manifest.schema !== 'pkos.v1') {
+  console.error(`Unsupported manifest schema: ${manifest.schema}. Run a matching PKOS version.`)
   process.exit(3)
 }
 

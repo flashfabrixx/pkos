@@ -47,14 +47,14 @@ export async function startNuxtServer(databaseUrl: string): Promise<NuxtServerCo
       ...process.env,
       NODE_ENV: 'development',
       LOG_LEVEL: 'warn',
-      BKOS_USERNAME: username,
-      BKOS_PASSWORD_HASH: passwordHash,
+      PKOS_USERNAME: username,
+      PKOS_PASSWORD_HASH: passwordHash,
       SESSION_SECRET: sessionSecret,
       DATABASE_URL: databaseUrl,
-      BKOS_VAULT_PATH: '/tmp/bkos-test-vault',
-      BKOS_FILES_PATH: '/tmp/bkos-test-files',
-      BKOS_EXTRACTOR_PROVIDER: 'placeholder',
-      BKOS_EMBEDDING_PROVIDER: 'placeholder'
+      PKOS_VAULT_PATH: '/tmp/pkos-test-vault',
+      PKOS_FILES_PATH: '/tmp/pkos-test-files',
+      PKOS_EXTRACTOR_PROVIDER: 'placeholder',
+      PKOS_EMBEDDING_PROVIDER: 'placeholder'
     },
     stdio: ['ignore', 'pipe', 'pipe']
   })
