@@ -1,10 +1,12 @@
 # PKOS deployment
 
-End-to-end guide for putting PKOS on a small VM in under 15 minutes.
-The default stack is Docker Compose, Postgres + pgvector, and a TLS
-reverse proxy. Two zero-trust options at the bottom (Tailscale,
-Cloudflare Access) are strongly recommended for any deployment that
-isn't strictly localhost.
+End-to-end guide for putting PKOS on a small VM in under 15 minutes
+and keeping it running unattended. The default stack is Docker
+Compose, Postgres + pgvector, and a TLS reverse proxy. Section 6
+covers autostart after reboot and log hygiene; the bottom of the doc
+covers two equally-supported zero-trust options (Tailscale or
+Cloudflare Access) — pick one for any deployment that isn't strictly
+localhost.
 
 ## Minimum host
 
@@ -93,6 +95,113 @@ Don't forget to copy the `pkos_files` and `pkos_vault` volumes
 alongside Postgres — attachments and the markdown vault live outside
 the database.
 
+## 6. Run in the background (autostart + logs)
+
+PKOS is meant to keep running quietly on a small VM. Two pieces matter
+for that: the stack must come back up after reboots, and the logs must
+not eat the disk.
+
+### Autostart after reboot
+
+The compose services already set `restart: unless-stopped`, so the
+containers come up automatically — **once** Docker itself is running.
+Make sure the Docker daemon is enabled at boot:
+
+```bash
+sudo systemctl enable --now docker
+```
+
+That's enough for most installs: after `docker compose up -d` once,
+the stack survives reboots, kernel upgrades and crashes.
+
+If you'd rather have a real systemd handle on the stack (so
+`systemctl status pkos` is the source of truth and `journalctl -u
+pkos` collects compose's own startup output), drop in a thin wrapper
+unit:
+
+```ini
+# /etc/systemd/system/pkos.service
+[Unit]
+Description=PKOS docker-compose stack
+Requires=docker.service
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/srv/pkos
+EnvironmentFile=/srv/pkos/.env.prod
+ExecStart=/usr/bin/docker compose -f docker-compose.prod.yml up -d
+ExecStop=/usr/bin/docker compose -f docker-compose.prod.yml down
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now pkos
+systemctl status pkos
+```
+
+The unit is a *supervisor*, not a replacement for `restart:
+unless-stopped` — Docker still restarts individual containers on
+crash; systemd just guarantees the compose project itself is brought
+up at boot and torn down cleanly on shutdown.
+
+### Log management
+
+Container logs go to the Docker JSON driver by default and can grow
+unbounded. Cap them once at the daemon level:
+
+```bash
+# /etc/docker/daemon.json
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "50m",
+    "max-file": "5"
+  }
+}
+```
+
+```bash
+sudo systemctl restart docker
+```
+
+Day-to-day:
+
+```bash
+docker compose -f docker-compose.prod.yml logs -f web      # tail the app
+docker compose -f docker-compose.prod.yml logs --tail 200 postgres
+journalctl -u pkos -f                                      # if you use the wrapper unit
+journalctl -u docker -f                                    # daemon-level events
+```
+
+For longer retention or remote shipping (Loki, Datadog,
+journald-remote), switch the Docker log driver in `daemon.json` and
+restart the daemon. PKOS doesn't care what driver is in use — its
+logs are structured pino JSON on stdout.
+
+### Auto-updates (optional)
+
+If you want unattended updates instead of manual `git pull`, the
+simplest pattern is a cron that pulls and rebuilds during a quiet
+window:
+
+```cron
+# /etc/cron.d/pkos-update
+30 4 * * 1  root  cd /srv/pkos && git pull --ff-only \
+              && docker compose --env-file .env.prod -f docker-compose.prod.yml build --pull \
+              && docker compose --env-file .env.prod -f docker-compose.prod.yml up -d \
+              >> /var/log/pkos-update.log 2>&1
+```
+
+For image-only updates without `git pull`, Watchtower
+(`containrrr/watchtower`) works too — but pin it to the `pkos-web`
+container so Postgres doesn't get auto-upgraded.
+
 ---
 
 # Zero-trust access (recommended)
@@ -100,7 +209,13 @@ the database.
 Even with a reverse proxy in front, exposing PKOS on the public
 internet means accepting bots scanning `/api/auth/login` continuously.
 The setups below put authentication *before* the network reaches
-PKOS at all.
+PKOS at all. Two equally-supported options:
+
+| Use case                                           | Pick               |
+| -------------------------------------------------- | ------------------ |
+| Solo install, only your own devices reach PKOS     | Tailscale          |
+| Shared with collaborators who don't all run Tailscale | Cloudflare Access |
+| Belt-and-braces (operator SSH + user HTTPS split)  | Both, see below    |
 
 ## Option A — Tailscale (recommended for solo / small teams)
 
