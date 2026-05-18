@@ -2,7 +2,7 @@
 # Run from the repo root: `docker build -f apps/web/Dockerfile -t pkos-web .`
 
 # ---- deps ----
-FROM node:20-alpine AS deps
+FROM node:24-alpine AS deps
 RUN corepack enable
 WORKDIR /repo
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -11,7 +11,7 @@ COPY packages packages
 RUN pnpm install --frozen-lockfile --filter @pkos/web... --filter "./packages/*"
 
 # ---- builder ----
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 RUN corepack enable
 WORKDIR /repo
 COPY --from=deps /repo /repo
@@ -19,7 +19,7 @@ COPY . .
 RUN pnpm --filter @pkos/web build
 
 # ---- runtime ----
-FROM node:20-alpine AS runtime
+FROM node:24-alpine AS runtime
 ENV NODE_ENV=production \
     NUXT_HOST=0.0.0.0 \
     NUXT_PORT=3000 \

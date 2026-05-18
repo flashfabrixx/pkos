@@ -34,14 +34,14 @@
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",
     "@tailwindcss/vite": "^4.3.0",
-    "@testcontainers/postgresql": "^10.13.2",
+    "@testcontainers/postgresql": "^11.14.0",
     "@vitejs/plugin-vue": "^6.0.7",
-    "@vitest/coverage-v8": "^2.1.8",
+    "@vitest/coverage-v8": "^4.1.6",
     "h3": "^1.15.0",
     "portless": "^0.13.0",
     "tailwindcss": "^4.3.0",
-    "testcontainers": "^10.13.2",
-    "vitest": "^2.1.8",
+    "testcontainers": "^11.14.0",
+    "vitest": "^4.1.6",
     "vue": "^3.5.34"
   }
 }

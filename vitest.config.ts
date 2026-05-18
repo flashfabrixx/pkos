@@ -20,11 +20,11 @@ export default defineConfig({
       'apps/web/test/**/*.test.ts',
       'packages/*/test/**/*.test.ts'
     ],
-    // Component specs under apps/web/test/ui/ run in happy-dom;
-    // everything else (server utils + db integration) stays in node.
-    environmentMatchGlobs: [
-      ['apps/web/test/ui/**', 'happy-dom']
-    ],
+    // Component specs under apps/web/test/ui/ run in happy-dom via the
+    // `// @vitest-environment happy-dom` file pragma. Everything else
+    // (server utils + db integration) stays in the default node env.
+    // (vitest 4 removed environmentMatchGlobs; pragmas are the
+    // pool-agnostic replacement.)
     testTimeout: 60_000,
     hookTimeout: 180_000,
     coverage: {
