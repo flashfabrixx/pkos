@@ -68,11 +68,17 @@ export function parseKeyString(input: string): { prefix: string, secret: string 
 }
 
 export const DEFAULT_SCOPES = ['captures:write', 'captures:read', 'entities:read'] as const
-export type ApiKeyScope = typeof DEFAULT_SCOPES[number] | 'entities:write'
+export type ApiKeyScope =
+  | typeof DEFAULT_SCOPES[number]
+  | 'entities:write'
+  | 'search:read'
+  | 'chat:read'
 
 export const ALL_SCOPES: ApiKeyScope[] = [
   'captures:write',
   'captures:read',
   'entities:read',
-  'entities:write'
+  'entities:write',
+  'search:read',
+  'chat:read'
 ]

@@ -184,7 +184,9 @@
     "api_keys_creating": "Creating…",
     "api_keys_revoke": "Revoke",
     "api_keys_revoke_confirm": "Revoke this API key? Applications using it will start failing immediately.",
-    "api_keys_empty": "No keys yet. Create one above to start posting captures from external tools."
+    "api_keys_empty": "No keys yet. Create one above to start posting captures from external tools.",
+    "api_keys_scopes": "Scopes",
+    "api_keys_scopes_hint": "Pick what this key can do. Defaults cover capturing and reading entities."
   },
   "audit": {
     "title": "Audit log",

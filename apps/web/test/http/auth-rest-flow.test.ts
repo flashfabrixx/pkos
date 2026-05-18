@@ -96,6 +96,91 @@ d('auth + REST v1 end-to-end', () => {
     expect(doc.document.id).toBe(body.documentId)
   }, 60_000)
 
+  async function createKey(cookie: string, scopes?: string[]) {
+    const r = await fetch(`${nuxt.baseUrl}/api/settings/api-keys`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie, origin: nuxt.baseUrl },
+      body: JSON.stringify({ name: `k-${Math.random().toString(36).slice(2, 8)}`, scopes })
+    })
+    expect(r.status).toBe(200)
+    return (await r.json() as { plaintext: string, scopes: string[] })
+  }
+
+  async function postCapture(key: string, body: object) {
+    const r = await fetch(`${nuxt.baseUrl}/api/v1/captures`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${key}`, origin: nuxt.baseUrl },
+      body: JSON.stringify(body)
+    })
+    expect(r.status).toBe(200)
+    return r.json() as Promise<{ documentId: string }>
+  }
+
+  it('search:read scope is required for /api/v1/search', async () => {
+    const cookie = await login()
+    const noSearch = await createKey(cookie) // defaults: no search:read
+    const denied = await fetch(`${nuxt.baseUrl}/api/v1/search?q=hello`, {
+      headers: { authorization: `Bearer ${noSearch.plaintext}` }
+    })
+    expect(denied.status).toBe(403)
+
+    const withSearch = await createKey(cookie, ['captures:write', 'search:read'])
+    await postCapture(withSearch.plaintext, {
+      sourceType: 'reflection',
+      rawText: 'Marvellous discovery about embeddings refresh cycles today.',
+      capturedAt: new Date().toISOString().slice(0, 10),
+      confidentiality: 'private'
+    })
+    const ok = await fetch(`${nuxt.baseUrl}/api/v1/search?q=embeddings`, {
+      headers: { authorization: `Bearer ${withSearch.plaintext}` }
+    })
+    expect(ok.status).toBe(200)
+    const body = await ok.json() as { mode: string, results: Array<{ title: string }> }
+    expect(['hybrid', 'lexical']).toContain(body.mode)
+    expect(Array.isArray(body.results)).toBe(true)
+  }, 60_000)
+
+  it('lists people through /api/v1/people with entities:read scope', async () => {
+    const cookie = await login()
+    const key = await createKey(cookie, ['entities:read'])
+    const r = await fetch(`${nuxt.baseUrl}/api/v1/people?limit=5`, {
+      headers: { authorization: `Bearer ${key.plaintext}` }
+    })
+    expect(r.status).toBe(200)
+    const body = await r.json() as { people: unknown[], hasMore: boolean }
+    expect(Array.isArray(body.people)).toBe(true)
+    expect(typeof body.hasMore).toBe('boolean')
+  })
+
+  it('chat endpoint returns sources + placeholder answer without LLM provider', async () => {
+    const cookie = await login()
+    const key = await createKey(cookie, ['captures:write', 'chat:read'])
+    await postCapture(key.plaintext, {
+      sourceType: 'reflection',
+      rawText: 'Strange anecdote about quokkas on Rottnest Island that I want to remember.',
+      capturedAt: new Date().toISOString().slice(0, 10),
+      confidentiality: 'private'
+    })
+
+    const r = await fetch(`${nuxt.baseUrl}/api/v1/chat`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${key.plaintext}`, origin: nuxt.baseUrl },
+      body: JSON.stringify({ question: 'quokkas' })
+    })
+    expect(r.status).toBe(200)
+    const body = await r.json() as { provider: string, answer: string, sources: unknown[] }
+    expect(body.provider).toBe('placeholder')
+    expect(body.answer.length).toBeGreaterThan(0)
+    expect(Array.isArray(body.sources)).toBe(true)
+
+    const empty = await fetch(`${nuxt.baseUrl}/api/v1/chat`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${key.plaintext}`, origin: nuxt.baseUrl },
+      body: JSON.stringify({ question: '' })
+    })
+    expect(empty.status).toBe(400)
+  }, 60_000)
+
   it('rejects a revoked API key with 401', async () => {
     const cookie = await login()
     const createRes = await fetch(`${nuxt.baseUrl}/api/settings/api-keys`, {

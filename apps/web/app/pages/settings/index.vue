@@ -48,22 +48,38 @@ const { data, refresh } = await useFetch<Status>('/api/auth/2fa/status')
 
 const { data: keysData, refresh: refreshKeys } = await useFetch<{ keys: ApiKeyRow[] }>('/api/settings/api-keys')
 const apiKeys = computed(() => keysData.value?.keys || [])
+const AVAILABLE_SCOPES = [
+  'captures:write',
+  'captures:read',
+  'entities:read',
+  'entities:write',
+  'search:read',
+  'chat:read'
+] as const
+const DEFAULT_KEY_SCOPES: readonly string[] = ['captures:write', 'captures:read', 'entities:read']
+
 const newKeyName = ref('')
+const newKeyScopes = ref<string[]>([...DEFAULT_KEY_SCOPES])
 const creating = ref(false)
 const newlyCreated = ref<{ name: string, plaintext: string } | null>(null)
 const keysError = ref<string | null>(null)
 
 async function createApiKey() {
   if (!newKeyName.value.trim()) return
+  if (!newKeyScopes.value.length) {
+    keysError.value = 'Pick at least one scope.'
+    return
+  }
   creating.value = true
   keysError.value = null
   try {
     const result = await $fetch<{ name: string, plaintext: string }>('/api/settings/api-keys', {
       method: 'POST',
-      body: { name: newKeyName.value.trim() }
+      body: { name: newKeyName.value.trim(), scopes: newKeyScopes.value }
     })
     newlyCreated.value = { name: result.name, plaintext: result.plaintext }
     newKeyName.value = ''
+    newKeyScopes.value = [...DEFAULT_KEY_SCOPES]
     await refreshKeys()
   } catch (error: any) {
     keysError.value = error?.data?.statusMessage || error?.message || 'Failed to create key'
@@ -317,17 +333,45 @@ function copyBackupCodes() {
         </div>
       </div>
 
-      <form class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end" @submit.prevent="createApiKey">
-        <UiField :label="t('settings.api_keys_name')">
-          <template #default="{ id }">
-            <UiInput :id="id" v-model="newKeyName" type="text" maxlength="120" placeholder="e.g. Shortcuts iPhone" />
-          </template>
-        </UiField>
-        <UiButton type="submit" :disabled="!newKeyName.trim()" :loading="creating">
-          <PlusIcon class="size-4" aria-hidden="true" />
-          {{ creating ? t('settings.api_keys_creating') : t('settings.api_keys_create') }}
-        </UiButton>
-        <p v-if="keysError" class="text-xs text-danger sm:col-span-2">{{ keysError }}</p>
+      <form class="space-y-4" @submit.prevent="createApiKey">
+        <div class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+          <UiField :label="t('settings.api_keys_name')">
+            <template #default="{ id }">
+              <UiInput :id="id" v-model="newKeyName" type="text" maxlength="120" placeholder="e.g. Shortcuts iPhone" />
+            </template>
+          </UiField>
+          <UiButton type="submit" :disabled="!newKeyName.trim() || !newKeyScopes.length" :loading="creating">
+            <PlusIcon class="size-4" aria-hidden="true" />
+            {{ creating ? t('settings.api_keys_creating') : t('settings.api_keys_create') }}
+          </UiButton>
+        </div>
+        <fieldset>
+          <legend class="text-xs font-medium uppercase tracking-wider text-muted">
+            {{ t('settings.api_keys_scopes') }}
+          </legend>
+          <p class="mt-1 text-xs text-muted">{{ t('settings.api_keys_scopes_hint') }}</p>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <label
+              v-for="scope in AVAILABLE_SCOPES"
+              :key="scope"
+              :class="[
+                'inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-colors',
+                newKeyScopes.includes(scope)
+                  ? 'border-accent bg-accent-soft text-accent'
+                  : 'border-border-default bg-surface-1 text-text-soft hover:bg-surface-3'
+              ]"
+            >
+              <input
+                type="checkbox"
+                :value="scope"
+                v-model="newKeyScopes"
+                class="sr-only"
+              />
+              <code class="font-mono">{{ scope }}</code>
+            </label>
+          </div>
+        </fieldset>
+        <p v-if="keysError" class="text-xs text-danger">{{ keysError }}</p>
       </form>
 
       <ul v-if="apiKeys.length" role="list" class="mt-6 divide-y divide-border-subtle border-t border-border-subtle text-sm leading-6">

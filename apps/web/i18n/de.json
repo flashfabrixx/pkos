@@ -184,7 +184,9 @@
     "api_keys_creating": "Wird erstellt…",
     "api_keys_revoke": "Widerrufen",
     "api_keys_revoke_confirm": "Diesen API-Schlüssel widerrufen? Anwendungen, die ihn nutzen, schlagen sofort fehl.",
-    "api_keys_empty": "Noch keine Schlüssel. Erstelle einen oben, um Captures aus externen Tools posten zu können."
+    "api_keys_empty": "Noch keine Schlüssel. Erstelle einen oben, um Captures aus externen Tools posten zu können.",
+    "api_keys_scopes": "Berechtigungen",
+    "api_keys_scopes_hint": "Wähle aus, was dieser Schlüssel darf. Standard deckt Captures und Entity-Lesen ab."
   },
   "audit": {
     "title": "Audit-Log",

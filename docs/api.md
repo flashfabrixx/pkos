@@ -15,8 +15,9 @@ Authorization: Bearer pkos_<prefix>_<secret>
 ```
 
 Scopes are attached at creation time. Defaults are
-`captures:write`, `captures:read`, `entities:read`. `entities:write`
-must be requested explicitly.
+`captures:write`, `captures:read`, `entities:read`. The remaining
+scopes — `entities:write`, `search:read`, `chat:read` — must be
+requested explicitly.
 
 A key can be revoked at any time; subsequent requests get HTTP 401.
 
@@ -58,6 +59,83 @@ List entities, filterable by `type` and free-text `q`. Supports
 curl "https://pkos.example/api/v1/entities?type=project&q=embeddings" \
   -H "Authorization: Bearer $PKOS_API_KEY"
 ```
+
+### `GET /api/v1/search`
+
+Hybrid search across documents and chunks. Requires scope `search:read`.
+When an embedding provider is configured, scoring combines cosine
+similarity and BM25; otherwise it degrades to lexical-only and reports
+`mode: "lexical"`.
+
+Query parameters: `q` (required), `kinds` (comma-separated source types),
+`lang` (ISO 639-1), `from` / `to` (yyyy-mm-dd `captured_at` range),
+`limit` (1–50, default 20).
+
+```bash
+curl "https://pkos.example/api/v1/search?q=embeddings%20refresh&kinds=voice_note,meeting" \
+  -H "Authorization: Bearer $PKOS_API_KEY"
+```
+
+Response:
+
+```json
+{
+  "mode": "hybrid",
+  "results": [
+    {
+      "document_id": "…",
+      "title": "Embeddings refresh schedule",
+      "captured_at": "2026-05-16",
+      "excerpt": "…",
+      "score": 0.81
+    }
+  ],
+  "entities": [{ "id": "…", "type": "project", "name": "Embeddings" }]
+}
+```
+
+### `GET /api/v1/people`
+
+People list (entities of type `person`) with document counts and open
+action counts. Requires scope `entities:read`.
+
+Query parameters: `q` (substring match on name), `limit` (1–200,
+default 50), `offset` (default 0). Returns `hasMore`.
+
+```bash
+curl "https://pkos.example/api/v1/people?q=alice" \
+  -H "Authorization: Bearer $PKOS_API_KEY"
+```
+
+### `POST /api/v1/chat`
+
+Retrieval-augmented answer. Runs the hybrid search internally, drafts
+an answer with the configured LLM provider, and returns the supporting
+sources. Requires scope `chat:read`.
+
+```bash
+curl -X POST https://pkos.example/api/v1/chat \
+  -H "Authorization: Bearer $PKOS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "What did Alice say about the embeddings refresh?",
+    "topK": 6
+  }'
+```
+
+Body fields:
+
+| Field      | Type     | Notes                                             |
+| ---------- | -------- | ------------------------------------------------- |
+| `question` | string   | Required, 1–2000 chars                            |
+| `history`  | array    | Optional prior `{role,content}` turns (max 20)    |
+| `topK`     | integer  | 1–20, default 8                                   |
+| `filters`  | object   | Same shape as `/api/v1/search` filters            |
+
+Response: `{ mode, answer, provider, sources[] }`. When no LLM provider
+is configured (`extractorProvider: placeholder` or missing API key),
+`answer` is a deterministic stub and `provider` is `"placeholder"` —
+clients should fall back to rendering `sources` directly.
 
 ## Error responses
 

@@ -1,9 +1,13 @@
 import { getQuery } from 'h3'
-import { requireAuth } from '../../utils/auth'
+import { requireAuthOrApiKey } from '../../utils/auth'
 import { listPeople } from '../../utils/people'
 
+/**
+ * Public people list. Reuses the internal handler logic but authenticated
+ * via Bearer API key (scope `entities:read`) or session.
+ */
 export default defineEventHandler(async (event) => {
-  requireAuth(event)
+  await requireAuthOrApiKey(event, 'entities:read')
   const params = getQuery(event)
   return listPeople({
     q: typeof params.q === 'string' ? params.q : undefined,

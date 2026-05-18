@@ -80,6 +80,11 @@ including TLS via Caddy or Traefik and **zero-trust** options
 (Tailscale + Cloudflare Access) that never expose PKOS to the public
 internet.
 
+Running alongside another compose stack (e.g. a bot or workflow runner)?
+Layer in [`docker-compose.opsnet.yml`](docker-compose.opsnet.yml) to
+join `pkos-web` to an external `pkos-net` network — sibling stacks can
+then reach it at `http://pkos-web:3000` without exposing a port.
+
 A signed multi-arch container image is published to
 `ghcr.io/flashfabrixx/pkos:<tag>` on every tagged release — see the
 release workflow + cosign verification snippet below.

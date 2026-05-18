@@ -1,0 +1,21 @@
+# Opt-in override that joins the `web` container to an external Docker
+# network called `pkos-net`. Use this when running PKOS alongside another
+# compose project (e.g. a Telegram bot or N8N stack) that needs to reach
+# `http://pkos-web:3000` over a shared network.
+#
+# Usage:
+#   docker network create pkos-net   # once, on the host
+#   docker compose -f docker-compose.prod.yml -f docker-compose.opsnet.yml up -d
+#
+# Standalone OSS deployments don't need this file — the default
+# docker-compose.prod.yml works as-is.
+
+services:
+  web:
+    networks:
+      - default
+      - pkos-net
+
+networks:
+  pkos-net:
+    external: true
