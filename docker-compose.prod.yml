@@ -1,3 +1,8 @@
+# Compose project name is forced to `pkos` regardless of the local
+# directory the file is invoked from. Lets the on-disk volume names
+# stay clean (`pkos_postgres_data`, `pkos_vault`, `pkos_files`).
+name: pkos
+
 services:
   postgres:
     image: pgvector/pgvector:pg16
@@ -11,12 +16,7 @@ services:
     # internal Docker network. Use `docker compose exec postgres psql …`
     # if you need to drop in.
     volumes:
-      # NOTE: volume names kept as bkos_* for backwards compatibility so
-      # existing deployments retain their data through the BKOS → PKOS
-      # rename. New installs see a no-history bkos_* volume which is
-      # harmless. To migrate to pkos_* names: `docker volume rename`
-      # and update this file. See docs/changelog.md.
-      - bkos_postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-pkos} -d $${POSTGRES_DB:-pkos}"]
       interval: 10s
@@ -70,8 +70,8 @@ services:
       NUXT_SMTP_FROM: ${SMTP_FROM:-}
       NUXT_REMINDER_EMAIL: ${PKOS_REMINDER_EMAIL:-}
     volumes:
-      - bkos_vault:/data/vault
-      - bkos_files:/data/files
+      - vault:/data/vault
+      - files:/data/files
     ports:
       - "127.0.0.1:3000:3000"
     healthcheck:
@@ -81,6 +81,6 @@ services:
       retries: 3
 
 volumes:
-  bkos_postgres_data:
-  bkos_vault:
-  bkos_files:
+  postgres_data:
+  vault:
+  files:
