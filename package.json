@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.9.0",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "pnpm --filter @pkos/web dev",
     "dev:portless": "portless alias pkos 3000 --force",
