@@ -16,8 +16,8 @@ type EditableField = 'title' | 'dueDate' | null
 const DEFAULT_STATUS: ActionFilterStatus = 'open'
 const DEFAULT_PROJECT = 'all'
 
-const status = useSessionState<ActionFilterStatus>('bkos:actions:status', DEFAULT_STATUS)
-const project = useSessionState<string>('bkos:actions:project', DEFAULT_PROJECT)
+const status = useSessionState<ActionFilterStatus>('pkos:actions:status', DEFAULT_STATUS)
+const project = useSessionState<string>('pkos:actions:project', DEFAULT_PROJECT)
 const filterPanelOpen = ref(false)
 const filterRoot = ref<HTMLElement | null>(null)
 const editingActionId = ref<string | null>(null)

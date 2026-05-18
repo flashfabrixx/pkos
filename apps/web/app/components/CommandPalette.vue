@@ -294,13 +294,13 @@ onBeforeUnmount(() => {
               <div v-if="helpMode" class="px-6 py-14 text-center text-sm sm:px-14">
                 <LifebuoyIcon class="mx-auto size-6 text-muted-soft" aria-hidden="true" />
                 <p class="mt-4 font-semibold text-text-strong">Help with searching</p>
-                <p class="mt-2 text-text-soft">Use BKOS command search to jump between views and find documents. Prefix with # for document search or &gt; for navigation.</p>
+                <p class="mt-2 text-text-soft">Use PKOS command search to jump between views and find documents. Prefix with # for document search or &gt; for navigation.</p>
               </div>
 
               <div v-if="query !== '' && !helpMode && !pending && !hasVisibleResults" class="px-6 py-14 text-center text-sm sm:px-14">
                 <ExclamationTriangleIcon class="mx-auto size-6 text-muted-soft" aria-hidden="true" />
                 <p class="mt-4 font-semibold text-text-strong">No results found</p>
-                <p class="mt-2 text-text-soft">BKOS could not find anything with that term.</p>
+                <p class="mt-2 text-text-soft">PKOS could not find anything with that term.</p>
               </div>
 
               <div class="flex flex-wrap items-center gap-1.5 bg-surface-2 px-3 py-2.5 text-xs text-text-soft">

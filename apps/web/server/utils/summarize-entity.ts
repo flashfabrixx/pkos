@@ -1,7 +1,7 @@
 import { query } from './db'
 import { logger } from './logger'
 
-const PROMPT_TEMPLATE = `You are summarising what BKOS knows about one entity in 2-3 concise sentences.
+const PROMPT_TEMPLATE = `You are summarising what PKOS knows about one entity in 2-3 concise sentences.
 Use the provided context (documents, comments, activity). Stay factual; do not invent.
 Write in the same language the context predominantly uses. No headings, no markdown.
 

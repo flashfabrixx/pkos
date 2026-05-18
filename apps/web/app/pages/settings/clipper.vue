@@ -13,9 +13,9 @@ onMounted(() => {
 })
 
 const bookmarkletJs = computed(() => {
-  const base = origin.value || 'https://YOUR-BKOS-HOST'
+  const base = origin.value || 'https://YOUR-PKOS-HOST'
   const key = apiKey.value || 'YOUR_API_KEY'
-  const source = `(()=>{const s=document.getSelection()?.toString()||'';fetch('${base}/api/v1/captures/url',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer ${key}'},body:JSON.stringify({url:location.href,selection:s,title:document.title})}).then(r=>r.ok?alert('Captured to BKOS'):r.text().then(t=>alert('BKOS error: '+t)));})();`
+  const source = `(()=>{const s=document.getSelection()?.toString()||'';fetch('${base}/api/v1/captures/url',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer ${key}'},body:JSON.stringify({url:location.href,selection:s,title:document.title})}).then(r=>r.ok?alert('Captured to PKOS'):r.text().then(t=>alert('PKOS error: '+t)));})();`
   return `javascript:${encodeURI(source)}`
 })
 
@@ -36,7 +36,7 @@ function copyToClipboard(value: string) {
           <dd class="mt-1 sm:mt-0 sm:flex-auto">
             <UiField hint="Generate one in Settings → API keys with the captures:write scope.">
               <template #default="{ id }">
-                <UiInput :id="id" v-model="apiKey" type="password" autocomplete="off" placeholder="bkos_…" />
+                <UiInput :id="id" v-model="apiKey" type="password" autocomplete="off" placeholder="pkos_…" />
               </template>
             </UiField>
           </dd>
@@ -53,7 +53,7 @@ function copyToClipboard(value: string) {
                 draggable="true"
               >
                 <BookmarkIcon class="size-4" aria-hidden="true" />
-                Save to BKOS
+                Save to PKOS
               </a>
             </p>
             <details class="rounded-card border border-border-subtle bg-surface-2 p-3">

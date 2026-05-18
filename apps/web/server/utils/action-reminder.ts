@@ -63,7 +63,7 @@ export async function sendActionDigest(): Promise<{ sent: boolean, count: number
 
   await (await getMailer()).send({
     to: recipient,
-    subject: `BKOS · ${overdue.length} overdue, ${today.length} due today`,
+    subject: `PKOS · ${overdue.length} overdue, ${today.length} due today`,
     text
   })
 

@@ -193,7 +193,7 @@ function copyBackupCodes() {
 
     <SettingsSection
       title="Language"
-      description="Display language for the BKOS interface."
+      description="Display language for the PKOS interface."
     >
       <div class="inline-flex gap-1 rounded-md border border-border-default bg-surface-2 p-1">
         <button
@@ -247,7 +247,7 @@ function copyBackupCodes() {
       </div>
 
       <div v-else-if="phase === 'idle'">
-        <p class="text-sm leading-6 text-text-soft">Protect your BKOS account with an authenticator app (1Password, Authy, Google Authenticator, etc.).</p>
+        <p class="text-sm leading-6 text-text-soft">Protect your PKOS account with an authenticator app (1Password, Authy, Google Authenticator, etc.).</p>
         <div class="mt-4 flex items-center gap-3">
           <UiButton :loading="pending" @click="startEnroll">
             {{ pending ? 'Working…' : 'Enable two-factor' }}
@@ -339,7 +339,7 @@ function copyBackupCodes() {
           <div class="min-w-0 flex-1 space-y-0.5">
             <div class="flex flex-wrap items-baseline gap-2">
               <strong class="text-text-strong">{{ key.name }}</strong>
-              <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs text-text-soft">bkos_{{ key.prefix }}_…</code>
+              <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs text-text-soft">pkos_{{ key.prefix }}_…</code>
               <span class="text-xs text-muted">{{ key.scopes.join(' · ') }}</span>
               <UiBadge v-if="key.revoked_at" variant="danger">revoked</UiBadge>
             </div>

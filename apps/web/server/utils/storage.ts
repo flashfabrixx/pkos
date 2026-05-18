@@ -11,7 +11,7 @@ export interface StoredFile {
 
 /**
  * Minimal file-store interface. The current implementation writes to the
- * local filesystem under `BKOS_FILES_PATH`. A future S3 backend can slot
+ * local filesystem under `PKOS_FILES_PATH`. A future S3 backend can slot
  * in by implementing the same three methods without touching callers.
  */
 export interface FileStore {

@@ -1,29 +1,34 @@
 services:
   postgres:
     image: pgvector/pgvector:pg16
-    container_name: bkos-postgres
+    container_name: pkos-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-bkos}
-      POSTGRES_USER: ${POSTGRES_USER:-bkos}
+      POSTGRES_DB: ${POSTGRES_DB:-pkos}
+      POSTGRES_USER: ${POSTGRES_USER:-pkos}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env.prod}
     # No exposed port: only the app container talks to Postgres over the
     # internal Docker network. Use `docker compose exec postgres psql …`
     # if you need to drop in.
     volumes:
+      # NOTE: volume names kept as bkos_* for backwards compatibility so
+      # existing deployments retain their data through the BKOS → PKOS
+      # rename. New installs see a no-history bkos_* volume which is
+      # harmless. To migrate to pkos_* names: `docker volume rename`
+      # and update this file. See docs/changelog.md.
       - bkos_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-bkos} -d $${POSTGRES_DB:-bkos}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-pkos} -d $${POSTGRES_DB:-pkos}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   web:
-    image: ${BKOS_IMAGE:-bkos-web:latest}
+    image: ${PKOS_IMAGE:-pkos-web:latest}
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-    container_name: bkos-web
+    container_name: pkos-web
     restart: unless-stopped
     depends_on:
       postgres:
@@ -34,21 +39,21 @@ services:
       # Nuxt runtimeConfig is baked at build time but accepts runtime
       # overrides via NUXT_<KEY> env vars (screaming-snake of camelCase).
       # Use those here so the prebuilt image picks up secrets from .env.prod.
-      NUXT_DATABASE_URL: postgres://${POSTGRES_USER:-bkos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-bkos}
+      NUXT_DATABASE_URL: postgres://${POSTGRES_USER:-pkos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pkos}
       NUXT_SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set}
-      NUXT_USERNAME: ${BKOS_USERNAME:-admin}
-      NUXT_PASSWORD_HASH: ${BKOS_PASSWORD_HASH:?BKOS_PASSWORD_HASH must be set}
+      NUXT_USERNAME: ${PKOS_USERNAME:-admin}
+      NUXT_PASSWORD_HASH: ${PKOS_PASSWORD_HASH:?PKOS_PASSWORD_HASH must be set}
       NUXT_VAULT_PATH: /data/vault
       NUXT_FILES_PATH: /data/files
-      NUXT_MAX_UPLOAD_MB: ${BKOS_MAX_UPLOAD_MB:-25}
-      NUXT_EXTRACTOR_PROVIDER: ${BKOS_EXTRACTOR_PROVIDER:-placeholder}
-      NUXT_EMBEDDING_PROVIDER: ${BKOS_EMBEDDING_PROVIDER:-placeholder}
+      NUXT_MAX_UPLOAD_MB: ${PKOS_MAX_UPLOAD_MB:-25}
+      NUXT_EXTRACTOR_PROVIDER: ${PKOS_EXTRACTOR_PROVIDER:-placeholder}
+      NUXT_EMBEDDING_PROVIDER: ${PKOS_EMBEDDING_PROVIDER:-placeholder}
       NUXT_OPEN_ROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       NUXT_OPEN_ROUTER_MODEL: ${OPENROUTER_MODEL:-openai/gpt-4.1-mini}
       NUXT_OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
       NUXT_OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma4:e4b}
       NUXT_OPEN_AI_API_KEY: ${OPENAI_API_KEY:-}
-      NUXT_EMBEDDING_MODEL: ${BKOS_EMBEDDING_MODEL:-}
+      NUXT_EMBEDDING_MODEL: ${PKOS_EMBEDDING_MODEL:-}
       # Mail ingest (optional)
       NUXT_MAIL_HOST: ${MAIL_HOST:-}
       NUXT_MAIL_PORT: ${MAIL_PORT:-993}
@@ -63,7 +68,7 @@ services:
       NUXT_SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       NUXT_SMTP_SECURE: ${SMTP_SECURE:-false}
       NUXT_SMTP_FROM: ${SMTP_FROM:-}
-      NUXT_REMINDER_EMAIL: ${BKOS_REMINDER_EMAIL:-}
+      NUXT_REMINDER_EMAIL: ${PKOS_REMINDER_EMAIL:-}
     volumes:
       - bkos_vault:/data/vault
       - bkos_files:/data/files

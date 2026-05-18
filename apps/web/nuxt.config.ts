@@ -29,7 +29,7 @@ export default defineNuxtConfig({
     password: process.env.BKOS_PASSWORD || '',
     passwordHash: process.env.BKOS_PASSWORD_HASH || '',
     sessionSecret: process.env.SESSION_SECRET || '',
-    databaseUrl: process.env.DATABASE_URL || 'postgres://bkos:bkos@localhost:5433/bkos',
+    databaseUrl: process.env.DATABASE_URL || 'postgres://pkos:pkos@localhost:5433/pkos',
     vaultPath: process.env.BKOS_VAULT_PATH || '../../vault',
     filesPath: process.env.BKOS_FILES_PATH || '../../files',
     maxUploadMb: process.env.BKOS_MAX_UPLOAD_MB || '25',

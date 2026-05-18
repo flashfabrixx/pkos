@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { startTestPg, type TestPgContext } from '../setup/pg'
 import { startNuxtServer, type NuxtServerContext } from '../setup/nuxt-server'
 
-const SKIP = process.env.BKOS_SKIP_NUXT_INTEGRATION === '1'
+const SKIP = process.env.PKOS_SKIP_NUXT_INTEGRATION === '1'
 const d = SKIP ? describe.skip : describe
 
 d('auth + REST v1 end-to-end', () => {
@@ -33,7 +33,7 @@ d('auth + REST v1 end-to-end', () => {
     })
     expect(r.status).toBe(200)
     const cookie = r.headers.get('set-cookie') || ''
-    expect(cookie).toMatch(/^bkos_session=/)
+    expect(cookie).toMatch(/^pkos_session=/)
     return cookie.split(';')[0]!
   }
 
@@ -67,7 +67,7 @@ d('auth + REST v1 end-to-end', () => {
     })
     expect(createRes.status).toBe(200)
     const { plaintext } = await createRes.json() as { plaintext: string }
-    expect(plaintext).toMatch(/^bkos_[0-9a-f]{8}_/)
+    expect(plaintext).toMatch(/^pkos_[0-9a-f]{8}_/)
 
     // Use the key against /api/v1 (no session cookie).
     const capture = await fetch(`${nuxt.baseUrl}/api/v1/captures`, {

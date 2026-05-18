@@ -58,7 +58,7 @@ function isItemActive(path: string) {
     <div class="px-2 pb-2.5 pt-1">
       <NuxtLink class="inline-flex items-center gap-2 text-sm font-extrabold tracking-wider text-text-strong" to="/">
         <RectangleStackIcon class="size-5 text-accent" aria-hidden="true" />
-        <span>BKOS</span>
+        <span>PKOS</span>
       </NuxtLink>
     </div>
 

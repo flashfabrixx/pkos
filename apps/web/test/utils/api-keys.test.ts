@@ -4,7 +4,7 @@ import { generateKey, hashSecret, parseKeyString, verifySecret } from '../../ser
 describe('api-keys util', () => {
   it('generates a parseable plaintext key', async () => {
     const { plaintext, prefix, hashedKey } = await generateKey()
-    expect(plaintext).toMatch(/^bkos_[0-9a-f]{8}_[A-Za-z0-9_-]+$/)
+    expect(plaintext).toMatch(/^pkos_[0-9a-f]{8}_[A-Za-z0-9_-]+$/)
     expect(prefix).toHaveLength(8)
     expect(hashedKey.startsWith('scrypt$')).toBe(true)
     const parsed = parseKeyString(plaintext)
@@ -20,7 +20,7 @@ describe('api-keys util', () => {
 
   it('rejects malformed key strings', () => {
     expect(parseKeyString('not-a-key')).toBeNull()
-    expect(parseKeyString('bkos_short_secret')).toBeNull()
-    expect(parseKeyString('bkos_12345678_')).toBeNull()
+    expect(parseKeyString('pkos_short_secret')).toBeNull()
+    expect(parseKeyString('pkos_12345678_')).toBeNull()
   })
 })

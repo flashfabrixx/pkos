@@ -4,7 +4,7 @@
  *
  * Providers:
  *   - placeholder : no-op, returns null for every input (system still works)
- *   - ollama      : POST {OLLAMA_URL}/api/embed with model BKOS_EMBEDDING_MODEL (default bge-m3)
+ *   - ollama      : POST {OLLAMA_URL}/api/embed with model PKOS_EMBEDDING_MODEL (default bge-m3)
  *   - openai      : POST https://api.openai.com/v1/embeddings (text-embedding-3-small@1024)
  *
  * All calls are fail-open: any provider failure yields null for that input.
@@ -42,7 +42,7 @@ export async function embedTexts(texts: string[]): Promise<EmbeddingResult[]> {
   try {
     if (provider === 'ollama') return await embedWithOllama(texts, config)
     if (provider === 'openai') return await embedWithOpenAI(texts, config)
-    warnOnce(`unknown:${provider}`, `Unknown BKOS_EMBEDDING_PROVIDER="${provider}". Falling back to placeholder.`)
+    warnOnce(`unknown:${provider}`, `Unknown PKOS_EMBEDDING_PROVIDER="${provider}". Falling back to placeholder.`)
     return texts.map(() => ({ vector: null, provider, model: null }))
   } catch (error) {
     warnOnce(`error:${provider}`, `Embedding via ${provider} failed: ${(error as Error).message}. Entries will be stored without embeddings.`)

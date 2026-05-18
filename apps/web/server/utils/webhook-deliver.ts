@@ -47,8 +47,8 @@ export async function drainWebhookQueue(): Promise<{ delivered: number, failed: 
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-          'x-bkos-event': row.event_type,
-          'x-bkos-signature': `sha256=${signature}`
+          'x-pkos-event': row.event_type,
+          'x-pkos-signature': `sha256=${signature}`
         },
         body,
         signal: controller.signal

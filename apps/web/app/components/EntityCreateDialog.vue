@@ -55,7 +55,7 @@ async function submit() {
 
 const placeholder = computed(() => {
   if (props.kind === 'tag') return 'e.g. customer-feedback'
-  if (props.kind === 'project') return 'e.g. BKOS Rollout'
+  if (props.kind === 'project') return 'e.g. PKOS Rollout'
   if (props.kind === 'department') return 'e.g. Engineering'
   return 'e.g. Marcus Schwarz'
 })

@@ -6,7 +6,7 @@ const SCRYPT_KEY_LENGTH = 64
 const SCRYPT_PARAMS: ScryptOptions = { N: 16384, r: 8, p: 1 }
 
 export interface GeneratedKey {
-  /** What to show the user once: `bkos_<prefix>_<secret>`. */
+  /** What to show the user once: `pkos_<prefix>_<secret>`. */
   plaintext: string
   /** 8-hex public identifier we store and use for indexed lookup. */
   prefix: string
@@ -26,7 +26,7 @@ function scryptAsync(secret: string, salt: Buffer): Promise<Buffer> {
 export async function generateKey(): Promise<GeneratedKey> {
   const prefix = randomBytes(PREFIX_BYTES).toString('hex')
   const secret = randomBytes(SECRET_BYTES).toString('base64url')
-  const plaintext = `bkos_${prefix}_${secret}`
+  const plaintext = `pkos_${prefix}_${secret}`
   const hashedKey = await hashSecret(secret)
   return { plaintext, prefix, hashedKey }
 }
@@ -55,9 +55,9 @@ export async function verifySecret(secret: string, hash: string): Promise<boolea
   })
 }
 
-/** Parse `bkos_<prefix>_<secret>`. Returns null for any malformed string. */
+/** Parse `pkos_<prefix>_<secret>`. Returns null for any malformed string. */
 export function parseKeyString(input: string): { prefix: string, secret: string } | null {
-  if (!input.startsWith('bkos_')) return null
+  if (!input.startsWith('pkos_')) return null
   const rest = input.slice(5)
   const underscore = rest.indexOf('_')
   if (underscore <= 0) return null

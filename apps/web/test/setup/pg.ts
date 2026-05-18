@@ -8,7 +8,7 @@ const here = fileURLToPath(new URL('.', import.meta.url))
 const migrationsDir = join(here, '..', '..', '..', '..', 'infra', 'migrations')
 
 /**
- * Lifecycle wrapper for a Postgres testcontainer with the BKOS schema
+ * Lifecycle wrapper for a Postgres testcontainer with the PKOS schema
  * applied. Each suite that needs a real database should call
  * `await startTestPg()` in `beforeAll` and `await ctx.stop()` in
  * `afterAll`. The schema is applied once; individual tests use
@@ -24,9 +24,9 @@ export interface TestPgContext {
 
 export async function startTestPg(): Promise<TestPgContext> {
   const container = await new PostgreSqlContainer('pgvector/pgvector:pg16')
-    .withDatabase('bkos_test')
-    .withUsername('bkos')
-    .withPassword('bkos')
+    .withDatabase('pkos_test')
+    .withUsername('pkos')
+    .withPassword('pkos')
     .start()
   const connectionString = container.getConnectionUri()
   const pool = new pg.Pool({ connectionString, max: 4 })

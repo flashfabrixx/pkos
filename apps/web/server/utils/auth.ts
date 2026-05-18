@@ -3,7 +3,7 @@ import { createError, getCookie, getRequestHeader, setCookie, type H3Event } fro
 import { query } from './db'
 import { parseKeyString, verifySecret, type ApiKeyScope } from './api-keys'
 
-const cookieName = 'bkos_session'
+const cookieName = 'pkos_session'
 const maxAgeSeconds = 60 * 60 * 24 * 14
 
 interface SessionPayload {

@@ -3,7 +3,7 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:
 // Derive a stable 32-byte key from the session secret so secrets at rest in
 // the database stay encrypted even if the DB is exfiltrated separately.
 function keyFromSecret(sessionSecret: string): Buffer {
-  return createHash('sha256').update(`bkos-vault:${sessionSecret}`).digest()
+  return createHash('sha256').update(`pkos-vault:${sessionSecret}`).digest()
 }
 
 export function encryptSecret(plain: string, sessionSecret: string): string {

@@ -1,4 +1,4 @@
-# Multi-stage build for the BKOS Nuxt app.
+# Multi-stage build for the PKOS Nuxt app.
 # Run from the repo root: `docker build -f apps/web/Dockerfile -t pkos-web .`
 
 # ---- deps ----
@@ -25,11 +25,11 @@ ENV NODE_ENV=production \
     NUXT_PORT=3000 \
     LOG_LEVEL=info
 RUN apk add --no-cache wget tini && \
-    addgroup -S bkos && adduser -S bkos -G bkos
+    addgroup -S pkos && adduser -S pkos -G pkos
 WORKDIR /app
-COPY --from=builder --chown=bkos:bkos /repo/apps/web/.output ./
-COPY --from=builder --chown=bkos:bkos /repo/infra/migrations /app/migrations
-USER bkos
+COPY --from=builder --chown=pkos:pkos /repo/apps/web/.output ./
+COPY --from=builder --chown=pkos:pkos /repo/infra/migrations /app/migrations
+USER pkos
 EXPOSE 3000
 ENTRYPOINT ["/sbin/tini", "--"]
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \

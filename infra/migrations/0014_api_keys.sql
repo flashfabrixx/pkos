@@ -1,6 +1,6 @@
 -- API keys for programmatic access (B3).
 --
--- Keys are emitted to the user as `bkos_<prefix>_<secret>` and only the
+-- Keys are emitted to the user as `pkos_<prefix>_<secret>` and only the
 -- prefix + scrypt-hashed secret survive in this table. `actor` is the
 -- string identity that "owns" the key — today always the single
 -- BKOS_USERNAME, but the column is forward-compatible with a future

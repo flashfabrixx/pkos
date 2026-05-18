@@ -62,7 +62,7 @@ async function remove(id: string) {
   <SettingsShell>
     <SettingsSection
       title="Outbound webhooks"
-      description="BKOS POSTs a JSON payload to each subscribed URL when events occur. Verify deliveries via the X-BKOS-Signature: sha256=… header (HMAC-SHA-256 of the body, keyed by the secret shown once at creation)."
+      description="PKOS POSTs a JSON payload to each subscribed URL when events occur. Verify deliveries via the X-PKOS-Signature: sha256=… header (HMAC-SHA-256 of the body, keyed by the secret shown once at creation)."
     >
       <div v-if="newlyCreatedSecret" class="mb-6 space-y-3 rounded-card border border-warning-border bg-warning-soft p-4">
         <h3 class="text-sm font-semibold text-warning">Secret for {{ newlyCreatedSecret.url }}</h3>

@@ -2,7 +2,7 @@ import { createI18n } from 'vue-i18n'
 import en from '../../i18n/en.json'
 import de from '../../i18n/de.json'
 
-const STORAGE_KEY = 'bkos.locale'
+const STORAGE_KEY = 'pkos.locale'
 const SUPPORTED = ['en', 'de'] as const
 type Locale = typeof SUPPORTED[number]
 

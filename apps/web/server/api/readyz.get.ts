@@ -11,7 +11,7 @@ interface CheckResult {
 }
 
 /**
- * Readiness probe. Verifies the runtime dependencies that BKOS needs to
+ * Readiness probe. Verifies the runtime dependencies that PKOS needs to
  * actually accept work: DB reachable + migrations applied, vault path
  * writable, embedding provider reachable (only when not 'placeholder').
  *

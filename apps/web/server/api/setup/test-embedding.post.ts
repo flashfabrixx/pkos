@@ -6,7 +6,7 @@ import { embedTexts } from '../../utils/embedding'
  * banner before the operator finishes setup.
  */
 export default defineEventHandler(async () => {
-  const result = await embedTexts(['BKOS provider smoke test']).catch(() => null)
+  const result = await embedTexts(['PKOS provider smoke test']).catch(() => null)
   if (!result || !result[0]) return { ok: false, provider: 'placeholder', dim: 0 }
   const vector = result[0].vector
   return {

@@ -9,7 +9,7 @@ import { logger } from '../../utils/logger'
 export default defineTask({
   meta: {
     name: 'email:poll',
-    description: 'Pulls unseen mail from IMAP INBOX into BKOS captures.'
+    description: 'Pulls unseen mail from IMAP INBOX into PKOS captures.'
   },
   async run() {
     try {

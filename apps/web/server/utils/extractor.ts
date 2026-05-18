@@ -55,7 +55,7 @@ async function tryOpenRouterExtraction(input: CaptureInput) {
         'content-type': 'application/json',
         authorization: `Bearer ${config.openRouterApiKey}`,
         'HTTP-Referer': 'http://localhost:3000',
-        'X-Title': 'BKOS'
+        'X-Title': 'PKOS'
       },
       body: JSON.stringify({
         model: config.openRouterModel,

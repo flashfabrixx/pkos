@@ -1,6 +1,6 @@
 import { useI18n } from 'vue-i18n'
 
-const STORAGE_KEY = 'bkos.locale'
+const STORAGE_KEY = 'pkos.locale'
 
 export function useLocaleSwitch() {
   const i18n = useI18n()

@@ -8,10 +8,10 @@ const route = useRoute()
 const { hydrateFromStorage } = useTheme()
 onMounted(() => hydrateFromStorage())
 
-// Pages call `useHead({ title: 'Foo' })`; we render `Foo · BKOS`. When
-// a page sets no title we fall back to plain `BKOS`.
+// Pages call `useHead({ title: 'Foo' })`; we render `Foo · PKOS`. When
+// a page sets no title we fall back to plain `PKOS`.
 useHead({
-  titleTemplate: (title?: string) => (title ? `${title} · BKOS` : 'BKOS')
+  titleTemplate: (title?: string) => (title ? `${title} · PKOS` : 'PKOS')
 })
 
 // Close the mobile drawer when navigating to a new route.

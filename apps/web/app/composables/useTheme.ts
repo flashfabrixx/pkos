@@ -1,6 +1,6 @@
 type ThemeChoice = 'system' | 'light' | 'dark'
 
-const STORAGE_KEY = 'bkos.theme'
+const STORAGE_KEY = 'pkos.theme'
 
 /**
  * Theme switching. Persists the user's choice in localStorage and
@@ -11,7 +11,7 @@ const STORAGE_KEY = 'bkos.theme'
  * mismatches; until then, the CSS @media query handles dark mode.
  */
 export function useTheme() {
-  const choice = useState<ThemeChoice>('bkos-theme', () => 'system')
+  const choice = useState<ThemeChoice>('pkos-theme', () => 'system')
 
   function apply(value: ThemeChoice) {
     choice.value = value

@@ -17,7 +17,7 @@ const schema = z.object({
 let dummyHashPromise: Promise<string> | null = null
 function getDummyHash() {
   if (!dummyHashPromise) {
-    dummyHashPromise = hashPassword('__bkos_no_credentials_configured__')
+    dummyHashPromise = hashPassword('__pkos_no_credentials_configured__')
   }
   return dummyHashPromise
 }
@@ -38,12 +38,12 @@ export default defineEventHandler(async (event) => {
   if (configuredHash && isHashed(configuredHash)) {
     passwordMatches = await verifyPassword(body.password, configuredHash)
   } else if (configuredPlain) {
-    if (!globalThis.__bkos_warned_plaintext_password) {
+    if (!globalThis.__pkos_warned_plaintext_password) {
       logger.warn(
         { component: 'security' },
-        'BKOS_PASSWORD is set as plaintext. Generate a hash via `pnpm bkos:hash-password` and use BKOS_PASSWORD_HASH instead.'
+        'PKOS_PASSWORD is set as plaintext. Generate a hash via `pnpm pkos:hash-password` and use PKOS_PASSWORD_HASH instead.'
       )
-      globalThis.__bkos_warned_plaintext_password = true
+      globalThis.__pkos_warned_plaintext_password = true
     }
     passwordMatches = constantTimeStringEqual(body.password, configuredPlain)
   } else {
@@ -85,5 +85,5 @@ function constantTimeStringEqual(a: string, b: string) {
 
 declare global {
   // eslint-disable-next-line no-var
-  var __bkos_warned_plaintext_password: boolean | undefined
+  var __pkos_warned_plaintext_password: boolean | undefined
 }

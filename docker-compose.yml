@@ -1,19 +1,25 @@
 services:
   postgres:
     image: pgvector/pgvector:pg16
-    container_name: bkos-postgres
+    container_name: pkos-postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-bkos}
-      POSTGRES_USER: ${POSTGRES_USER:-bkos}
+      POSTGRES_DB: ${POSTGRES_DB:-pkos}
+      POSTGRES_USER: ${POSTGRES_USER:-pkos}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
     ports:
       # Loopback only. To expose Postgres on a LAN/VM interface, change to
       # "0.0.0.0:5433:5432" AFTER putting it behind a firewall.
       - "127.0.0.1:5433:5432"
     volumes:
+      # NOTE: the volume name remains `bkos_postgres_data` for one-way
+      # backwards compatibility — existing local dev keeps its data
+      # after the rename. New installs get an empty volume under this
+      # name, which is harmless. Run `docker volume rename
+      # bkos_postgres_data pkos_postgres_data` manually if you want a
+      # clean name; remember to also update this file afterwards.
       - bkos_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-bkos} -d $${POSTGRES_DB:-bkos}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-pkos} -d $${POSTGRES_DB:-pkos}"]
       interval: 10s
       timeout: 5s
       retries: 5

@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 definePageMeta({ layout: 'empty' })
 
 const { t: _t } = useI18n()
-// 'setup.title' is "Welcome to BKOS" for the page heading; for the tab
+// 'setup.title' is "Welcome to PKOS" for the page heading; for the tab
 // we want a shorter, non-duplicating label.
 useHead({ title: 'Setup' })
 
@@ -54,7 +54,7 @@ const passwordOk = computed(() => Boolean(checks.value?.password_hash))
   <main class="mx-auto grid min-h-screen w-full max-w-2xl gap-6 px-6 py-12">
     <header class="space-y-2 text-center">
       <SparklesIcon class="mx-auto size-6 text-accent" aria-hidden="true" />
-      <h1 class="text-2xl font-semibold tracking-tight text-text-strong">Welcome to BKOS</h1>
+      <h1 class="text-2xl font-semibold tracking-tight text-text-strong">Welcome to PKOS</h1>
       <p class="text-sm text-muted">A few quick checks before you go.</p>
     </header>
 
@@ -71,7 +71,7 @@ const passwordOk = computed(() => Boolean(checks.value?.password_hash))
         <p v-if="sessionOk" class="mt-2 text-sm text-text-soft">A strong <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">SESSION_SECRET</code> is configured.</p>
         <p v-else class="mt-2 text-sm text-text-soft">
           Generate one with <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">openssl rand -base64 48</code> and set
-          <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">SESSION_SECRET</code> in your <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">.env</code>, then restart BKOS.
+          <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">SESSION_SECRET</code> in your <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">.env</code>, then restart PKOS.
         </p>
       </li>
 
@@ -84,10 +84,10 @@ const passwordOk = computed(() => Boolean(checks.value?.password_hash))
           />
           <span>Admin password</span>
         </h2>
-        <p v-if="passwordOk" class="mt-2 text-sm text-text-soft">A hashed password is set for <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">BKOS_USERNAME</code>.</p>
+        <p v-if="passwordOk" class="mt-2 text-sm text-text-soft">A hashed password is set for <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">PKOS_USERNAME</code>.</p>
         <p v-else class="mt-2 text-sm text-text-soft">
-          Run <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">pnpm bkos:hash-password</code> to generate
-          <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">BKOS_PASSWORD_HASH</code>, paste it into <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">.env</code>, restart.
+          Run <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">pnpm pkos:hash-password</code> to generate
+          <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">PKOS_PASSWORD_HASH</code>, paste it into <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">.env</code>, restart.
         </p>
       </li>
 
@@ -110,8 +110,8 @@ const passwordOk = computed(() => Boolean(checks.value?.password_hash))
         </p>
         <p v-else class="mt-2 text-sm text-danger">
           Provider <code class="rounded bg-danger-soft px-1 py-0.5 font-mono text-xs">{{ embeddingTest.provider }}</code> didn't return a vector.
-          Re-check <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">BKOS_EMBEDDING_PROVIDER</code> and
-          <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">BKOS_EMBEDDING_MODEL</code>, then re-run the test.
+          Re-check <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">PKOS_EMBEDDING_PROVIDER</code> and
+          <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">PKOS_EMBEDDING_MODEL</code>, then re-run the test.
         </p>
         <UiButton variant="secondary" size="sm" class="mt-3" @click="testEmbedding">Run test</UiButton>
       </li>
@@ -124,7 +124,7 @@ const passwordOk = computed(() => Boolean(checks.value?.password_hash))
         <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-text-soft">
           <li>Enable 2FA from <NuxtLink class="text-accent hover:underline" to="/settings">Settings → Security</NuxtLink>.</li>
           <li>Generate an API key in Settings → API keys to use the bookmarklet.</li>
-          <li>Point IMAP at BKOS via the <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">MAIL_*</code> env vars (see docs/email-setup.md).</li>
+          <li>Point IMAP at PKOS via the <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">MAIL_*</code> env vars (see docs/email-setup.md).</li>
         </ul>
       </li>
     </ol>

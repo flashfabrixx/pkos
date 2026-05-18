@@ -76,7 +76,7 @@ function backToPassword() {
       @submit.prevent="submitPassword"
     >
       <div class="space-y-1">
-        <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">BKOS</p>
+        <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">PKOS</p>
         <h1 class="text-xl font-semibold tracking-tight text-text-strong">{{ t('login.title') }}</h1>
       </div>
       <UiField :label="t('login.username')">
@@ -101,7 +101,7 @@ function backToPassword() {
       @submit.prevent="submitTotp"
     >
       <div class="space-y-1">
-        <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">BKOS · Step 2</p>
+        <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">PKOS · Step 2</p>
         <h1 class="text-xl font-semibold tracking-tight text-text-strong">{{ t('login.twofa_code') }}</h1>
       </div>
       <UiField :label="t('login.twofa_code')">

@@ -49,7 +49,7 @@ export async function safeFetchUrl(url: string): Promise<FetchedPage> {
   try {
     const response = await fetch(parsed.toString(), {
       headers: {
-        'user-agent': 'BKOS-WebClipper/1.0 (+https://github.com/your-org/bkos)',
+        'user-agent': 'PKOS-WebClipper/1.0 (+https://github.com/your-org/pkos)',
         accept: 'text/html,application/xhtml+xml'
       },
       redirect: 'follow',

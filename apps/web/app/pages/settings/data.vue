@@ -12,9 +12,9 @@ useHead({ title: () => t('settings.page_title_data') })
 const exportFlags = reactive({ includeTrashed: false, includeAttachments: true })
 
 const exportCommand = computed(() => {
-  const flags = [`--out bkos-backup-${new Date().toISOString().slice(0, 10)}.tar.gz`]
+  const flags = [`--out pkos-backup-${new Date().toISOString().slice(0, 10)}.tar.gz`]
   if (exportFlags.includeTrashed) flags.push('--include-trashed')
-  return `pnpm bkos:export ${flags.join(' ')}`
+  return `pnpm pkos:export ${flags.join(' ')}`
 })
 
 const purgeConfirm = ref('')
@@ -25,14 +25,14 @@ function copy(value: string) {
   navigator.clipboard?.writeText(value)
 }
 
-const purgeCommand = 'pnpm db:reset && rm -rf "$BKOS_FILES_PATH"/* "$BKOS_VAULT_PATH"/* && pnpm db:migrate'
+const purgeCommand = 'pnpm db:reset && rm -rf "$PKOS_FILES_PATH"/* "$PKOS_VAULT_PATH"/* && pnpm db:migrate'
 </script>
 
 <template>
   <SettingsShell>
     <SettingsSection
       title="Export your workspace"
-      description="BKOS ships an offline export tool that bundles every document, entity, action, comment and attachment into a portable tar.gz archive. The archive is forward-compatible across BKOS versions and is the recommended way to migrate or back up a workspace."
+      description="PKOS ships an offline export tool that bundles every document, entity, action, comment and attachment into a portable tar.gz archive. The archive is forward-compatible across PKOS versions and is the recommended way to migrate or back up a workspace."
     >
       <dl class="divide-y divide-border-subtle text-sm leading-6">
         <div class="py-6 sm:flex">
@@ -43,7 +43,7 @@ const purgeCommand = 'pnpm db:reset && rm -rf "$BKOS_FILES_PATH"/* "$BKOS_VAULT_
               <li>· <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">attachments.jsonl</code> + every binary blob under <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">assets/&lt;id&gt;/</code></li>
               <li>· <code class="rounded bg-soft px-1 py-0.5 font-mono text-xs">manifest.json</code> with schema version + row counts</li>
             </ul>
-            <p class="mt-3 text-xs text-muted">Read-only on the database. Safe to run while BKOS is serving traffic.</p>
+            <p class="mt-3 text-xs text-muted">Read-only on the database. Safe to run while PKOS is serving traffic.</p>
           </dd>
         </div>
 
@@ -67,7 +67,7 @@ const purgeCommand = 'pnpm db:reset && rm -rf "$BKOS_FILES_PATH"/* "$BKOS_VAULT_
         <div class="py-6 sm:flex">
           <dt class="font-medium text-text-strong sm:w-64 sm:flex-none sm:pr-6">Run the export</dt>
           <dd class="mt-1 space-y-3 sm:mt-0 sm:flex-auto">
-            <p class="text-text-soft">SSH to the BKOS host and run:</p>
+            <p class="text-text-soft">SSH to the PKOS host and run:</p>
             <div class="relative">
               <pre class="overflow-auto rounded-card bg-surface-2 p-3 pr-12 font-mono text-xs leading-relaxed text-text">{{ exportCommand }}</pre>
               <button
@@ -145,7 +145,7 @@ const purgeCommand = 'pnpm db:reset && rm -rf "$BKOS_FILES_PATH"/* "$BKOS_VAULT_
                       : 'border-border-subtle bg-surface-2 text-muted'
                   ]"
                 >pnpm db:reset
-rm -rf "$BKOS_FILES_PATH"/* "$BKOS_VAULT_PATH"/*
+rm -rf "$PKOS_FILES_PATH"/* "$PKOS_VAULT_PATH"/*
 pnpm db:migrate</pre>
                 <button
                   type="button"
@@ -159,7 +159,7 @@ pnpm db:migrate</pre>
               </div>
               <p class="text-xs text-muted">
                 The copy button unlocks after you type the confirmation phrase.
-                BKOS does not expose this as an HTTP endpoint on purpose — the
+                PKOS does not expose this as an HTTP endpoint on purpose — the
                 blast radius is too large for a single misclick.
               </p>
             </dd>

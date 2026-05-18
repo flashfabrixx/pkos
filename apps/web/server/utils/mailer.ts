@@ -46,7 +46,7 @@ export async function getMailer(): Promise<Transport> {
     secure: String(config.smtpSecure ?? 'false') === 'true',
     auth: config.smtpUser ? { user: config.smtpUser, pass: config.smtpPassword || '' } : undefined
   })
-  const from = config.smtpFrom || `BKOS <${config.smtpUser || 'bkos@localhost'}>`
+  const from = config.smtpFrom || `PKOS <${config.smtpUser || 'pkos@localhost'}>`
   cached = {
     kind: 'smtp',
     async send(msg) {

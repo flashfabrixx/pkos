@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
   const secret = generateBase32Secret()
   const uri = buildOtpauthUri({
     secret,
-    issuer: 'BKOS',
+    issuer: 'PKOS',
     account: username
   })
   return { secret, otpauth_uri: uri }
