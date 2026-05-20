@@ -131,58 +131,10 @@ const ENTITY_LIST_REFS: Record<EntityKind, typeof people> = {
   project: projects,
   tag: tags
 }
-const ENTITY_PATCH_BASE: Record<EntityKind, string> = {
-  person: '/api/people',
-  project: '/api/projects',
-  tag: '/api/tags'
-}
-const ENTITY_RESPONSE_KEY: Record<EntityKind, 'person' | 'project' | 'tag'> = {
-  person: 'person',
-  project: 'project',
-  tag: 'tag'
-}
-
-const editingEntityKey = ref<string | null>(null) // `${kind}:${id}`
-const draftEntityName = ref('')
-const entityInputs = ref<Record<string, HTMLInputElement | null>>({})
-
-function entityKey(kind: EntityKind, id: string) {
-  return `${kind}:${id}`
-}
-
-function beginEditEntity(kind: EntityKind, row: EntityRow) {
-  editingEntityKey.value = entityKey(kind, row.id)
-  draftEntityName.value = row.name
-  void nextTick(() => entityInputs.value[entityKey(kind, row.id)]?.focus())
-}
-
-function cancelEditEntity() {
-  editingEntityKey.value = null
-  draftEntityName.value = ''
-}
-
-async function commitEditEntity(kind: EntityKind, row: EntityRow) {
-  if (editingEntityKey.value !== entityKey(kind, row.id)) return
-  const next = draftEntityName.value.trim()
-  if (!next || next === row.name) {
-    cancelEditEntity()
-    return
-  }
-  const previous = row.name
-  row.name = next // optimistic
-  try {
-    const result = await $fetch<Record<string, { name: string }>>(`${ENTITY_PATCH_BASE[kind]}/${row.id}`, {
-      method: 'PATCH',
-      body: { name: next }
-    })
-    const fresh = result[ENTITY_RESPONSE_KEY[kind]]
-    if (fresh?.name) row.name = fresh.name
-  } catch (error) {
-    row.name = previous
-    console.error(`Failed to rename ${kind}`, error)
-  } finally {
-    cancelEditEntity()
-  }
+const ENTITY_DETAIL_BASE: Record<EntityKind, string> = {
+  person: '/people',
+  project: '/projects',
+  tag: '/tags'
 }
 
 async function detachEntity(kind: EntityKind, row: EntityRow) {
@@ -1046,7 +998,7 @@ const confidentialityBadge = computed(() => {
 
       <aside class="space-y-6 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
         <section class="space-y-2">
-          <div class="flex items-center gap-2 text-sm font-semibold text-text-strong">
+          <div class="flex items-center gap-2 border-b border-border-subtle pb-1.5 text-sm font-semibold text-text-strong">
             <UsersIcon class="size-4 text-muted" aria-hidden="true" />
             <h3>People</h3>
             <span class="text-xs font-normal text-muted">{{ people.length }}</span>
@@ -1058,51 +1010,32 @@ const confidentialityBadge = computed(() => {
               />
             </div>
           </div>
-          <ul v-if="people.length" class="space-y-1">
+          <ul v-if="people.length" class="space-y-0.5">
             <li
               v-for="person in people"
               :key="person.id"
-              class="group flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-surface-2"
+              class="group flex items-center gap-2"
             >
-              <span class="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-soft text-xs font-bold text-text-soft" :title="person.name">{{ initialsOf(person.name) }}</span>
-              <input
-                v-if="editingEntityKey === entityKey('person', person.id)"
-                :ref="(el) => entityInputs[entityKey('person', person.id)] = (el as HTMLInputElement | null)"
-                v-model="draftEntityName"
-                type="text"
-                class="block w-full min-w-0 rounded border border-border-strong bg-surface-1 px-1.5 py-0.5 text-sm text-text outline-none focus:border-accent focus:ring-1 focus:ring-accent/30"
-                @keydown.enter.prevent="commitEditEntity('person', person)"
-                @keydown.esc.prevent="cancelEditEntity"
-                @blur="commitEditEntity('person', person)"
-              >
-              <button
-                v-else
-                type="button"
-                class="min-w-0 flex-1 truncate text-left text-sm text-text"
-                :title="`Rename ${person.name}`"
-                @click="beginEditEntity('person', person)"
-              >{{ person.name }}</button>
               <NuxtLink
-                :to="`/people/${person.id}`"
-                class="hidden text-xs text-muted opacity-0 transition-opacity hover:text-text group-hover:inline group-hover:opacity-100"
-                title="Open detail page"
-              >open</NuxtLink>
+                :to="`${ENTITY_DETAIL_BASE.person}/${person.id}`"
+                class="min-w-0 flex-1 truncate rounded-md py-1 text-sm text-text transition-colors hover:bg-surface-2 hover:text-text-strong"
+              >{{ person.name }}</NuxtLink>
               <button
                 type="button"
                 class="inline-flex size-5 shrink-0 items-center justify-center rounded text-muted opacity-0 transition-opacity hover:bg-danger-soft hover:text-danger group-hover:opacity-100"
                 :aria-label="`Remove ${person.name}`"
                 :title="`Remove ${person.name} from this capture`"
-                @click="detachEntity('person', person)"
+                @click.stop.prevent="detachEntity('person', person)"
               >
                 <XMarkIcon class="size-3.5" aria-hidden="true" />
               </button>
             </li>
           </ul>
-          <p v-else class="px-2 text-xs text-muted">No people attached yet.</p>
+          <p v-else class="text-xs text-muted">No people attached yet.</p>
         </section>
 
         <section class="space-y-2">
-          <div class="flex items-center gap-2 text-sm font-semibold text-text-strong">
+          <div class="flex items-center gap-2 border-b border-border-subtle pb-1.5 text-sm font-semibold text-text-strong">
             <FolderIcon class="size-4 text-muted" aria-hidden="true" />
             <h3>Projects</h3>
             <span class="text-xs font-normal text-muted">{{ projects.length }}</span>
@@ -1114,50 +1047,32 @@ const confidentialityBadge = computed(() => {
               />
             </div>
           </div>
-          <ul v-if="projects.length" class="space-y-1">
+          <ul v-if="projects.length" class="space-y-0.5">
             <li
               v-for="project in projects"
               :key="project.id"
-              class="group flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-surface-2"
+              class="group flex items-center gap-2"
             >
-              <input
-                v-if="editingEntityKey === entityKey('project', project.id)"
-                :ref="(el) => entityInputs[entityKey('project', project.id)] = (el as HTMLInputElement | null)"
-                v-model="draftEntityName"
-                type="text"
-                class="block w-full min-w-0 rounded border border-border-strong bg-surface-1 px-1.5 py-0.5 text-sm text-text outline-none focus:border-accent focus:ring-1 focus:ring-accent/30"
-                @keydown.enter.prevent="commitEditEntity('project', project)"
-                @keydown.esc.prevent="cancelEditEntity"
-                @blur="commitEditEntity('project', project)"
-              >
-              <button
-                v-else
-                type="button"
-                class="min-w-0 flex-1 truncate text-left text-sm text-text"
-                :title="`Rename ${project.name}`"
-                @click="beginEditEntity('project', project)"
-              >{{ project.name }}</button>
               <NuxtLink
-                :to="`/projects/${project.id}`"
-                class="hidden text-xs text-muted opacity-0 transition-opacity hover:text-text group-hover:inline group-hover:opacity-100"
-                title="Open detail page"
-              >open</NuxtLink>
+                :to="`${ENTITY_DETAIL_BASE.project}/${project.id}`"
+                class="min-w-0 flex-1 truncate rounded-md py-1 text-sm text-text transition-colors hover:bg-surface-2 hover:text-text-strong"
+              >{{ project.name }}</NuxtLink>
               <button
                 type="button"
                 class="inline-flex size-5 shrink-0 items-center justify-center rounded text-muted opacity-0 transition-opacity hover:bg-danger-soft hover:text-danger group-hover:opacity-100"
                 :aria-label="`Remove ${project.name}`"
                 :title="`Remove ${project.name} from this capture`"
-                @click="detachEntity('project', project)"
+                @click.stop.prevent="detachEntity('project', project)"
               >
                 <XMarkIcon class="size-3.5" aria-hidden="true" />
               </button>
             </li>
           </ul>
-          <p v-else class="px-2 text-xs text-muted">No projects attached yet.</p>
+          <p v-else class="text-xs text-muted">No projects attached yet.</p>
         </section>
 
         <section class="space-y-2">
-          <div class="flex items-center gap-2 text-sm font-semibold text-text-strong">
+          <div class="flex items-center gap-2 border-b border-border-subtle pb-1.5 text-sm font-semibold text-text-strong">
             <HashtagIcon class="size-4 text-muted" aria-hidden="true" />
             <h3>Tags</h3>
             <span class="text-xs font-normal text-muted">{{ tags.length }}</span>
@@ -1173,36 +1088,23 @@ const confidentialityBadge = computed(() => {
             <span
               v-for="t in tags"
               :key="t.id"
-              class="group inline-flex items-center gap-1 rounded-full bg-soft pl-2.5 pr-1 py-0.5 text-xs font-medium text-text-soft"
+              class="group inline-flex items-center rounded-full bg-soft pl-2.5 pr-1 py-0.5 text-xs font-medium text-text-soft"
             >
-              <input
-                v-if="editingEntityKey === entityKey('tag', t.id)"
-                :ref="(el) => entityInputs[entityKey('tag', t.id)] = (el as HTMLInputElement | null)"
-                v-model="draftEntityName"
-                type="text"
-                class="w-32 rounded border border-border-strong bg-surface-1 px-1 py-0.5 text-xs text-text outline-none focus:border-accent focus:ring-1 focus:ring-accent/30"
-                @keydown.enter.prevent="commitEditEntity('tag', t)"
-                @keydown.esc.prevent="cancelEditEntity"
-                @blur="commitEditEntity('tag', t)"
-              >
-              <button
-                v-else
-                type="button"
+              <NuxtLink
+                :to="`${ENTITY_DETAIL_BASE.tag}/${t.id}`"
                 class="hover:text-accent"
-                :title="`Rename ${t.name}`"
-                @click="beginEditEntity('tag', t)"
-              >#{{ t.name }}</button>
+              >#{{ t.name }}</NuxtLink>
               <button
                 type="button"
-                class="inline-flex size-4 items-center justify-center rounded-full text-muted-soft opacity-0 transition-opacity hover:bg-danger-soft hover:text-danger group-hover:opacity-100"
+                class="ml-1 inline-flex size-4 items-center justify-center rounded-full text-muted-soft opacity-0 transition-opacity hover:bg-danger-soft hover:text-danger group-hover:opacity-100"
                 :aria-label="`Remove ${t.name}`"
-                @click="detachEntity('tag', t)"
+                @click.stop.prevent="detachEntity('tag', t)"
               >
                 <XMarkIcon class="size-3" aria-hidden="true" />
               </button>
             </span>
           </div>
-          <p v-else class="px-2 text-xs text-muted">No tags attached yet.</p>
+          <p v-else class="text-xs text-muted">No tags attached yet.</p>
         </section>
       </aside>
     </main>
