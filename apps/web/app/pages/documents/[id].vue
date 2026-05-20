@@ -21,7 +21,8 @@ import {
   TrashIcon,
   UsersIcon,
   FolderIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
+  XMarkIcon
 } from '@heroicons/vue/24/outline'
 import {
   CheckBadgeIcon as CheckBadgeSolid,
@@ -91,9 +92,15 @@ const route = useRoute()
 const { data, refresh } = await useFetch<any>(`/api/documents/${route.params.id}`)
 
 const document = computed(() => data.value?.document)
-const people = computed(() => data.value?.people || [])
-const projects = computed(() => data.value?.projects || [])
-const tags = computed(() => data.value?.tags || [])
+
+interface EntityRow { id: string, name: string }
+
+// People / projects / tags are local refs (not computeds) so the inline
+// edit / attach / detach operations can mutate them optimistically and
+// settle on the server response without a full refresh.
+const people = ref<EntityRow[]>([])
+const projects = ref<EntityRow[]>([])
+const tags = ref<EntityRow[]>([])
 
 useHead({ title: () => document.value?.title || 'Capture' })
 
@@ -111,9 +118,104 @@ watch(
     decisions.value = value?.decisions || []
     insights.value = value?.insights || []
     comments.value = value?.comments || []
+    people.value = value?.people || []
+    projects.value = value?.projects || []
+    tags.value = value?.tags || []
   },
   { immediate: true }
 )
+
+type EntityKind = 'person' | 'project' | 'tag'
+const ENTITY_LIST_REFS: Record<EntityKind, typeof people> = {
+  person: people,
+  project: projects,
+  tag: tags
+}
+const ENTITY_PATCH_BASE: Record<EntityKind, string> = {
+  person: '/api/people',
+  project: '/api/projects',
+  tag: '/api/tags'
+}
+const ENTITY_RESPONSE_KEY: Record<EntityKind, 'person' | 'project' | 'tag'> = {
+  person: 'person',
+  project: 'project',
+  tag: 'tag'
+}
+
+const editingEntityKey = ref<string | null>(null) // `${kind}:${id}`
+const draftEntityName = ref('')
+const entityInputs = ref<Record<string, HTMLInputElement | null>>({})
+
+function entityKey(kind: EntityKind, id: string) {
+  return `${kind}:${id}`
+}
+
+function beginEditEntity(kind: EntityKind, row: EntityRow) {
+  editingEntityKey.value = entityKey(kind, row.id)
+  draftEntityName.value = row.name
+  void nextTick(() => entityInputs.value[entityKey(kind, row.id)]?.focus())
+}
+
+function cancelEditEntity() {
+  editingEntityKey.value = null
+  draftEntityName.value = ''
+}
+
+async function commitEditEntity(kind: EntityKind, row: EntityRow) {
+  if (editingEntityKey.value !== entityKey(kind, row.id)) return
+  const next = draftEntityName.value.trim()
+  if (!next || next === row.name) {
+    cancelEditEntity()
+    return
+  }
+  const previous = row.name
+  row.name = next // optimistic
+  try {
+    const result = await $fetch<Record<string, { name: string }>>(`${ENTITY_PATCH_BASE[kind]}/${row.id}`, {
+      method: 'PATCH',
+      body: { name: next }
+    })
+    const fresh = result[ENTITY_RESPONSE_KEY[kind]]
+    if (fresh?.name) row.name = fresh.name
+  } catch (error) {
+    row.name = previous
+    console.error(`Failed to rename ${kind}`, error)
+  } finally {
+    cancelEditEntity()
+  }
+}
+
+async function detachEntity(kind: EntityKind, row: EntityRow) {
+  if (!document.value) return
+  const list = ENTITY_LIST_REFS[kind].value
+  const idx = list.findIndex((r) => r.id === row.id)
+  if (idx === -1) return
+  const removed = list.splice(idx, 1)[0] // optimistic
+  try {
+    await $fetch(`/api/documents/${document.value.id}/entities/${row.id}`, { method: 'DELETE' })
+  } catch (error) {
+    list.splice(idx, 0, removed!)
+    console.error(`Failed to detach ${kind}`, error)
+  }
+}
+
+async function attachEntity(kind: EntityKind, payload: { id?: string, name: string }) {
+  if (!document.value) return
+  try {
+    const body = payload.id ? { entityId: payload.id } : { type: kind, name: payload.name }
+    const result = await $fetch<{ entity: { id: string, name: string, type: string } }>(
+      `/api/documents/${document.value.id}/entities`,
+      { method: 'POST', body }
+    )
+    const list = ENTITY_LIST_REFS[kind].value
+    if (!list.find((r) => r.id === result.entity.id)) {
+      list.push({ id: result.entity.id, name: result.entity.name })
+      list.sort((a, b) => a.name.localeCompare(b.name))
+    }
+  } catch (error) {
+    console.error(`Failed to attach ${kind}`, error)
+  }
+}
 
 const currentLanguageLabel = computed(() => {
   const code = document.value?.language
@@ -943,47 +1045,164 @@ const confidentialityBadge = computed(() => {
       </section>
 
       <aside class="space-y-6 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
-        <section v-if="people.length" class="space-y-2">
+        <section class="space-y-2">
           <div class="flex items-center gap-2 text-sm font-semibold text-text-strong">
             <UsersIcon class="size-4 text-muted" aria-hidden="true" />
             <h3>People</h3>
             <span class="text-xs font-normal text-muted">{{ people.length }}</span>
+            <div class="ml-auto">
+              <EntityPicker
+                type="person"
+                :exclude-ids="people.map((p) => p.id)"
+                @select="(payload) => attachEntity('person', payload)"
+              />
+            </div>
           </div>
-          <ul class="space-y-1">
-            <li v-for="person in people" :key="person.id">
-              <NuxtLink :to="`/people/${person.id}`" class="flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-surface-2">
-                <span class="inline-flex size-6 items-center justify-center rounded-full bg-soft text-xs font-bold text-text-soft" :title="person.name">{{ initialsOf(person.name) }}</span>
-                <span class="truncate text-sm text-text">{{ person.name }}</span>
-              </NuxtLink>
+          <ul v-if="people.length" class="space-y-1">
+            <li
+              v-for="person in people"
+              :key="person.id"
+              class="group flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-surface-2"
+            >
+              <span class="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-soft text-xs font-bold text-text-soft" :title="person.name">{{ initialsOf(person.name) }}</span>
+              <input
+                v-if="editingEntityKey === entityKey('person', person.id)"
+                :ref="(el) => entityInputs[entityKey('person', person.id)] = (el as HTMLInputElement | null)"
+                v-model="draftEntityName"
+                type="text"
+                class="block w-full min-w-0 rounded border border-border-strong bg-surface-1 px-1.5 py-0.5 text-sm text-text outline-none focus:border-accent focus:ring-1 focus:ring-accent/30"
+                @keydown.enter.prevent="commitEditEntity('person', person)"
+                @keydown.esc.prevent="cancelEditEntity"
+                @blur="commitEditEntity('person', person)"
+              >
+              <button
+                v-else
+                type="button"
+                class="min-w-0 flex-1 truncate text-left text-sm text-text"
+                :title="`Rename ${person.name}`"
+                @click="beginEditEntity('person', person)"
+              >{{ person.name }}</button>
+              <NuxtLink
+                :to="`/people/${person.id}`"
+                class="hidden text-xs text-muted opacity-0 transition-opacity hover:text-text group-hover:inline group-hover:opacity-100"
+                title="Open detail page"
+              >open</NuxtLink>
+              <button
+                type="button"
+                class="inline-flex size-5 shrink-0 items-center justify-center rounded text-muted opacity-0 transition-opacity hover:bg-danger-soft hover:text-danger group-hover:opacity-100"
+                :aria-label="`Remove ${person.name}`"
+                :title="`Remove ${person.name} from this capture`"
+                @click="detachEntity('person', person)"
+              >
+                <XMarkIcon class="size-3.5" aria-hidden="true" />
+              </button>
             </li>
           </ul>
+          <p v-else class="px-2 text-xs text-muted">No people attached yet.</p>
         </section>
 
-        <section v-if="projects.length" class="space-y-2">
+        <section class="space-y-2">
           <div class="flex items-center gap-2 text-sm font-semibold text-text-strong">
             <FolderIcon class="size-4 text-muted" aria-hidden="true" />
             <h3>Projects</h3>
+            <span class="text-xs font-normal text-muted">{{ projects.length }}</span>
+            <div class="ml-auto">
+              <EntityPicker
+                type="project"
+                :exclude-ids="projects.map((p) => p.id)"
+                @select="(payload) => attachEntity('project', payload)"
+              />
+            </div>
           </div>
-          <ul class="space-y-1">
-            <li v-for="project in projects" :key="project.id">
-              <NuxtLink :to="`/projects/${project.id}`" class="block rounded-md px-2 py-1.5 text-sm text-text transition-colors hover:bg-surface-2">{{ project.name }}</NuxtLink>
+          <ul v-if="projects.length" class="space-y-1">
+            <li
+              v-for="project in projects"
+              :key="project.id"
+              class="group flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-surface-2"
+            >
+              <input
+                v-if="editingEntityKey === entityKey('project', project.id)"
+                :ref="(el) => entityInputs[entityKey('project', project.id)] = (el as HTMLInputElement | null)"
+                v-model="draftEntityName"
+                type="text"
+                class="block w-full min-w-0 rounded border border-border-strong bg-surface-1 px-1.5 py-0.5 text-sm text-text outline-none focus:border-accent focus:ring-1 focus:ring-accent/30"
+                @keydown.enter.prevent="commitEditEntity('project', project)"
+                @keydown.esc.prevent="cancelEditEntity"
+                @blur="commitEditEntity('project', project)"
+              >
+              <button
+                v-else
+                type="button"
+                class="min-w-0 flex-1 truncate text-left text-sm text-text"
+                :title="`Rename ${project.name}`"
+                @click="beginEditEntity('project', project)"
+              >{{ project.name }}</button>
+              <NuxtLink
+                :to="`/projects/${project.id}`"
+                class="hidden text-xs text-muted opacity-0 transition-opacity hover:text-text group-hover:inline group-hover:opacity-100"
+                title="Open detail page"
+              >open</NuxtLink>
+              <button
+                type="button"
+                class="inline-flex size-5 shrink-0 items-center justify-center rounded text-muted opacity-0 transition-opacity hover:bg-danger-soft hover:text-danger group-hover:opacity-100"
+                :aria-label="`Remove ${project.name}`"
+                :title="`Remove ${project.name} from this capture`"
+                @click="detachEntity('project', project)"
+              >
+                <XMarkIcon class="size-3.5" aria-hidden="true" />
+              </button>
             </li>
           </ul>
+          <p v-else class="px-2 text-xs text-muted">No projects attached yet.</p>
         </section>
 
-        <section v-if="tags.length" class="space-y-2">
+        <section class="space-y-2">
           <div class="flex items-center gap-2 text-sm font-semibold text-text-strong">
             <HashtagIcon class="size-4 text-muted" aria-hidden="true" />
             <h3>Tags</h3>
+            <span class="text-xs font-normal text-muted">{{ tags.length }}</span>
+            <div class="ml-auto">
+              <EntityPicker
+                type="tag"
+                :exclude-ids="tags.map((t) => t.id)"
+                @select="(payload) => attachEntity('tag', payload)"
+              />
+            </div>
           </div>
-          <div class="flex flex-wrap gap-1.5">
-            <NuxtLink
+          <div v-if="tags.length" class="flex flex-wrap gap-1.5">
+            <span
               v-for="t in tags"
               :key="t.id"
-              :to="`/tags/${t.id}`"
-              class="inline-flex items-center rounded-full bg-soft px-2.5 py-1 text-xs font-medium text-text-soft transition-colors hover:bg-accent-soft hover:text-accent"
-            >#{{ t.name }}</NuxtLink>
+              class="group inline-flex items-center gap-1 rounded-full bg-soft pl-2.5 pr-1 py-0.5 text-xs font-medium text-text-soft"
+            >
+              <input
+                v-if="editingEntityKey === entityKey('tag', t.id)"
+                :ref="(el) => entityInputs[entityKey('tag', t.id)] = (el as HTMLInputElement | null)"
+                v-model="draftEntityName"
+                type="text"
+                class="w-32 rounded border border-border-strong bg-surface-1 px-1 py-0.5 text-xs text-text outline-none focus:border-accent focus:ring-1 focus:ring-accent/30"
+                @keydown.enter.prevent="commitEditEntity('tag', t)"
+                @keydown.esc.prevent="cancelEditEntity"
+                @blur="commitEditEntity('tag', t)"
+              >
+              <button
+                v-else
+                type="button"
+                class="hover:text-accent"
+                :title="`Rename ${t.name}`"
+                @click="beginEditEntity('tag', t)"
+              >#{{ t.name }}</button>
+              <button
+                type="button"
+                class="inline-flex size-4 items-center justify-center rounded-full text-muted-soft opacity-0 transition-opacity hover:bg-danger-soft hover:text-danger group-hover:opacity-100"
+                :aria-label="`Remove ${t.name}`"
+                @click="detachEntity('tag', t)"
+              >
+                <XMarkIcon class="size-3" aria-hidden="true" />
+              </button>
+            </span>
           </div>
+          <p v-else class="px-2 text-xs text-muted">No tags attached yet.</p>
         </section>
       </aside>
     </main>
