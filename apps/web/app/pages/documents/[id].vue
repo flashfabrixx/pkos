@@ -1018,7 +1018,7 @@ const confidentialityBadge = computed(() => {
             >
               <NuxtLink
                 :to="`${ENTITY_DETAIL_BASE.person}/${person.id}`"
-                class="min-w-0 flex-1 truncate rounded-md py-1 text-sm text-text transition-colors hover:bg-surface-2 hover:text-text-strong"
+                class="min-w-0 flex-1 truncate py-1 text-sm text-text transition-colors hover:text-accent"
               >{{ person.name }}</NuxtLink>
               <button
                 type="button"
@@ -1055,7 +1055,7 @@ const confidentialityBadge = computed(() => {
             >
               <NuxtLink
                 :to="`${ENTITY_DETAIL_BASE.project}/${project.id}`"
-                class="min-w-0 flex-1 truncate rounded-md py-1 text-sm text-text transition-colors hover:bg-surface-2 hover:text-text-strong"
+                class="min-w-0 flex-1 truncate py-1 text-sm text-text transition-colors hover:text-accent"
               >{{ project.name }}</NuxtLink>
               <button
                 type="button"
