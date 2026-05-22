@@ -57,11 +57,15 @@ CREATE INDEX IF NOT EXISTS conversation_messages_thread_idx
 -- Touch the parent thread whenever a new message lands so the
 -- "Recently active" listing on the index page actually reflects
 -- activity, not just thread creation.
+-- Use clock_timestamp() (wall clock, advances within a single transaction)
+-- instead of now() (transaction start). Otherwise multiple writes inside
+-- one txn would all stamp the same updated_at and the "Recently active"
+-- listing would treat them as a tie.
 CREATE OR REPLACE FUNCTION conversation_messages_touch_thread()
 RETURNS TRIGGER AS $$
 BEGIN
   UPDATE conversation_threads
-     SET updated_at = now()
+     SET updated_at = clock_timestamp()
    WHERE id = NEW.thread_id;
   RETURN NEW;
 END;

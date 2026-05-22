@@ -145,8 +145,16 @@ d('conversation threads HTTP flow', () => {
     expect(detailBody.thread.title.length).toBeGreaterThan(0)
   }, 60_000)
 
-  it('rejects an unauthenticated request with 401', async () => {
-    const r = await fetch(`${nuxt.baseUrl}/api/threads`, { method: 'POST', body: '{}' })
+  it('rejects an unauthenticated request', async () => {
+    // Must include Origin so the CSRF middleware doesn't shortcut us to
+    // 403 before the auth layer can fire 401. Either is "blocked" from
+    // the caller's point of view; here we want to assert the auth
+    // path specifically.
+    const r = await fetch(`${nuxt.baseUrl}/api/threads`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', origin: nuxt.baseUrl },
+      body: '{}'
+    })
     expect(r.status).toBe(401)
   })
 })

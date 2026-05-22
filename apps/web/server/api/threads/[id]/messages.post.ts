@@ -1,4 +1,4 @@
-import { createError, getRouterParam, readBody, setHeader } from 'h3'
+import { createError, getRouterParam, readBody } from 'h3'
 import { z } from 'zod'
 import { requireAuth } from '../../../utils/auth'
 import { chatCompletion, chatStream } from '../../../utils/chat'
@@ -87,13 +87,6 @@ export default defineEventHandler(async (event) => {
     score: row.score
   }))
 
-  // Bring the wire over to SSE before we start writing.
-  setHeader(event, 'content-type', 'text/event-stream; charset=utf-8')
-  setHeader(event, 'cache-control', 'no-cache, no-transform')
-  setHeader(event, 'connection', 'keep-alive')
-  // Disable proxy buffering (nginx in particular).
-  setHeader(event, 'x-accel-buffering', 'no')
-
   const encoder = new TextEncoder()
   const stream = new ReadableStream({
     async start(controller) {
@@ -181,7 +174,15 @@ export default defineEventHandler(async (event) => {
     }
   })
 
-  return sendStream(event, stream)
+  return new Response(stream, {
+    headers: {
+      'content-type': 'text/event-stream; charset=utf-8',
+      'cache-control': 'no-cache, no-transform',
+      'connection': 'keep-alive',
+      // Disable proxy buffering (nginx in particular).
+      'x-accel-buffering': 'no'
+    }
+  })
 })
 
 /**
@@ -206,35 +207,3 @@ async function generateThreadTitle(content: string, model: string): Promise<stri
   }
 }
 
-/**
- * h3 v1 wraps ReadableStream via sendStream when available; this thin
- * shim works on both shapes. Avoids pulling another dep just for SSE.
- */
-function sendStream(event: any, stream: ReadableStream): ReadableStream | Response {
-  if (typeof event.node?.res?.write === 'function') {
-    const res = event.node.res as { write: (c: string) => void, end: () => void, flushHeaders?: () => void }
-    res.flushHeaders?.()
-    ;(async () => {
-      const reader = stream.getReader()
-      const decoder = new TextDecoder()
-      try {
-        while (true) {
-          const { value, done } = await reader.read()
-          if (done) break
-          res.write(decoder.decode(value, { stream: true }))
-        }
-      } finally {
-        res.end()
-      }
-    })()
-    event._handled = true
-    return new Response(null, { status: 200 })
-  }
-  return new Response(stream, {
-    headers: {
-      'content-type': 'text/event-stream; charset=utf-8',
-      'cache-control': 'no-cache, no-transform',
-      'connection': 'keep-alive'
-    }
-  })
-}
