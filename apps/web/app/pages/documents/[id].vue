@@ -13,7 +13,6 @@ import {
   ClipboardDocumentCheckIcon,
   ExclamationTriangleIcon,
   FlagIcon,
-  HashtagIcon,
   LightBulbIcon,
   LanguageIcon,
   LockClosedIcon,
@@ -21,9 +20,7 @@ import {
   ShieldExclamationIcon,
   TrashIcon,
   UsersIcon,
-  FolderIcon,
-  DocumentTextIcon,
-  XMarkIcon
+  DocumentTextIcon
 } from '@heroicons/vue/24/outline'
 import {
   CheckBadgeIcon as CheckBadgeSolid,
@@ -131,11 +128,6 @@ const ENTITY_LIST_REFS: Record<EntityKind, typeof people> = {
   person: people,
   project: projects,
   tag: tags
-}
-const ENTITY_DETAIL_BASE: Record<EntityKind, string> = {
-  person: '/people',
-  project: '/projects',
-  tag: '/tags'
 }
 
 async function detachEntity(kind: EntityKind, row: EntityRow) {
@@ -1009,117 +1001,12 @@ const confidentialityBadge = computed(() => {
         </div>
       </section>
 
-      <aside class="space-y-6 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
-        <section class="space-y-2">
-          <div class="flex items-center gap-2 border-b border-border-subtle pb-1.5 text-sm font-semibold text-text-strong">
-            <UsersIcon class="size-4 text-muted" aria-hidden="true" />
-            <h3>People</h3>
-            <span class="text-xs font-normal text-muted">{{ people.length }}</span>
-            <div class="ml-auto">
-              <EntityPicker
-                type="person"
-                :exclude-ids="people.map((p) => p.id)"
-                @select="(payload) => attachEntity('person', payload)"
-              />
-            </div>
-          </div>
-          <ul v-if="people.length" class="space-y-0.5">
-            <li
-              v-for="person in people"
-              :key="person.id"
-              class="group flex items-center gap-2"
-            >
-              <NuxtLink
-                :to="`${ENTITY_DETAIL_BASE.person}/${person.id}`"
-                class="min-w-0 flex-1 truncate py-1 text-sm text-text transition-colors hover:text-accent"
-              >{{ person.name }}</NuxtLink>
-              <button
-                type="button"
-                class="inline-flex size-5 shrink-0 items-center justify-center rounded text-muted opacity-0 transition-opacity hover:bg-danger-soft hover:text-danger group-hover:opacity-100"
-                :aria-label="`Remove ${person.name}`"
-                :title="`Remove ${person.name} from this capture`"
-                @click.stop.prevent="detachEntity('person', person)"
-              >
-                <XMarkIcon class="size-3.5" aria-hidden="true" />
-              </button>
-            </li>
-          </ul>
-          <p v-else class="text-xs text-muted">No people attached yet.</p>
-        </section>
-
-        <section class="space-y-2">
-          <div class="flex items-center gap-2 border-b border-border-subtle pb-1.5 text-sm font-semibold text-text-strong">
-            <FolderIcon class="size-4 text-muted" aria-hidden="true" />
-            <h3>Projects</h3>
-            <span class="text-xs font-normal text-muted">{{ projects.length }}</span>
-            <div class="ml-auto">
-              <EntityPicker
-                type="project"
-                :exclude-ids="projects.map((p) => p.id)"
-                @select="(payload) => attachEntity('project', payload)"
-              />
-            </div>
-          </div>
-          <ul v-if="projects.length" class="space-y-0.5">
-            <li
-              v-for="project in projects"
-              :key="project.id"
-              class="group flex items-center gap-2"
-            >
-              <NuxtLink
-                :to="`${ENTITY_DETAIL_BASE.project}/${project.id}`"
-                class="min-w-0 flex-1 truncate py-1 text-sm text-text transition-colors hover:text-accent"
-              >{{ project.name }}</NuxtLink>
-              <button
-                type="button"
-                class="inline-flex size-5 shrink-0 items-center justify-center rounded text-muted opacity-0 transition-opacity hover:bg-danger-soft hover:text-danger group-hover:opacity-100"
-                :aria-label="`Remove ${project.name}`"
-                :title="`Remove ${project.name} from this capture`"
-                @click.stop.prevent="detachEntity('project', project)"
-              >
-                <XMarkIcon class="size-3.5" aria-hidden="true" />
-              </button>
-            </li>
-          </ul>
-          <p v-else class="text-xs text-muted">No projects attached yet.</p>
-        </section>
-
-        <section class="space-y-2">
-          <div class="flex items-center gap-2 border-b border-border-subtle pb-1.5 text-sm font-semibold text-text-strong">
-            <HashtagIcon class="size-4 text-muted" aria-hidden="true" />
-            <h3>Tags</h3>
-            <span class="text-xs font-normal text-muted">{{ tags.length }}</span>
-            <div class="ml-auto">
-              <EntityPicker
-                type="tag"
-                :exclude-ids="tags.map((t) => t.id)"
-                @select="(payload) => attachEntity('tag', payload)"
-              />
-            </div>
-          </div>
-          <div v-if="tags.length" class="flex flex-wrap gap-1.5">
-            <span
-              v-for="t in tags"
-              :key="t.id"
-              class="group inline-flex items-center rounded-full bg-soft pl-2.5 pr-1 py-0.5 text-xs font-medium text-text-soft"
-            >
-              <NuxtLink
-                :to="`${ENTITY_DETAIL_BASE.tag}/${t.id}`"
-                class="hover:text-accent"
-              >#{{ t.name }}</NuxtLink>
-              <button
-                type="button"
-                class="ml-1 inline-flex size-4 items-center justify-center rounded-full text-muted-soft opacity-0 transition-opacity hover:bg-danger-soft hover:text-danger group-hover:opacity-100"
-                :aria-label="`Remove ${t.name}`"
-                @click.stop.prevent="detachEntity('tag', t)"
-              >
-                <XMarkIcon class="size-3" aria-hidden="true" />
-              </button>
-            </span>
-          </div>
-          <p v-else class="text-xs text-muted">No tags attached yet.</p>
-        </section>
-      </aside>
+      <EntityRelationsAside
+        :items="{ people, projects, tags }"
+        mode="writable"
+        @attach="(p) => attachEntity(p.kind, p.entity)"
+        @detach="(p) => detachEntity(p.kind, p.entity)"
+      />
     </main>
   </div>
 </template>

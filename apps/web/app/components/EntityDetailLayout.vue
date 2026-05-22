@@ -10,15 +10,10 @@ import {
   ClockIcon,
   DocumentTextIcon,
   EllipsisHorizontalIcon,
-  FolderIcon,
-  HashtagIcon,
   SparklesIcon,
   TrashIcon,
-  UsersIcon,
   XMarkIcon
 } from '@heroicons/vue/24/outline'
-import { colorFor } from '~/utils/hash-color'
-
 type Kind = 'person' | 'project' | 'tag'
 
 interface EntityBase {
@@ -85,9 +80,6 @@ const description = computed(() => {
 })
 const descriptionPlaceholder = computed(() => `Add a description for this ${props.kind}…`)
 const commentPlaceholder = computed(() => `Add a thought about this ${props.kind}…`)
-const peopleHeading = computed(() => (props.kind === 'person' ? 'Related people' : 'People'))
-const projectsHeading = computed(() => (props.kind === 'project' ? 'Related projects' : 'Projects'))
-const tagsHeading = computed(() => (props.kind === 'tag' ? 'Related tags' : 'Tags'))
 
 function formatDate(value: string | null | undefined, fallback = '') {
   return formatBrowserDate(value, fallback)
@@ -230,11 +222,6 @@ function handleCommentKey(event: KeyboardEvent) {
     event.preventDefault()
     void postComment()
   }
-}
-
-function initialsOf(name: string) {
-  const parts = name.trim().split(/\s+/)
-  return ((parts[0]?.[0] || '') + (parts.length > 1 ? parts[parts.length - 1]![0] : '')).toUpperCase()
 }
 
 const indexRoute = computed(() => {
@@ -668,59 +655,18 @@ function activityLabel(a: ActivityRow): string {
       </section>
     </section>
 
-    <aside class="space-y-6 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
-      <section v-if="related.people.length" class="space-y-2">
-        <div class="flex items-center gap-2 text-sm font-semibold text-text-strong">
-          <UsersIcon class="size-4 text-muted" aria-hidden="true" />
-          <h3>{{ peopleHeading }}</h3>
-          <span class="text-xs font-normal text-muted">{{ related.people.length }}</span>
-        </div>
-        <ul class="space-y-1">
-          <li v-for="p in related.people" :key="p.id">
-            <NuxtLink :to="`/people/${p.id}`" class="flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-surface-2">
-              <span
-                class="inline-flex size-6 items-center justify-center rounded-full text-xs font-bold"
-                :style="{ background: colorFor(p.name).bg, color: colorFor(p.name).fg }"
-              >{{ initialsOf(p.name) }}</span>
-              <span class="truncate text-sm text-text">{{ p.name }}</span>
-            </NuxtLink>
-          </li>
-        </ul>
-      </section>
-
-      <section v-if="related.projects.length" class="space-y-2">
-        <div class="flex items-center gap-2 text-sm font-semibold text-text-strong">
-          <FolderIcon class="size-4 text-muted" aria-hidden="true" />
-          <h3>{{ projectsHeading }}</h3>
-        </div>
-        <ul class="space-y-1">
-          <li v-for="p in related.projects" :key="p.id">
-            <NuxtLink :to="`/projects/${p.id}`" class="block rounded-md px-2 py-1.5 text-sm text-text transition-colors hover:bg-surface-2">{{ p.name }}</NuxtLink>
-          </li>
-        </ul>
-      </section>
-
-      <section v-if="related.tags.length" class="space-y-2">
-        <div class="flex items-center gap-2 text-sm font-semibold text-text-strong">
-          <HashtagIcon class="size-4 text-muted" aria-hidden="true" />
-          <h3>{{ tagsHeading }}</h3>
-        </div>
-        <div class="flex flex-wrap gap-1.5">
-          <NuxtLink
-            v-for="t in related.tags"
-            :key="t.id"
-            :to="`/tags/${t.id}`"
-            class="inline-flex items-center rounded-full bg-soft px-2.5 py-1 text-xs font-medium text-text-soft transition-colors hover:bg-accent-soft hover:text-accent"
-          >#{{ t.name }}</NuxtLink>
-        </div>
-      </section>
-
+    <div class="space-y-6">
+      <EntityRelationsAside
+        :items="related"
+        mode="readonly"
+        :hide-self="entity?.id ? { kind, id: entity.id } : undefined"
+      />
       <EntitySuggestions
         v-if="entity?.id"
         :entity-id="entity.id"
         :entity-type="kind"
       />
-    </aside>
+    </div>
 
     <Teleport to="body">
       <div

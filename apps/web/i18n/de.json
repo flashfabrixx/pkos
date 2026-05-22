@@ -244,5 +244,14 @@
     "resource": "Ressource",
     "ip": "IP",
     "meta": "Meta"
+  },
+  "relations": {
+    "people": "Personen",
+    "projects": "Projekte",
+    "tags": "Tags",
+    "people_empty": "Noch keine Personen verknüpft.",
+    "projects_empty": "Noch keine Projekte verknüpft.",
+    "tags_empty": "Noch keine Tags verknüpft.",
+    "remove": "{name} entfernen"
   }
 }
