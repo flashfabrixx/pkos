@@ -176,6 +176,68 @@ d('thread briefings + save-as-document', () => {
     expect(save.status).toBe(400)
   }, 60_000)
 
+  it('streams a briefing as SSE when stream=1 is requested', async () => {
+    const cookie = await login()
+
+    // Seed: person + one document attached.
+    const personResp = await fetch(`${nuxt.baseUrl}/api/entities`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie, origin: nuxt.baseUrl },
+      body: JSON.stringify({ type: 'person', name: 'Stream Sara' })
+    })
+    const { entity } = await personResp.json() as { entity: { id: string } }
+
+    const docResp = await fetch(`${nuxt.baseUrl}/api/v1/captures`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie, origin: nuxt.baseUrl },
+      body: JSON.stringify({
+        sourceType: 'reflection',
+        rawText: 'Streaming briefing seed for Sara.',
+        capturedAt: '2026-05-20',
+        confidentiality: 'private',
+        participants: 'Stream Sara'
+      })
+    })
+    const { documentId } = await docResp.json() as { documentId: string }
+    await fetch(`${nuxt.baseUrl}/api/documents/${documentId}/entities`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie, origin: nuxt.baseUrl },
+      body: JSON.stringify({ entityId: entity.id })
+    })
+
+    const r = await fetch(`${nuxt.baseUrl}/api/threads/briefings?stream=1`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        cookie,
+        origin: nuxt.baseUrl,
+        accept: 'text/event-stream'
+      },
+      body: JSON.stringify({ entityId: entity.id })
+    })
+    expect(r.status).toBe(200)
+    expect(r.headers.get('content-type')).toMatch(/text\/event-stream/)
+
+    const raw = await r.text()
+    const events = parseSseEvents(raw)
+    const names = events.map((e) => e.event)
+    expect(names).toContain('thread')
+    expect(names).toContain('user')
+    expect(names).toContain('sources')
+    expect(names).toContain('done')
+
+    const threadEvent = events.find((e) => e.event === 'thread')!
+    const threadId = (threadEvent.data as { threadId: string }).threadId
+    expect(threadId).toMatch(/^[0-9a-f-]{36}$/)
+
+    // Server should have persisted both user + assistant turn by the
+    // time the `done` event fires.
+    const detail = await fetch(`${nuxt.baseUrl}/api/threads/${threadId}`, { headers: { cookie } })
+    const { messages } = await detail.json() as { messages: Array<{ role: string }> }
+    expect(messages.find((m) => m.role === 'user')).toBeTruthy()
+    expect(messages.find((m) => m.role === 'assistant')).toBeTruthy()
+  }, 120_000)
+
   it('rejects a briefing kickoff for an unsupported entity type', async () => {
     const cookie = await login()
     // Documents are technically entities but not briefable. Create a
@@ -202,3 +264,20 @@ d('thread briefings + save-as-document', () => {
     expect(r.status).toBe(404)
   })
 })
+
+function parseSseEvents(raw: string): Array<{ event: string, data: unknown }> {
+  const out: Array<{ event: string, data: unknown }> = []
+  for (const block of raw.split('\n\n')) {
+    if (!block.trim()) continue
+    let eventName = 'message'
+    const dataLines: string[] = []
+    for (const line of block.split('\n')) {
+      if (line.startsWith('event:')) eventName = line.slice(6).trim()
+      else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim())
+    }
+    if (!dataLines.length) continue
+    try { out.push({ event: eventName, data: JSON.parse(dataLines.join('\n')) }) }
+    catch { /* skip malformed */ }
+  }
+  return out
+}

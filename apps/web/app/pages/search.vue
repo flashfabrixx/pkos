@@ -1,9 +1,32 @@
 <script setup lang="ts">
-import { FolderIcon, HashtagIcon, UsersIcon } from '@heroicons/vue/24/outline'
+import {
+  BookmarkIcon,
+  BookmarkSquareIcon,
+  FolderIcon,
+  HashtagIcon,
+  UsersIcon,
+  XMarkIcon
+} from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
 import { colorFor } from '~/utils/hash-color'
 
 const { t: _t } = useI18n()
+
+interface SavedViewFilters {
+  kinds?: string[]
+  lang?: string
+  from?: string
+  to?: string
+  limit?: number
+}
+interface SavedView {
+  id: string
+  name: string
+  q: string
+  filters: SavedViewFilters
+  created_at: string
+  updated_at: string
+}
 useHead({ title: () => 'Search' })
 
 const SOURCE_TYPES = ['meeting', 'voice_note', 'conversation', 'reflection', 'other'] as const
@@ -116,12 +139,60 @@ async function search() {
   }
 }
 
+const savedViews = ref<SavedView[]>([])
+const savingView = ref(false)
+const newViewName = ref('')
+const showSaveForm = ref(false)
+
+async function loadSavedViews() {
+  const data = await $fetch<{ views: SavedView[] }>('/api/saved-views')
+  savedViews.value = data.views
+}
+
+function applySavedView(view: SavedView) {
+  q.value = view.q
+  kinds.value = new Set(view.filters.kinds || [])
+  lang.value = view.filters.lang || ''
+  dateFrom.value = view.filters.from || ''
+  dateTo.value = view.filters.to || ''
+  void search()
+}
+
+async function saveCurrentView() {
+  const name = newViewName.value.trim()
+  if (!name) return
+  savingView.value = true
+  try {
+    const filters: SavedViewFilters = {}
+    if (kinds.value.size) filters.kinds = [...kinds.value]
+    if (lang.value) filters.lang = lang.value
+    if (dateFrom.value) filters.from = dateFrom.value
+    if (dateTo.value) filters.to = dateTo.value
+    await $fetch('/api/saved-views', {
+      method: 'POST',
+      body: { name, q: q.value, filters }
+    })
+    newViewName.value = ''
+    showSaveForm.value = false
+    await loadSavedViews()
+  } finally {
+    savingView.value = false
+  }
+}
+
+async function deleteSavedView(view: SavedView) {
+  if (!confirm(`Delete saved view "${view.name}"?`)) return
+  await $fetch(`/api/saved-views/${view.id}`, { method: 'DELETE' })
+  await loadSavedViews()
+}
+
 onMounted(() => {
   const route = useRoute()
   if (typeof route.query.q === 'string') {
     q.value = route.query.q
     void search()
   }
+  void loadSavedViews()
 })
 </script>
 
@@ -133,7 +204,7 @@ onMounted(() => {
         <h1 class="text-xl font-semibold tracking-tight text-text-strong">Search knowledge</h1>
       </header>
 
-      <form class="mb-4 flex gap-2" @submit.prevent="search">
+      <form class="mb-3 flex gap-2" @submit.prevent="search">
         <UiInput
           v-model="q"
           placeholder="What did we discuss about AI training, roadmap, staffing..."
@@ -143,7 +214,62 @@ onMounted(() => {
         <UiButton type="submit" :loading="pending" :disabled="!q.trim()">
           {{ pending ? 'Searching…' : 'Search' }}
         </UiButton>
+        <UiButton
+          v-if="!showSaveForm"
+          type="button"
+          variant="secondary"
+          :disabled="!q.trim() && !kinds.size && !lang && !dateFrom && !dateTo"
+          :title="'Save current query + filters as a named view'"
+          @click="showSaveForm = true; newViewName = q || ''"
+        >
+          <BookmarkIcon class="size-4" aria-hidden="true" />
+          Save view
+        </UiButton>
       </form>
+
+      <form
+        v-if="showSaveForm"
+        class="mb-3 flex items-center gap-2 rounded-card bg-surface-2 px-3 py-2"
+        @submit.prevent="saveCurrentView"
+      >
+        <BookmarkSquareIcon class="size-4 text-muted" aria-hidden="true" />
+        <UiInput
+          v-model="newViewName"
+          placeholder="View name (e.g. 'Anna recent', 'AI training Q2')"
+          class="flex-1"
+          autofocus
+        />
+        <UiButton type="submit" size="sm" :loading="savingView" :disabled="!newViewName.trim()">
+          Save
+        </UiButton>
+        <UiButton type="button" size="sm" variant="ghost" @click="showSaveForm = false">
+          Cancel
+        </UiButton>
+      </form>
+
+      <div v-if="savedViews.length" class="mb-3 flex flex-wrap items-center gap-1.5">
+        <span class="text-xs font-semibold uppercase tracking-wider text-muted">Saved</span>
+        <span
+          v-for="view in savedViews"
+          :key="view.id"
+          class="group/chip inline-flex items-center gap-1 rounded-full border border-border-subtle bg-surface-1 px-2 py-0.5 text-xs text-text-soft hover:border-border-strong hover:bg-surface-2"
+        >
+          <button
+            type="button"
+            class="font-medium text-text"
+            :title="view.q || '(no query)'"
+            @click="applySavedView(view)"
+          >{{ view.name }}</button>
+          <button
+            type="button"
+            class="rounded p-0.5 text-muted opacity-0 transition-opacity hover:bg-surface-3 hover:text-text group-hover/chip:opacity-100 focus-visible:opacity-100"
+            :aria-label="`Delete saved view ${view.name}`"
+            @click="deleteSavedView(view)"
+          >
+            <XMarkIcon class="size-3" aria-hidden="true" />
+          </button>
+        </span>
+      </div>
 
       <div class="mb-6 grid gap-3 rounded-card bg-surface-2 p-3">
         <div class="flex flex-wrap items-center gap-2">
