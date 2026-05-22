@@ -47,7 +47,6 @@ function formatDate(value: string | null | undefined, fallback = '') {
 <template>
   <main class="mx-auto w-full max-w-6xl p-5">
     <OverviewHeader
-      :eyebrow="t('captures.eyebrow')"
       :title="t('captures.title')"
       :subtitle="t('captures.subtitle')"
     >
@@ -98,9 +97,8 @@ function formatDate(value: string | null | undefined, fallback = '') {
           </tr>
         </tbody>
       </table>
-      <div ref="sentinelRef" class="border-t border-border-subtle py-3 text-center" aria-hidden="true">
+      <div ref="sentinelRef" class="py-2 text-center" aria-hidden="true">
         <span v-if="loadingMore" class="text-xs text-muted">{{ t('common.loading') }}</span>
-        <span v-else-if="!hasMore && documents.length" class="text-xs text-muted">{{ t('common.end_of_list') }}</span>
       </div>
     </div>
   </main>

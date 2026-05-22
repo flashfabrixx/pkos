@@ -52,10 +52,6 @@ function toggleAll() {
     selectedIds.value = new Set(tags.value.map((t) => t.id))
   }
 }
-const headerCheckbox = ref<HTMLInputElement | null>(null)
-watchEffect(() => {
-  if (headerCheckbox.value) headerCheckbox.value.indeterminate = indeterminate.value
-})
 
 const selectedCandidates = computed(() => tags.value.filter((tag) => selectedIds.value.has(tag.id)))
 function openMerge() {
@@ -75,7 +71,6 @@ function formatDate(value: string | null | undefined, fallback = '') {
 <template>
   <main class="mx-auto w-full max-w-6xl p-5">
     <OverviewHeader
-      :eyebrow="t('tags.eyebrow')"
       :title="t('tags.title')"
       :subtitle="t('tags.subtitle')"
     >
@@ -102,15 +97,13 @@ function formatDate(value: string | null | undefined, fallback = '') {
       <table v-else class="min-w-full divide-y divide-border-subtle">
         <thead class="bg-surface-2">
           <tr>
-            <th scope="col" class="w-10 py-2 pl-4 pr-3 sm:pl-6">
-              <input
-                ref="headerCheckbox"
-                type="checkbox"
-                class="size-3.5 rounded border-border-subtle text-accent focus:ring-2 focus:ring-accent/20"
-                :checked="allSelected"
+            <th scope="col" class="w-10 py-2 pl-4 pr-3 align-middle sm:pl-6">
+              <UiCheckbox
+                :model-value="allSelected"
+                :indeterminate="indeterminate"
                 :aria-label="t('common.select_all')"
                 @change="toggleAll"
-              >
+              />
             </th>
             <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.name') }}</th>
             <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('tags.usage') }}</th>
@@ -123,14 +116,12 @@ function formatDate(value: string | null | undefined, fallback = '') {
             :key="tag.id"
             :class="[selectedIds.has(tag.id) ? 'bg-accent-soft' : 'hover:bg-surface-2', 'transition-colors']"
           >
-            <td class="py-2 pl-4 pr-3 sm:pl-6">
-              <input
-                type="checkbox"
-                class="size-3.5 rounded border-border-subtle text-accent focus:ring-2 focus:ring-accent/20"
-                :checked="selectedIds.has(tag.id)"
+            <td class="py-2 pl-4 pr-3 align-middle sm:pl-6">
+              <UiCheckbox
+                :model-value="selectedIds.has(tag.id)"
                 :aria-label="`Select ${tag.name}`"
                 @change="toggleSelected(tag.id)"
-              >
+              />
             </td>
             <td class="px-3 py-2 text-sm">
               <NuxtLink :to="`/tags/${tag.id}`" class="font-medium text-text hover:text-accent">#{{ tag.name }}</NuxtLink>
@@ -140,9 +131,8 @@ function formatDate(value: string | null | undefined, fallback = '') {
           </tr>
         </tbody>
       </table>
-      <div ref="sentinelRef" class="border-t border-border-subtle py-3 text-center" aria-hidden="true">
+      <div ref="sentinelRef" class="py-2 text-center" aria-hidden="true">
         <span v-if="loadingMore" class="text-xs text-muted">{{ t('common.loading') }}</span>
-        <span v-else-if="!hasMore && tags.length" class="text-xs text-muted">{{ t('common.end_of_list') }}</span>
       </div>
     </div>
   </main>

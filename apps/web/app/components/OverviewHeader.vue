@@ -12,7 +12,6 @@
  *   - tags
  */
 defineProps<{
-  eyebrow?: string
   title: string
   subtitle?: string
 }>()
@@ -21,9 +20,8 @@ defineProps<{
 <template>
   <header class="mb-6 sm:flex sm:items-center sm:gap-6">
     <div class="sm:flex-auto">
-      <p v-if="eyebrow" class="text-[11px] font-extrabold uppercase tracking-wider text-muted">{{ eyebrow }}</p>
-      <h1 class="text-base font-semibold tracking-tight text-text-strong">{{ title }}</h1>
-      <p v-if="subtitle" class="mt-1 text-sm text-text-soft">{{ subtitle }}</p>
+      <h1 class="text-xl font-semibold tracking-tight text-text-strong">{{ title }}</h1>
+      <p v-if="subtitle" class="mt-1.5 text-sm text-text-soft">{{ subtitle }}</p>
     </div>
     <div v-if="$slots.actions" class="mt-4 flex flex-wrap items-center gap-2 sm:mt-0 sm:flex-none">
       <slot name="actions" />

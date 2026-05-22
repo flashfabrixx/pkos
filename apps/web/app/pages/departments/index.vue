@@ -39,7 +39,6 @@ onMounted(() => {
 <template>
   <main class="mx-auto w-full max-w-6xl p-5">
     <OverviewHeader
-      :eyebrow="t('departments.eyebrow')"
       :title="t('departments.title')"
       :subtitle="t('departments.subtitle')"
     >
@@ -79,9 +78,8 @@ onMounted(() => {
           </tr>
         </tbody>
       </table>
-      <div ref="sentinelRef" class="border-t border-border-subtle py-3 text-center" aria-hidden="true">
-        <span v-if="loadingMore" class="text-xs text-muted">{{ t('common.load_more') }}</span>
-        <span v-else-if="!hasMore && departments.length" class="text-xs text-muted">{{ t('common.end_of_list') }}</span>
+      <div ref="sentinelRef" class="py-2 text-center" aria-hidden="true">
+        <span v-if="loadingMore" class="text-xs text-muted">{{ t('common.loading') }}</span>
       </div>
     </div>
   </main>
