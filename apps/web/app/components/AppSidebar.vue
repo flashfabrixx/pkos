@@ -8,12 +8,13 @@ import {
   HashtagIcon,
   InboxIcon,
   MagnifyingGlassIcon,
-  PencilSquareIcon,
+  PlusIcon,
   QueueListIcon,
   RectangleStackIcon,
   TrashIcon,
   UsersIcon
 } from '@heroicons/vue/24/outline'
+import type { Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -30,15 +31,63 @@ function openCommandPalette() {
   open.value = true
 }
 
-const navItems = computed(() => [
-  { to: '/', label: t('nav.capture'), icon: PencilSquareIcon },
-  { to: '/documents', label: t('nav.captures'), icon: InboxIcon },
+interface NavItem {
+  to: string
+  label: string
+  icon: Component
+  badge?: () => number
+  /**
+   * Hover-revealed quick-create shortcut. The plus button is rendered
+   * inside the row but stops propagation so it doesn't fight the link.
+   */
+  createHref?: string
+  createLabel?: string
+}
+
+const navItems = computed<NavItem[]>(() => [
+  {
+    to: '/threads',
+    label: t('nav.threads'),
+    icon: ChatBubbleLeftRightIcon,
+    createHref: '/threads?new=1',
+    createLabel: t('threads.new')
+  },
   { to: '/actions', label: t('nav.actions'), icon: QueueListIcon, badge: () => openActions.value },
-  { to: '/threads', label: t('nav.threads'), icon: ChatBubbleLeftRightIcon },
-  { to: '/people', label: t('nav.people'), icon: UsersIcon },
-  { to: '/departments', label: t('nav.departments'), icon: BuildingOffice2Icon },
-  { to: '/projects', label: t('nav.projects'), icon: FolderIcon },
-  { to: '/tags', label: t('nav.tags'), icon: HashtagIcon },
+  {
+    to: '/documents',
+    label: t('nav.captures'),
+    icon: InboxIcon,
+    createHref: '/',
+    createLabel: t('nav.capture')
+  },
+  {
+    to: '/people',
+    label: t('nav.people'),
+    icon: UsersIcon,
+    createHref: '/people?new=1',
+    createLabel: t('people.add')
+  },
+  {
+    to: '/departments',
+    label: t('nav.departments'),
+    icon: BuildingOffice2Icon,
+    createHref: '/departments?new=1',
+    createLabel: t('departments.add')
+  },
+  {
+    to: '/projects',
+    label: t('nav.projects'),
+    icon: FolderIcon,
+    createHref: '/projects?new=1',
+    createLabel: t('projects.add')
+  },
+  {
+    to: '/tags',
+    label: t('nav.tags'),
+    icon: HashtagIcon,
+    createHref: '/tags?new=1',
+    createLabel: t('tags.add')
+  },
   { to: '/graph', label: t('nav.graph'), icon: ChartBarSquareIcon },
   { to: '/trash', label: t('nav.trash'), icon: TrashIcon },
   { to: '/settings', label: t('nav.settings'), icon: Cog6ToothIcon }
@@ -75,25 +124,38 @@ function isItemActive(path: string) {
     </button>
 
     <nav class="grid content-start gap-0.5 pt-1.5">
-      <NuxtLink
+      <div
         v-for="item in navItems"
         :key="item.to"
-        :to="item.to as string"
-        :class="[
-          'inline-flex h-8 items-center gap-2.5 rounded-md px-2.5 text-[13px] font-medium transition-colors',
-          isItemActive(item.to)
-            ? 'bg-accent-soft text-accent font-semibold'
-            : 'text-text-soft hover:bg-soft hover:text-text'
-        ]"
-        :aria-current="isItemActive(item.to) ? 'page' : undefined"
+        class="group/row relative"
       >
-        <component :is="item.icon" class="size-4" aria-hidden="true" />
-        <span class="flex-1">{{ item.label }}</span>
-        <span
-          v-if="'badge' in item && item.badge && item.badge()"
-          class="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-bold leading-none text-accent-fg"
-        >{{ item.badge() }}</span>
-      </NuxtLink>
+        <NuxtLink
+          :to="item.to"
+          :class="[
+            'inline-flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-[13px] font-medium transition-colors',
+            isItemActive(item.to)
+              ? 'bg-accent-soft text-accent font-semibold'
+              : 'text-text-soft hover:bg-soft hover:text-text'
+          ]"
+          :aria-current="isItemActive(item.to) ? 'page' : undefined"
+        >
+          <component :is="item.icon" class="size-4" aria-hidden="true" />
+          <span class="flex-1">{{ item.label }}</span>
+          <span
+            v-if="item.badge && item.badge()"
+            class="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-bold leading-none text-accent-fg"
+          >{{ item.badge() }}</span>
+        </NuxtLink>
+        <NuxtLink
+          v-if="item.createHref"
+          :to="item.createHref"
+          :aria-label="item.createLabel"
+          :title="item.createLabel"
+          class="absolute right-1 top-1/2 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded text-muted opacity-0 transition-opacity hover:bg-surface-3 hover:text-text focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent group-hover/row:opacity-100"
+        >
+          <PlusIcon class="size-3.5" aria-hidden="true" />
+        </NuxtLink>
+      </div>
     </nav>
 
     <div class="grid gap-0.5 border-t border-border-subtle px-2.5 pb-1 pt-2.5">

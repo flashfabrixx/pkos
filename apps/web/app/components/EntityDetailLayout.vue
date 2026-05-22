@@ -14,7 +14,8 @@ import {
   HashtagIcon,
   SparklesIcon,
   TrashIcon,
-  UsersIcon
+  UsersIcon,
+  XMarkIcon
 } from '@heroicons/vue/24/outline'
 import { colorFor } from '~/utils/hash-color'
 
@@ -246,24 +247,86 @@ const deleting = ref(false)
 const copying = ref(false)
 const copyState = ref<'idle' | 'copied' | 'failed'>('idle')
 const briefingLoading = ref(false)
+const briefingOverlay = ref(false)
+const briefingText = ref('')
+const briefingError = ref<string | null>(null)
 
 async function startBriefingThread() {
   if (briefingLoading.value) return
   briefingLoading.value = true
+  briefingOverlay.value = true
+  briefingText.value = ''
+  briefingError.value = null
+  let pendingThreadId: string | null = null
+
   try {
-    // Server-side compiles the entity export, creates the thread,
-    // seeds the user prompt and runs a single LLM call. Wait for the
-    // response (5-15s with Opus) and then jump straight into the
-    // thread - follow-up turns happen in the standard streaming UI.
-    const r = await $fetch<{ threadId: string }>('/api/threads/briefings', {
+    // Server streams the briefing as SSE: `thread` event lands first
+    // (so we know the destination), then `token` events for the
+    // body, then `done`. The overlay shows the streaming text live;
+    // on completion we navigate to the thread which already shows
+    // the same persisted text.
+    const response = await fetch('/api/threads/briefings?stream=1', {
       method: 'POST',
-      body: { entityId: props.entity.id, kind: 'briefing' }
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ entityId: props.entity.id, kind: 'briefing' })
     })
-    await navigateTo(`/threads/${r.threadId}`)
-  } catch (error) {
+    if (!response.ok || !response.body) {
+      throw new Error(`Briefing failed: ${response.status}`)
+    }
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+
+      let blankLineIndex
+      // SSE events are separated by a blank line.
+      while ((blankLineIndex = buffer.indexOf('\n\n')) !== -1) {
+        const chunk = buffer.slice(0, blankLineIndex)
+        buffer = buffer.slice(blankLineIndex + 2)
+        const lines = chunk.split('\n')
+        let eventName = 'message'
+        const dataLines: string[] = []
+        for (const line of lines) {
+          if (line.startsWith('event:')) eventName = line.slice(6).trim()
+          else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim())
+        }
+        if (!dataLines.length) continue
+        let payload: any
+        try { payload = JSON.parse(dataLines.join('\n')) }
+        catch { continue }
+
+        if (eventName === 'thread') {
+          pendingThreadId = payload.threadId
+        } else if (eventName === 'token' && payload?.delta) {
+          briefingText.value += payload.delta
+        } else if (eventName === 'error') {
+          briefingError.value = payload?.message || 'Stream failed'
+        }
+      }
+    }
+
+    if (pendingThreadId) {
+      await navigateTo(`/threads/${pendingThreadId}`)
+    } else if (!briefingError.value) {
+      briefingError.value = 'Briefing finished without a thread id'
+    }
+  } catch (error: any) {
     console.error('Failed to start briefing thread', error)
+    briefingError.value = String(error?.message || error)
+  } finally {
     briefingLoading.value = false
   }
+}
+
+function dismissBriefingOverlay() {
+  briefingOverlay.value = false
+  briefingText.value = ''
+  briefingError.value = null
 }
 
 async function copyForChat() {
@@ -658,5 +721,50 @@ function activityLabel(a: ActivityRow): string {
         :entity-type="kind"
       />
     </aside>
+
+    <Teleport to="body">
+      <div
+        v-if="briefingOverlay"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
+      >
+        <div class="w-full max-w-2xl rounded-card bg-surface-1 shadow-popover ring-1 ring-border-default">
+          <header class="flex items-center justify-between gap-3 border-b border-border-subtle px-4 py-3">
+            <div>
+              <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">Briefing</p>
+              <h2 class="text-sm font-semibold text-text-strong">
+                {{ briefingLoading ? `Generating briefing on ${entity?.name || ''}…` : `Briefing ready on ${entity?.name || ''}` }}
+              </h2>
+            </div>
+            <button
+              v-if="!briefingLoading"
+              type="button"
+              class="rounded p-1 text-muted hover:bg-surface-3 hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              aria-label="Close briefing overlay"
+              @click="dismissBriefingOverlay"
+            >
+              <XMarkIcon class="size-4" aria-hidden="true" />
+            </button>
+          </header>
+          <div class="max-h-[60vh] overflow-y-auto px-4 py-4 text-sm leading-relaxed text-text whitespace-pre-wrap">
+            <template v-if="briefingError">
+              <p class="text-danger">{{ briefingError }}</p>
+            </template>
+            <template v-else>
+              <span>{{ briefingText }}</span>
+              <span
+                v-if="briefingLoading"
+                class="ml-0.5 inline-block h-3 w-1.5 animate-pulse bg-accent align-middle"
+                aria-hidden="true"
+              />
+            </template>
+          </div>
+          <footer class="flex items-center justify-between gap-3 border-t border-border-subtle px-4 py-2 text-xs text-muted">
+            <span v-if="briefingLoading">Streaming tokens · jumps to the thread on completion.</span>
+            <span v-else-if="briefingError">Something went wrong with the briefing stream.</span>
+            <span v-else>Done.</span>
+          </footer>
+        </div>
+      </div>
+    </Teleport>
   </main>
 </template>

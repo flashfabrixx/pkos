@@ -1,7 +1,7 @@
-import { createError, readBody } from 'h3'
+import { createError, getQuery, readBody } from 'h3'
 import { z } from 'zod'
 import { requireAuth } from '../../utils/auth'
-import { chatCompletion } from '../../utils/chat'
+import { chatCompletion, chatStream } from '../../utils/chat'
 import { chatSystemPrompt } from '../../utils/chat-prompts'
 import { getPool, query } from '../../utils/db'
 import { compileEntityExport } from '../../utils/entity-export'
@@ -52,25 +52,32 @@ interface BriefingSource {
 }
 
 /**
- * Materialize a briefing thread for an entity. Server-side does the
- * three steps that the client would otherwise stitch together:
+ * Materialize a briefing thread for an entity.
  *
- *   1. Compile the deterministic entity export (Markdown).
- *   2. Create a thread (Opus default, "Briefing: <name>" title) and
- *      insert the seeded user message.
- *   3. Run a single non-streaming LLM call and persist the assistant
- *      reply with sources / model / token counts.
+ * Default mode (POST without ?stream=1): the legacy non-streaming
+ * path. Compiles entity export, creates the thread + seed message,
+ * runs one LLM call, persists, returns `{threadId, messageId}`. The
+ * client navigates to /threads/<id> once the response lands.
  *
- * The endpoint waits for the full response and returns
- * `{threadId, messageId}`. The client navigates to /threads/<id> to
- * see the briefing rendered, then keeps refining via the standard
- * streaming messages endpoint.
+ * Streaming mode (POST with ?stream=1): same pipeline but the LLM
+ * call streams back to the client as Server-Sent Events using the
+ * same wire format as `messages.post.ts`. The thread + user turn are
+ * persisted before the first event so the client gets a usable
+ * `threadId` immediately. The assistant turn is persisted on `done`.
+ *
+ *   event: thread     {threadId}
+ *   event: user       {id, createdAt}
+ *   event: sources    [BriefingSource]
+ *   event: token      {delta}      (many)
+ *   event: done       {messageId, model, provider, tokensIn, tokensOut}
+ *   event: error      {message}
  *
  * Cookie auth only.
  */
 export default defineEventHandler(async (event) => {
   requireAuth(event)
   const body = schema.parse(await readBody(event))
+  const wantsStream = getQuery(event).stream === '1'
 
   const entityRes = await query<{ id: string, type: string, name: string }>(
     `SELECT id, type, name FROM entities WHERE id = $1 AND deleted_at IS NULL`,
@@ -105,41 +112,130 @@ export default defineEventHandler(async (event) => {
   const threadId = threadResult.rows[0]!.id
 
   const userContent = renderUserPrompt(body.kind, entity, exportMarkdown)
-  await query(
-    `INSERT INTO conversation_messages (thread_id, role, content) VALUES ($1, 'user', $2)`,
+  const userInsert = await query<{ id: string, created_at: string }>(
+    `INSERT INTO conversation_messages (thread_id, role, content)
+     VALUES ($1, 'user', $2)
+     RETURNING id, created_at::text AS created_at`,
     [threadId, userContent]
   )
+  const userMessage = userInsert.rows[0]!
 
-  const completion = await chatCompletion({
-    system: chatSystemPrompt({ extra: KIND_INSTRUCTIONS[body.kind], factsBlocks }),
-    user: userContent,
-    modelOverride: model,
-    // Briefings are deliberately longer than a normal chat turn.
-    maxTokens: 1600
+  const systemPrompt = chatSystemPrompt({ extra: KIND_INSTRUCTIONS[body.kind], factsBlocks })
+
+  if (!wantsStream) {
+    const completion = await chatCompletion({
+      system: systemPrompt,
+      user: userContent,
+      modelOverride: model,
+      maxTokens: 1600
+    })
+
+    const answer = completion.answer.trim() || '(no response)'
+    const assistantInsert = await query<{ id: string }>(
+      `INSERT INTO conversation_messages
+         (thread_id, role, content, sources, model, provider, tokens_in, tokens_out)
+       VALUES ($1, 'assistant', $2, $3::jsonb, $4, $5, $6, $7)
+       RETURNING id`,
+      [
+        threadId,
+        answer,
+        JSON.stringify(sources),
+        completion.model,
+        completion.provider,
+        completion.tokensIn,
+        completion.tokensOut
+      ]
+    )
+
+    return {
+      threadId,
+      messageId: assistantInsert.rows[0]!.id,
+      provider: completion.provider
+    }
+  }
+
+  // Streaming path.
+  const encoder = new TextEncoder()
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (eventName: string, data: unknown) => {
+        const payload = `event: ${eventName}\ndata: ${JSON.stringify(data)}\n\n`
+        controller.enqueue(encoder.encode(payload))
+      }
+
+      try {
+        send('thread', { threadId })
+        send('user', { id: userMessage.id, createdAt: userMessage.created_at })
+        send('sources', sources)
+
+        let assembled = ''
+        let finalProvider = 'placeholder'
+        let finalModel: string | null = model
+        let tokensIn: number | null = null
+        let tokensOut: number | null = null
+
+        const iterator = chatStream({
+          system: systemPrompt,
+          user: userContent,
+          modelOverride: model,
+          maxTokens: 1600
+        })
+
+        while (true) {
+          const { value, done } = await iterator.next()
+          if (done) {
+            if (value) {
+              assembled = value.answer || assembled
+              finalProvider = value.provider
+              finalModel = value.model
+              tokensIn = value.tokensIn
+              tokensOut = value.tokensOut
+            }
+            break
+          }
+          if (value?.delta) {
+            assembled += value.delta
+            send('token', { delta: value.delta })
+          }
+        }
+
+        const answer = assembled.trim() || '(no response)'
+        const assistantInsert = await query<{ id: string }>(
+          `INSERT INTO conversation_messages
+             (thread_id, role, content, sources, model, provider, tokens_in, tokens_out)
+           VALUES ($1, 'assistant', $2, $3::jsonb, $4, $5, $6, $7)
+           RETURNING id`,
+          [threadId, answer, JSON.stringify(sources), finalModel, finalProvider, tokensIn, tokensOut]
+        )
+
+        send('done', {
+          messageId: assistantInsert.rows[0]!.id,
+          model: finalModel,
+          provider: finalProvider,
+          tokensIn,
+          tokensOut
+        })
+        controller.close()
+      } catch (error: any) {
+        console.error('briefing stream failed', error)
+        try {
+          send('error', { message: String(error?.message || 'stream failed') })
+        } catch {
+          // controller may already be torn down
+        }
+        controller.close()
+      }
+    }
   })
 
-  const answer = completion.answer.trim() || '(no response)'
-  const assistantInsert = await query<{ id: string }>(
-    `INSERT INTO conversation_messages
-       (thread_id, role, content, sources, model, provider, tokens_in, tokens_out)
-     VALUES ($1, 'assistant', $2, $3::jsonb, $4, $5, $6, $7)
-     RETURNING id`,
-    [
-      threadId,
-      answer,
-      JSON.stringify(sources),
-      completion.model,
-      completion.provider,
-      completion.tokensIn,
-      completion.tokensOut
-    ]
-  )
-
-  return {
-    threadId,
-    messageId: assistantInsert.rows[0]!.id,
-    provider: completion.provider
-  }
+  return new Response(stream, {
+    headers: {
+      'content-type': 'text/event-stream; charset=utf-8',
+      'cache-control': 'no-cache, no-transform',
+      'connection': 'keep-alive',
+      'x-accel-buffering': 'no'
+    }
+  })
 })
 
 function briefingTitle(kind: string, entity: { name: string, type: string }) {

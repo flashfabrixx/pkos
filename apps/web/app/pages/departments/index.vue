@@ -34,6 +34,11 @@ const createOpen = ref(false)
 function onCreated(entity: { id: string }) {
   return navigateTo(`/departments/${entity.id}`)
 }
+
+const route = useRoute()
+onMounted(() => {
+  if (route.query.new === '1') createOpen.value = true
+})
 </script>
 
 <template>

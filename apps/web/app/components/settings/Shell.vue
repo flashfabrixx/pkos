@@ -4,6 +4,7 @@ import {
   ArchiveBoxIcon,
   BookmarkIcon,
   Cog6ToothIcon,
+  DevicePhoneMobileIcon,
   GlobeAltIcon
 } from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
@@ -19,6 +20,7 @@ interface NavItem {
 
 const navItems = computed<NavItem[]>(() => [
   { to: '/settings', label: t('settings.nav_general'), icon: Cog6ToothIcon },
+  { to: '/settings/integrations', label: t('settings.nav_integrations'), icon: DevicePhoneMobileIcon },
   { to: '/settings/webhooks', label: t('settings.nav_webhooks'), icon: GlobeAltIcon },
   { to: '/settings/clipper', label: t('settings.nav_clipper'), icon: BookmarkIcon },
   { to: '/settings/data', label: t('settings.nav_data'), icon: ArchiveBoxIcon }

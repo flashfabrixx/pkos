@@ -33,6 +33,11 @@ async function createThread() {
   }
 }
 
+const route = useRoute()
+onMounted(() => {
+  if (route.query.new === '1') void createThread()
+})
+
 function modelLabel(model: string): string {
   return model.replace(/^openrouter\//, '').replace(/^anthropic\//, '').replace(/^google\//, '').replace(/^openai\//, '')
 }

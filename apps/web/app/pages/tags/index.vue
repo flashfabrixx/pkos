@@ -34,6 +34,11 @@ function onCreated(entity: { id: string }) {
   return navigateTo(`/tags/${entity.id}`)
 }
 
+const route = useRoute()
+onMounted(() => {
+  if (route.query.new === '1') createOpen.value = true
+})
+
 const multiEdit = ref(false)
 const selectedIds = ref<Set<string>>(new Set())
 const mergeOpen = ref(false)
