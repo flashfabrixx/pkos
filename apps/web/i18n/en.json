@@ -72,6 +72,7 @@
     "close": "Close",
     "next": "Next",
     "submit": "Submit",
+    "select_all": "Select all",
     "name": "Name",
     "title": "Title",
     "description": "Description",
@@ -103,6 +104,9 @@
   "captures": {
     "title": "Captures",
     "eyebrow": "Inbox",
+    "subtitle": "Everything you've recorded — meetings, voice notes, reflections. Starting point for search and threads.",
+    "captured_at": "Captured",
+    "status": "Status",
     "empty": "No captures yet.",
     "processing": "Processing",
     "failed": "Processing failed",
@@ -131,14 +135,18 @@
   "people": {
     "title": "People",
     "eyebrow": "Directory",
+    "subtitle": "People who appear in your captures. Gateway to briefings, open actions, and shared history.",
     "empty": "No people captured yet.",
     "add": "Add person",
     "select": "Select",
-    "merge": "Merge"
+    "merge": "Merge",
+    "last_seen": "Last seen"
   },
   "departments": {
     "title": "Departments",
     "eyebrow": "Organisation",
+    "subtitle": "Organisational groups that bundle people and projects into a team context.",
+    "parent": "Parent",
     "empty": "No departments yet.",
     "add": "Add department",
     "subdepartments": "Sub-departments",
@@ -153,14 +161,18 @@
   "projects": {
     "title": "Projects",
     "eyebrow": "Directory",
+    "subtitle": "Initiatives that thread through your captures. Track ongoing work, actions, and contributors.",
     "empty": "No projects yet.",
     "add": "Add project"
   },
   "tags": {
     "title": "Tags",
     "eyebrow": "Directory",
+    "subtitle": "Topic clusters that span captures. Pivot point for thematic search and briefings.",
     "empty": "No tags yet.",
-    "add": "Add tag"
+    "add": "Add tag",
+    "usage": "Usage",
+    "last_used": "Last used"
   },
   "graph": {
     "title": "Knowledge graph",

@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import {
-  BuildingOffice2Icon,
-  ClipboardDocumentCheckIcon,
-  PlusIcon,
-  UsersIcon
-} from '@heroicons/vue/24/outline'
+import { PlusIcon } from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
 import { useInfiniteList } from '~/composables/useInfiniteList'
 
@@ -42,58 +37,52 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="mx-auto grid max-w-5xl gap-4 p-5">
-    <section class="rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
-      <header class="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">{{ t('departments.eyebrow') }}</p>
-          <h1 class="text-xl font-semibold tracking-tight text-text-strong">{{ t('departments.title') }}</h1>
-        </div>
+  <main class="mx-auto w-full max-w-6xl p-5">
+    <OverviewHeader
+      :eyebrow="t('departments.eyebrow')"
+      :title="t('departments.title')"
+      :subtitle="t('departments.subtitle')"
+    >
+      <template #actions>
         <UiButton size="sm" @click="createOpen = true">
           <PlusIcon class="size-4" aria-hidden="true" />
           {{ t('departments.add') }}
         </UiButton>
-      </header>
+      </template>
+    </OverviewHeader>
 
-      <EntityCreateDialog v-model:open="createOpen" kind="department" @created="onCreated" />
+    <EntityCreateDialog v-model:open="createOpen" kind="department" @created="onCreated" />
 
-      <p v-if="loading" class="text-sm text-muted">{{ t('common.loading') }}</p>
-      <p v-else-if="!departments.length" class="text-sm text-muted">{{ t('departments.empty') }}</p>
-
-      <ul v-else class="divide-y divide-border-subtle">
-        <li
-          v-for="d in departments"
-          :key="d.id"
-          class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 py-2.5 transition-colors hover:bg-surface-2"
-        >
-          <span></span>
-          <NuxtLink :to="`/departments/${d.id}`" class="flex min-w-0 items-center gap-3 rounded-md px-2 py-1">
-            <span class="inline-flex size-8 shrink-0 items-center justify-center rounded-card bg-soft text-text-soft">
-              <BuildingOffice2Icon class="size-4" aria-hidden="true" />
-            </span>
-            <span class="truncate text-sm font-medium text-text-strong">{{ d.name }}</span>
-          </NuxtLink>
-          <div class="flex shrink-0 items-center gap-3 text-xs text-text-soft">
-            <span v-if="d.parent_name" class="inline-flex items-center gap-1 text-muted">
-              <BuildingOffice2Icon class="size-3.5" aria-hidden="true" />
-              <span>{{ d.parent_name }}</span>
-            </span>
-            <span v-if="d.members_count" class="inline-flex items-center gap-1">
-              <UsersIcon class="size-3.5" aria-hidden="true" />
-              <span>{{ d.members_count }}</span>
-            </span>
-            <span v-if="d.projects_count" class="inline-flex items-center gap-1">
-              <ClipboardDocumentCheckIcon class="size-3.5" aria-hidden="true" />
-              <span>{{ d.projects_count }}</span>
-            </span>
-          </div>
-        </li>
-      </ul>
-
-      <div ref="sentinelRef" class="py-4 text-center" aria-hidden="true">
+    <div class="overflow-hidden rounded-card border border-border-default bg-surface-1 shadow-card">
+      <p v-if="loading" class="p-5 text-sm text-muted">{{ t('common.loading') }}</p>
+      <p v-else-if="!departments.length" class="p-5 text-sm text-muted">{{ t('departments.empty') }}</p>
+      <table v-else class="min-w-full divide-y divide-border-subtle">
+        <thead class="bg-surface-2">
+          <tr>
+            <th scope="col" class="py-2 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wider text-muted sm:pl-6">{{ t('common.name') }}</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('departments.parent') }}</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('departments.members_title') }}</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('departments.projects_title') }}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border-subtle">
+          <tr v-for="d in departments" :key="d.id" class="transition-colors hover:bg-surface-2">
+            <td class="py-2 pl-4 pr-3 text-sm sm:pl-6">
+              <NuxtLink :to="`/departments/${d.id}`" class="font-medium text-text hover:text-accent">{{ d.name }}</NuxtLink>
+            </td>
+            <td class="whitespace-nowrap px-3 py-2 text-sm text-text-soft">
+              <NuxtLink v-if="d.parent_id && d.parent_name" :to="`/departments/${d.parent_id}`" class="hover:text-accent">{{ d.parent_name }}</NuxtLink>
+              <span v-else>—</span>
+            </td>
+            <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-text-soft">{{ d.members_count || '—' }}</td>
+            <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-text-soft">{{ d.projects_count || '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div ref="sentinelRef" class="border-t border-border-subtle py-3 text-center" aria-hidden="true">
         <span v-if="loadingMore" class="text-xs text-muted">{{ t('common.load_more') }}</span>
         <span v-else-if="!hasMore && departments.length" class="text-xs text-muted">{{ t('common.end_of_list') }}</span>
       </div>
-    </section>
+    </div>
   </main>
 </template>

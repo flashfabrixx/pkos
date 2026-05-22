@@ -1,15 +1,6 @@
 <script setup lang="ts">
-import {
-  CalendarDaysIcon,
-  ClipboardDocumentCheckIcon,
-  DocumentTextIcon,
-  FolderIcon,
-  PlusIcon,
-  Squares2X2Icon,
-  XMarkIcon
-} from '@heroicons/vue/24/outline'
+import { PlusIcon } from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
-import { colorFor } from '~/utils/hash-color'
 import { useInfiniteList } from '~/composables/useInfiniteList'
 
 const { t } = useI18n()
@@ -42,20 +33,32 @@ onMounted(() => {
   if (route.query.new === '1') createOpen.value = true
 })
 
-const multiEdit = ref(false)
 const selectedIds = ref<Set<string>>(new Set())
 const mergeOpen = ref(false)
 
-function toggleMultiEdit() {
-  multiEdit.value = !multiEdit.value
-  if (!multiEdit.value) selectedIds.value = new Set()
-}
 function toggleSelected(id: string) {
   const next = new Set(selectedIds.value)
   if (next.has(id)) next.delete(id)
   else next.add(id)
   selectedIds.value = next
 }
+
+const allSelected = computed(() =>
+  projects.value.length > 0 && projects.value.every((p) => selectedIds.value.has(p.id))
+)
+const indeterminate = computed(() => selectedIds.value.size > 0 && !allSelected.value)
+function toggleAll() {
+  if (allSelected.value) {
+    selectedIds.value = new Set()
+  } else {
+    selectedIds.value = new Set(projects.value.map((p) => p.id))
+  }
+}
+const headerCheckbox = ref<HTMLInputElement | null>(null)
+watchEffect(() => {
+  if (headerCheckbox.value) headerCheckbox.value.indeterminate = indeterminate.value
+})
+
 const selectedCandidates = computed(() => projects.value.filter((p) => selectedIds.value.has(p.id)))
 function openMerge() {
   if (selectedCandidates.value.length < 2) return
@@ -63,7 +66,6 @@ function openMerge() {
 }
 async function onMerged() {
   selectedIds.value = new Set()
-  multiEdit.value = false
   await reset()
 }
 
@@ -73,103 +75,81 @@ function formatDate(value: string | null | undefined, fallback = '') {
 </script>
 
 <template>
-  <main class="mx-auto grid max-w-5xl gap-4 p-5">
-    <section class="rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
-      <header class="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">{{ t('projects.eyebrow') }}</p>
-          <h1 class="text-xl font-semibold tracking-tight text-text-strong">{{ t('projects.title') }}</h1>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <UiButton
-            :variant="multiEdit ? 'primary' : 'secondary'"
-            size="sm"
-            @click="toggleMultiEdit"
-          >
-            <Squares2X2Icon class="size-4" aria-hidden="true" />
-            {{ multiEdit ? 'Cancel' : 'Select' }}
-          </UiButton>
-          <UiButton size="sm" @click="createOpen = true">
-            <PlusIcon class="size-4" aria-hidden="true" />
-            {{ t('projects.add') }}
-          </UiButton>
-        </div>
-      </header>
+  <main class="mx-auto w-full max-w-6xl p-5">
+    <OverviewHeader
+      :eyebrow="t('projects.eyebrow')"
+      :title="t('projects.title')"
+      :subtitle="t('projects.subtitle')"
+    >
+      <template #actions>
+        <UiButton
+          v-if="selectedCandidates.length >= 2"
+          variant="secondary"
+          size="sm"
+          @click="openMerge"
+        >{{ t('people.merge') }} ({{ selectedCandidates.length }})</UiButton>
+        <UiButton size="sm" @click="createOpen = true">
+          <PlusIcon class="size-4" aria-hidden="true" />
+          {{ t('projects.add') }}
+        </UiButton>
+      </template>
+    </OverviewHeader>
 
-      <div
-        v-if="multiEdit"
-        class="mb-4 flex items-center gap-2 rounded-card border border-border-default bg-surface-2 px-3 py-2"
-      >
-        <span class="text-sm font-semibold text-text">{{ selectedIds.size }} selected</span>
-        <UiButton variant="secondary" size="sm" :disabled="selectedIds.size < 2" @click="openMerge">Merge</UiButton>
-        <button
-          type="button"
-          class="ml-auto inline-flex size-8 items-center justify-center rounded-md text-muted-soft hover:bg-surface-3 hover:text-text"
-          :aria-label="t('common.close')"
-          @click="toggleMultiEdit"
-        >
-          <XMarkIcon class="size-4" aria-hidden="true" />
-        </button>
+    <EntityCreateDialog v-model:open="createOpen" kind="project" @created="onCreated" />
+    <EntityMergeDialog v-model:open="mergeOpen" kind="project" :candidates="selectedCandidates" @merged="onMerged" />
+
+    <div class="overflow-hidden rounded-card border border-border-default bg-surface-1 shadow-card">
+      <p v-if="loading" class="p-5 text-sm text-muted">{{ t('common.loading') }}</p>
+      <p v-else-if="!projects.length" class="p-5 text-sm text-muted">{{ t('projects.empty') }}</p>
+      <table v-else class="min-w-full divide-y divide-border-subtle">
+        <thead class="bg-surface-2">
+          <tr>
+            <th scope="col" class="w-10 py-2 pl-4 pr-3 sm:pl-6">
+              <input
+                ref="headerCheckbox"
+                type="checkbox"
+                class="size-3.5 rounded border-border-subtle text-accent focus:ring-2 focus:ring-accent/20"
+                :checked="allSelected"
+                :aria-label="t('common.select_all')"
+                @change="toggleAll"
+              >
+            </th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.name') }}</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('captures.title') }}</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.open') }}</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.done') }}</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('people.last_seen') }}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border-subtle">
+          <tr
+            v-for="p in projects"
+            :key="p.id"
+            :class="[selectedIds.has(p.id) ? 'bg-accent-soft' : 'hover:bg-surface-2', 'transition-colors']"
+          >
+            <td class="py-2 pl-4 pr-3 sm:pl-6">
+              <input
+                type="checkbox"
+                class="size-3.5 rounded border-border-subtle text-accent focus:ring-2 focus:ring-accent/20"
+                :checked="selectedIds.has(p.id)"
+                :aria-label="`Select ${p.name}`"
+                @change="toggleSelected(p.id)"
+              >
+            </td>
+            <td class="px-3 py-2 text-sm">
+              <NuxtLink :to="`/projects/${p.id}`" class="font-medium text-text hover:text-accent">{{ p.name }}</NuxtLink>
+            </td>
+            <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-text-soft">{{ p.document_count || '—' }}</td>
+            <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-text-soft">{{ p.actions_open || '—' }}</td>
+            <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-muted">{{ p.actions_done || '—' }}</td>
+            <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-muted">{{ p.last_seen ? formatDate(p.last_seen) : '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div ref="sentinelRef" class="border-t border-border-subtle py-3 text-center" aria-hidden="true">
+        <span v-if="loadingMore" class="text-xs text-muted">{{ t('common.loading') }}</span>
+        <span v-else-if="!hasMore && projects.length" class="text-xs text-muted">{{ t('common.end_of_list') }}</span>
       </div>
-
-      <EntityCreateDialog v-model:open="createOpen" kind="project" @created="onCreated" />
-      <EntityMergeDialog v-model:open="mergeOpen" kind="project" :candidates="selectedCandidates" @merged="onMerged" />
-
-      <p v-if="loading" class="text-sm text-muted">{{ t('common.loading') }}</p>
-      <p v-else-if="!projects.length" class="text-sm text-muted">{{ t('projects.empty') }}</p>
-
-      <ul v-else class="divide-y divide-border-subtle">
-        <li
-          v-for="p in projects"
-          :key="p.id"
-          :class="[
-            'grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 py-2.5 transition-colors',
-            selectedIds.has(p.id) ? 'bg-accent-soft' : 'hover:bg-surface-2'
-          ]"
-        >
-          <input
-            v-if="multiEdit"
-            type="checkbox"
-            class="size-4 rounded border-border-strong text-accent focus:ring-2 focus:ring-accent/20"
-            :checked="selectedIds.has(p.id)"
-            @change="toggleSelected(p.id)"
-          >
-          <NuxtLink
-            :to="`/projects/${p.id}`"
-            :class="[
-              'flex min-w-0 items-center gap-3 rounded-md px-2 py-1',
-              multiEdit && 'pointer-events-none opacity-80'
-            ]"
-          >
-            <span
-              class="inline-flex size-8 shrink-0 items-center justify-center rounded-card"
-              :style="{ background: colorFor(p.name).bg, color: colorFor(p.name).fg }"
-            >
-              <FolderIcon class="size-4" aria-hidden="true" />
-            </span>
-            <span class="truncate text-sm font-medium text-text-strong">{{ p.name }}</span>
-          </NuxtLink>
-          <div class="flex shrink-0 items-center gap-3 text-xs text-text-soft">
-            <span v-if="p.document_count" class="inline-flex items-center gap-1">
-              <DocumentTextIcon class="size-3.5" aria-hidden="true" />
-              <span>{{ p.document_count }}</span>
-            </span>
-            <span v-if="p.actions_open || p.actions_done" class="inline-flex items-center gap-1">
-              <ClipboardDocumentCheckIcon class="size-3.5" aria-hidden="true" />
-              <span>{{ p.actions_open }} open</span>
-            </span>
-            <span v-if="p.last_seen" class="inline-flex items-center gap-1 text-muted">
-              <CalendarDaysIcon class="size-3.5" aria-hidden="true" />
-              <span>{{ formatDate(p.last_seen) }}</span>
-            </span>
-          </div>
-        </li>
-      </ul>
-
-      <div ref="sentinelRef" class="py-4 text-center" aria-hidden="true">
-        <span v-if="loadingMore" class="text-xs text-muted">Loading more…</span>
-        <span v-else-if="!hasMore && projects.length" class="text-xs text-muted">End of list</span>
-      </div>
-    </section>
+    </div>
   </main>
 </template>

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import {
   ArrowPathIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  PlusIcon
 } from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
-import { sourceTypeIcon } from '~/utils/source-type'
 import { useInfiniteList } from '~/composables/useInfiniteList'
 
 const { t } = useI18n()
@@ -45,48 +45,63 @@ function formatDate(value: string | null | undefined, fallback = '') {
 </script>
 
 <template>
-  <main class="mx-auto grid max-w-5xl gap-4 p-5">
-    <section class="rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
-      <header class="mb-4">
-        <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">{{ t('captures.eyebrow') }}</p>
-        <h1 class="text-xl font-semibold tracking-tight text-text-strong">{{ t('captures.title') }}</h1>
-      </header>
+  <main class="mx-auto w-full max-w-6xl p-5">
+    <OverviewHeader
+      :eyebrow="t('captures.eyebrow')"
+      :title="t('captures.title')"
+      :subtitle="t('captures.subtitle')"
+    >
+      <template #actions>
+        <NuxtLink
+          to="/"
+          class="inline-flex h-9 items-center gap-2 rounded-md bg-accent px-3 text-sm font-semibold text-accent-fg shadow-card transition-colors hover:bg-accent-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        >
+          <PlusIcon class="size-4" aria-hidden="true" />
+          {{ t('nav.capture') }}
+        </NuxtLink>
+      </template>
+    </OverviewHeader>
 
-      <p v-if="loading" class="text-sm text-muted">{{ t('common.loading') }}</p>
-      <p v-else-if="!documents.length" class="text-sm text-muted">{{ t('captures.empty') }}</p>
-
-      <ul v-else class="divide-y divide-border-subtle">
-        <li v-for="doc in documents" :key="doc.id" class="grid grid-cols-[20px_minmax(0,1fr)_auto] items-start gap-3 py-3 transition-colors hover:bg-surface-2">
-          <span class="mt-1 inline-flex size-5 items-center justify-center text-muted">
-            <component :is="sourceTypeIcon(doc.source_type)" class="size-4" aria-hidden="true" />
-          </span>
-          <div class="min-w-0">
-            <NuxtLink :to="`/documents/${doc.id}`" class="block truncate text-sm font-semibold text-text-strong hover:text-accent">
-              {{ doc.title }}
-            </NuxtLink>
-            <p v-if="doc.summary" class="mt-0.5 line-clamp-2 text-xs text-muted">
-              {{ doc.summary.slice(0, 180) }}{{ doc.summary.length > 180 ? '…' : '' }}
-            </p>
-          </div>
-          <div class="flex shrink-0 items-center gap-2 text-xs text-muted">
-            <UiBadge v-if="isProcessing(doc)" variant="warning">
-              <ArrowPathIcon class="size-3.5 animate-spin" aria-hidden="true" />
-              <span>{{ t('captures.processing') }}</span>
-            </UiBadge>
-            <UiBadge v-else-if="isFailed(doc)" variant="danger">
-              <ExclamationTriangleIcon class="size-3.5" aria-hidden="true" />
-              <span>{{ t('captures.failed') }}</span>
-            </UiBadge>
-            <span class="uppercase tracking-wider text-[10px] font-semibold text-muted-soft">{{ doc.source_type }}</span>
-            <span class="tabular-nums">{{ formatDate(doc.captured_at || doc.created_at) }}</span>
-          </div>
-        </li>
-      </ul>
-
-      <div ref="sentinelRef" class="py-4 text-center" aria-hidden="true">
-        <span v-if="loadingMore" class="text-xs text-muted">Loading more…</span>
-        <span v-else-if="!hasMore && documents.length" class="text-xs text-muted">End of list</span>
+    <div class="overflow-hidden rounded-card border border-border-default bg-surface-1 shadow-card">
+      <p v-if="loading" class="p-5 text-sm text-muted">{{ t('common.loading') }}</p>
+      <p v-else-if="!documents.length" class="p-5 text-sm text-muted">{{ t('captures.empty') }}</p>
+      <table v-else class="min-w-full divide-y divide-border-subtle">
+        <thead class="bg-surface-2">
+          <tr>
+            <th scope="col" class="py-2 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wider text-muted sm:pl-6">{{ t('common.title') }}</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.type') }}</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('captures.captured_at') }}</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('captures.status') }}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border-subtle">
+          <tr v-for="doc in documents" :key="doc.id" class="transition-colors hover:bg-surface-2">
+            <td class="max-w-0 py-2 pl-4 pr-3 sm:pl-6">
+              <NuxtLink :to="`/documents/${doc.id}`" class="block truncate text-sm font-medium text-text hover:text-accent">{{ doc.title }}</NuxtLink>
+              <p v-if="doc.summary" class="mt-0.5 line-clamp-1 text-xs text-muted">
+                {{ doc.summary.slice(0, 180) }}{{ doc.summary.length > 180 ? '…' : '' }}
+              </p>
+            </td>
+            <td class="whitespace-nowrap px-3 py-2 text-sm text-text-soft">{{ doc.source_type }}</td>
+            <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-text-soft">{{ formatDate(doc.captured_at || doc.created_at) }}</td>
+            <td class="whitespace-nowrap px-3 py-2 text-sm">
+              <UiBadge v-if="isProcessing(doc)" variant="warning">
+                <ArrowPathIcon class="size-3.5 animate-spin" aria-hidden="true" />
+                <span>{{ t('captures.processing') }}</span>
+              </UiBadge>
+              <UiBadge v-else-if="isFailed(doc)" variant="danger">
+                <ExclamationTriangleIcon class="size-3.5" aria-hidden="true" />
+                <span>{{ t('captures.failed') }}</span>
+              </UiBadge>
+              <span v-else class="text-text-soft">—</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div ref="sentinelRef" class="border-t border-border-subtle py-3 text-center" aria-hidden="true">
+        <span v-if="loadingMore" class="text-xs text-muted">{{ t('common.loading') }}</span>
+        <span v-else-if="!hasMore && documents.length" class="text-xs text-muted">{{ t('common.end_of_list') }}</span>
       </div>
-    </section>
+    </div>
   </main>
 </template>
