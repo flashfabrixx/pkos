@@ -511,6 +511,8 @@ function activityLabel(a: ActivityRow): string {
         />
       </section>
 
+      <EntityFacts :entity-id="entity.id" :entity-kind="kind" />
+
       <slot name="sections" />
 
       <section class="space-y-3">

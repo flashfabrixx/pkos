@@ -3,7 +3,8 @@ import { z } from 'zod'
 import { requireAuth } from '../../../utils/auth'
 import { chatCompletion, chatStream } from '../../../utils/chat'
 import { chatSystemPrompt, chatUserPrompt } from '../../../utils/chat-prompts'
-import { query } from '../../../utils/db'
+import { getPool, query } from '../../../utils/db'
+import { loadFactsForEntityIds, renderFactsBlock } from '../../../utils/entity-facts'
 import { runHybridSearch } from '../../../utils/search'
 import type { MessageRow, ThreadRow } from '../../../utils/threads'
 
@@ -78,6 +79,22 @@ export default defineEventHandler(async (event) => {
     limit: body.topK ?? DEFAULT_TOP_K
   })
   const sources = search.results.slice(0, body.topK ?? DEFAULT_TOP_K)
+
+  // Pull curated facts for every entity that surfaced in retrieval.
+  // The hybrid search already extracts people / projects / tags
+  // matching the query into search.entities; for each one with facts,
+  // inject them into the system prompt as long-term context.
+  const factsByEntity = await loadFactsForEntityIds(
+    getPool(),
+    search.entities.map((e) => e.id)
+  )
+  const factsBlocks: string[] = []
+  for (const entity of search.entities) {
+    const facts = factsByEntity.get(entity.id)
+    if (!facts || !facts.length) continue
+    const block = renderFactsBlock(entity.name, facts)
+    if (block) factsBlocks.push(block)
+  }
   const sourcesPayload = sources.map((row) => ({
     documentId: row.document_id,
     title: row.title,
@@ -101,7 +118,7 @@ export default defineEventHandler(async (event) => {
 
         let assembled = ''
         const iterator = chatStream({
-          system: chatSystemPrompt(thread.system_prompt),
+          system: chatSystemPrompt({ extra: thread.system_prompt, factsBlocks }),
           user: chatUserPrompt(body.content, sources),
           history: history.map((h) => ({ role: h.role, content: h.content })),
           modelOverride: thread.model

@@ -10,12 +10,18 @@ export default defineConfig({
     }
   },
   test: {
-    // Each suite spins up a Postgres testcontainer; serialize them so we
-    // don't churn through 16+ containers at once on developer machines.
+    // Each suite spins up a Postgres testcontainer + Nuxt dev server;
+    // run them serially so we don't churn through 16+ containers at
+    // once and don't race for ports / RAM on CI runners.
     pool: 'forks',
-    poolOptions: {
-      forks: { singleFork: true }
-    },
+    // Vitest 4 hoisted poolOptions to top-level (the deprecation warning
+    // we saw before); `singleFork: true` is the new home for what used
+    // to be `poolOptions.forks.singleFork`.
+    singleFork: true,
+    // For belt-and-braces serial execution across files in the same
+    // fork - some suites share the testcontainer image cache and
+    // spinning two at once also racy.
+    fileParallelism: false,
     include: [
       'apps/web/test/**/*.test.ts',
       'packages/*/test/**/*.test.ts'

@@ -5,6 +5,7 @@ import { chatCompletion } from '../../utils/chat'
 import { chatSystemPrompt } from '../../utils/chat-prompts'
 import { getPool, query } from '../../utils/db'
 import { compileEntityExport } from '../../utils/entity-export'
+import { loadFactsForEntityIds, renderFactsBlock } from '../../utils/entity-facts'
 
 const schema = z.object({
   entityId: z.string().uuid(),
@@ -84,6 +85,16 @@ export default defineEventHandler(async (event) => {
   const exportMarkdown = await compileEntityExport(getPool(), body.entityId)
   const sources = await loadEntitySources(body.entityId)
 
+  // Always inject curated facts for the briefed entity - they are
+  // the single most relevant context for a briefing.
+  const factsByEntity = await loadFactsForEntityIds(getPool(), [body.entityId])
+  const factsBlocks: string[] = []
+  const ownFacts = factsByEntity.get(body.entityId)
+  if (ownFacts && ownFacts.length) {
+    const block = renderFactsBlock(entity.name, ownFacts)
+    if (block) factsBlocks.push(block)
+  }
+
   const model = body.model || DEFAULT_BRIEFING_MODEL
   const title = briefingTitle(body.kind, entity)
 
@@ -100,7 +111,7 @@ export default defineEventHandler(async (event) => {
   )
 
   const completion = await chatCompletion({
-    system: chatSystemPrompt(KIND_INSTRUCTIONS[body.kind]),
+    system: chatSystemPrompt({ extra: KIND_INSTRUCTIONS[body.kind], factsBlocks }),
     user: userContent,
     modelOverride: model,
     // Briefings are deliberately longer than a normal chat turn.
