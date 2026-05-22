@@ -2,6 +2,7 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import {
   ArrowPathIcon,
+  ArrowUturnLeftIcon,
   BuildingOfficeIcon,
   CalendarDaysIcon,
   ChatBubbleLeftIcon,
@@ -620,6 +621,18 @@ const confidentialityBadge = computed(() => {
             </Menu>
           </div>
         </header>
+
+        <section v-if="document.metadata?.derived_from?.thread_id" class="flex items-center gap-2 text-xs text-muted">
+          <ArrowUturnLeftIcon class="size-4 text-muted-soft" aria-hidden="true" />
+          <span>Derived from thread</span>
+          <NuxtLink :to="`/threads/${document.metadata.derived_from.thread_id}`" class="font-medium text-accent hover:underline">
+            {{ document.metadata.derived_from.thread_id.slice(0, 8) }}
+          </NuxtLink>
+          <template v-if="Array.isArray(document.metadata.derived_from.source_documents) && document.metadata.derived_from.source_documents.length">
+            <span aria-hidden="true">·</span>
+            <span>{{ document.metadata.derived_from.source_documents.length }} source captures</span>
+          </template>
+        </section>
 
         <section v-if="document.summary" class="rounded-card bg-accent-soft p-4">
           <p class="text-sm leading-relaxed text-text">{{ document.summary }}</p>

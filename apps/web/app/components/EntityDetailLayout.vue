@@ -4,6 +4,7 @@ import {
   ArrowPathIcon,
   CalendarDaysIcon,
   ChatBubbleLeftIcon,
+  ChatBubbleLeftRightIcon,
   ClipboardDocumentCheckIcon,
   ClipboardDocumentIcon,
   ClockIcon,
@@ -244,6 +245,26 @@ const indexRoute = computed(() => {
 const deleting = ref(false)
 const copying = ref(false)
 const copyState = ref<'idle' | 'copied' | 'failed'>('idle')
+const briefingLoading = ref(false)
+
+async function startBriefingThread() {
+  if (briefingLoading.value) return
+  briefingLoading.value = true
+  try {
+    // Server-side compiles the entity export, creates the thread,
+    // seeds the user prompt and runs a single LLM call. Wait for the
+    // response (5-15s with Opus) and then jump straight into the
+    // thread - follow-up turns happen in the standard streaming UI.
+    const r = await $fetch<{ threadId: string }>('/api/threads/briefings', {
+      method: 'POST',
+      body: { entityId: props.entity.id, kind: 'briefing' }
+    })
+    await navigateTo(`/threads/${r.threadId}`)
+  } catch (error) {
+    console.error('Failed to start briefing thread', error)
+    briefingLoading.value = false
+  }
+}
 
 async function copyForChat() {
   if (copying.value) return
@@ -369,6 +390,22 @@ function activityLabel(a: ActivityRow): string {
                 >
                   <SparklesIcon class="size-4" aria-hidden="true" />
                   <span>{{ summaryWorking ? 'Summarising…' : 'Refresh summary' }}</span>
+                </button>
+              </MenuItem>
+              <MenuItem v-slot="{ active }">
+                <button
+                  type="button"
+                  :class="[
+                    'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm',
+                    active ? 'bg-accent-soft text-accent' : 'text-text',
+                    briefingLoading && 'cursor-not-allowed opacity-60'
+                  ]"
+                  :disabled="briefingLoading"
+                  :title="`Start a new thread with an Opus-generated briefing on this ${kind} as the first turn.`"
+                  @click="startBriefingThread"
+                >
+                  <ChatBubbleLeftRightIcon class="size-4" aria-hidden="true" />
+                  <span>{{ briefingLoading ? 'Generating briefing…' : 'Generate briefing thread' }}</span>
                 </button>
               </MenuItem>
               <MenuItem v-slot="{ active }">

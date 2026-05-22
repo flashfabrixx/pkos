@@ -31,7 +31,12 @@
     "empty_title": "Noch keine Threads",
     "empty_hint": "Lege einen neuen Thread an, um mit deinen Captures zu chatten.",
     "empty_chat_title": "Konversation starten",
-    "empty_chat_hint": "Deine Frage wird mit Quellen aus PKOS beantwortet."
+    "empty_chat_hint": "Deine Frage wird mit Quellen aus PKOS beantwortet.",
+    "save_as_document": "Als Dokument sichern",
+    "save_hint": "Diese Antwort als PKOS-Dokument persistieren, verlinkt zurück auf die Quellen.",
+    "saving": "Wird gesichert…",
+    "saved": "Gesichert",
+    "derived_from": "Abgeleitet aus Thread"
   },
   "common": {
     "loading": "Lädt…",
