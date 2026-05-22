@@ -14,7 +14,9 @@ export default defineEventHandler(async (event) => {
   requireAuth(event)
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Missing id' })
-  const input = schema.parse(await readBody(event))
+  const parsed = schema.safeParse(await readBody(event))
+  if (!parsed.success) throw createError({ statusCode: 400, statusMessage: parsed.error.message })
+  const input = parsed.data
 
   const entity = await query<{ type: string }>(
     `SELECT type FROM entities WHERE id = $1 AND deleted_at IS NULL`,

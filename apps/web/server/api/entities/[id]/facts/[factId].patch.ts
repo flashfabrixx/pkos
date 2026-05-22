@@ -21,7 +21,9 @@ export default defineEventHandler(async (event) => {
   const entityId = getRouterParam(event, 'id')
   const factId = getRouterParam(event, 'factId')
   if (!entityId || !factId) throw createError({ statusCode: 400, statusMessage: 'Missing id' })
-  const input = schema.parse(await readBody(event))
+  const parsed = schema.safeParse(await readBody(event))
+  if (!parsed.success) throw createError({ statusCode: 400, statusMessage: parsed.error.message })
+  const input = parsed.data
 
   return withTransaction(async (client) => {
     const existing = await client.query<{ position: number }>(
