@@ -5,6 +5,7 @@ import {
   CalendarDaysIcon,
   ChatBubbleLeftIcon,
   ClipboardDocumentCheckIcon,
+  ClipboardDocumentIcon,
   ClockIcon,
   DocumentTextIcon,
   EllipsisHorizontalIcon,
@@ -241,6 +242,46 @@ const indexRoute = computed(() => {
 })
 
 const deleting = ref(false)
+const copying = ref(false)
+const copyState = ref<'idle' | 'copied' | 'failed'>('idle')
+
+async function copyForChat() {
+  if (copying.value) return
+  copying.value = true
+  copyState.value = 'idle'
+  try {
+    const result = await $fetch<{ markdown: string }>(`/api/entities/${props.entity.id}/export`)
+    const markdown = result?.markdown || ''
+    if (!markdown) {
+      copyState.value = 'failed'
+      return
+    }
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(markdown)
+      copyState.value = 'copied'
+    } else {
+      // Older browsers / non-secure contexts: drop into a textarea and
+      // execCommand('copy'). Best-effort fallback.
+      const ta = document.createElement('textarea')
+      ta.value = markdown
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      const ok = document.execCommand('copy')
+      document.body.removeChild(ta)
+      copyState.value = ok ? 'copied' : 'failed'
+    }
+  } catch (error) {
+    console.error('Failed to copy entity export', error)
+    copyState.value = 'failed'
+  } finally {
+    copying.value = false
+    if (copyState.value === 'copied') {
+      window.setTimeout(() => { copyState.value = 'idle' }, 2400)
+    }
+  }
+}
 
 async function deleteEntity() {
   if (deleting.value) return
@@ -328,6 +369,26 @@ function activityLabel(a: ActivityRow): string {
                 >
                   <SparklesIcon class="size-4" aria-hidden="true" />
                   <span>{{ summaryWorking ? 'Summarising…' : 'Refresh summary' }}</span>
+                </button>
+              </MenuItem>
+              <MenuItem v-slot="{ active }">
+                <button
+                  type="button"
+                  :class="[
+                    'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm',
+                    active ? 'bg-accent-soft text-accent' : 'text-text',
+                    copying && 'cursor-not-allowed opacity-60'
+                  ]"
+                  :disabled="copying"
+                  :title="`Copy a full Markdown briefing on this ${kind} to the clipboard so you can paste it into a chat workbench like Claude.`"
+                  @click="copyForChat"
+                >
+                  <ClipboardDocumentIcon class="size-4" aria-hidden="true" />
+                  <span>
+                    <template v-if="copyState === 'copied'">Copied to clipboard</template>
+                    <template v-else-if="copyState === 'failed'">Copy failed</template>
+                    <template v-else>{{ copying ? 'Preparing…' : 'Copy as Markdown' }}</template>
+                  </span>
                 </button>
               </MenuItem>
               <MenuItem v-slot="{ active }">
