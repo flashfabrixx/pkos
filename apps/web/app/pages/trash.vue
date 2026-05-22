@@ -1,17 +1,21 @@
 <script setup lang="ts">
 import {
-  ArrowUturnLeftIcon,
   ChatBubbleLeftIcon,
   ClipboardDocumentCheckIcon,
   DocumentTextIcon,
+  FolderIcon,
   HashtagIcon,
-  TrashIcon,
-  UsersIcon,
-  FolderIcon
+  UsersIcon
 } from '@heroicons/vue/24/outline'
+import type { Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
+
+// Mirrors apps/web/server/utils/trash-retention.ts. The server task
+// is the authority on actual deletion; this is just the countdown
+// label.
+const TRASH_RETENTION_DAYS = 30
 useHead({ title: () => t('trash.title') })
 
 type TrashKind = 'documents' | 'entities' | 'actions' | 'comments'
@@ -25,7 +29,7 @@ interface TrashData {
 
 const { data, refresh, pending } = await useFetch<TrashData>('/api/trash')
 
-function entityIconFor(type: string | null | undefined) {
+function entityIconFor(type: string | null | undefined): Component {
   if (type === 'person') return UsersIcon
   if (type === 'project') return FolderIcon
   if (type === 'tag') return HashtagIcon
@@ -55,137 +59,153 @@ function formatDate(value: string | null | undefined) {
   return formatBrowserDate(value)
 }
 
+/**
+ * Returns the human countdown until trash:purge will hard-delete this
+ * row. Pure function of deleted_at + retention window; recomputed on
+ * each render so it stays current even on a long-lived page.
+ */
+function expiresIn(deletedAt: string): { label: string, urgent: boolean } {
+  const deleted = new Date(deletedAt).getTime()
+  if (Number.isNaN(deleted)) return { label: '', urgent: false }
+  const expiresMs = deleted + TRASH_RETENTION_DAYS * 24 * 60 * 60 * 1000
+  const remainingDays = Math.ceil((expiresMs - Date.now()) / (24 * 60 * 60 * 1000))
+  if (remainingDays <= 0) return { label: t('trash.expires_today'), urgent: true }
+  if (remainingDays === 1) return { label: t('trash.expires_tomorrow'), urgent: true }
+  return { label: t('trash.expires_in', { days: remainingDays }), urgent: remainingDays <= 7 }
+}
+
 const totalCount = computed(() => {
   if (!data.value) return 0
   return data.value.documents.length + data.value.entities.length + data.value.actions.length + data.value.comments.length
 })
+
+interface SectionRow {
+  id: string
+  icon: Component
+  title: string
+  meta: string
+  deletedAt: string
+}
+interface Section {
+  key: TrashKind
+  title: string
+  icon: Component
+  rows: SectionRow[]
+}
+
+const sections = computed<Section[]>(() => {
+  if (!data.value) return []
+  const out: Section[] = []
+  if (data.value.documents.length) {
+    out.push({
+      key: 'documents',
+      title: t('trash.section_captures'),
+      icon: DocumentTextIcon,
+      rows: data.value.documents.map((doc) => ({
+        id: doc.id,
+        icon: DocumentTextIcon,
+        title: doc.title,
+        meta: `${doc.source_type} · ${formatDate(doc.deleted_at)}`,
+        deletedAt: doc.deleted_at
+      }))
+    })
+  }
+  if (data.value.entities.length) {
+    out.push({
+      key: 'entities',
+      title: t('trash.section_entities'),
+      icon: UsersIcon,
+      rows: data.value.entities.map((ent) => ({
+        id: ent.id,
+        icon: entityIconFor(ent.type),
+        title: ent.name,
+        meta: `${ent.type} · ${formatDate(ent.deleted_at)}`,
+        deletedAt: ent.deleted_at
+      }))
+    })
+  }
+  if (data.value.actions.length) {
+    out.push({
+      key: 'actions',
+      title: t('trash.section_actions'),
+      icon: ClipboardDocumentCheckIcon,
+      rows: data.value.actions.map((act) => ({
+        id: act.id,
+        icon: ClipboardDocumentCheckIcon,
+        title: act.title,
+        meta: act.document_title ? `${act.document_title} · ${formatDate(act.deleted_at)}` : formatDate(act.deleted_at),
+        deletedAt: act.deleted_at
+      }))
+    })
+  }
+  if (data.value.comments.length) {
+    out.push({
+      key: 'comments',
+      title: t('trash.section_comments'),
+      icon: ChatBubbleLeftIcon,
+      rows: data.value.comments.map((cmt) => ({
+        id: cmt.id,
+        icon: ChatBubbleLeftIcon,
+        title: cmt.body.slice(0, 140) + (cmt.body.length > 140 ? '…' : ''),
+        meta: cmt.entity_name ? `on ${cmt.entity_name} · ${formatDate(cmt.deleted_at)}` : formatDate(cmt.deleted_at),
+        deletedAt: cmt.deleted_at
+      }))
+    })
+  }
+  return out
+})
 </script>
 
 <template>
-  <main class="mx-auto grid max-w-5xl gap-4 p-5">
-    <section class="rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
-      <header class="mb-4">
-        <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">{{ t('trash.eyebrow') }}</p>
-        <h1 class="text-xl font-semibold tracking-tight text-text-strong">{{ t('trash.title') }}</h1>
-      </header>
+  <main class="mx-auto w-full max-w-6xl p-5">
+    <OverviewHeader :title="t('trash.title')" :subtitle="t('trash.subtitle')" />
 
-      <p v-if="pending" class="text-sm text-muted">{{ t('common.loading') }}</p>
-      <p v-else-if="!totalCount" class="text-sm text-muted">{{ t('trash.empty') }}</p>
+    <p v-if="pending" class="text-sm text-muted">{{ t('common.loading') }}</p>
+    <p v-else-if="!totalCount" class="text-sm text-muted">{{ t('trash.empty') }}</p>
 
-      <div v-else class="grid gap-6">
-        <section v-if="data?.documents.length">
-          <h2 class="mb-2 flex items-center gap-2 text-sm font-semibold text-text-strong">
-            <DocumentTextIcon class="size-4" aria-hidden="true" />
-            <span>{{ t('trash.section_captures') }}</span>
-            <span class="text-xs font-normal text-muted">{{ data.documents.length }}</span>
-          </h2>
-          <ul class="divide-y divide-border-subtle">
-            <li v-for="doc in data.documents" :key="doc.id" class="flex items-center gap-3 py-2.5">
-              <div class="min-w-0 flex-1">
-                <p class="truncate text-sm font-medium text-text">{{ doc.title }}</p>
-                <p class="text-xs text-muted">{{ doc.source_type }} · deleted {{ formatDate(doc.deleted_at) }}</p>
-              </div>
-              <div class="flex shrink-0 gap-1">
-                <UiButton variant="secondary" size="sm" @click="restore('documents', doc.id)">
-                  <ArrowUturnLeftIcon class="size-4" aria-hidden="true" />
-                  {{ t('trash.restore') }}
-                </UiButton>
-                <UiButton variant="danger" size="sm" @click="purge('documents', doc.id)">
-                  <TrashIcon class="size-4" aria-hidden="true" />
-                  {{ t('trash.purge') }}
-                </UiButton>
-              </div>
-            </li>
-          </ul>
-        </section>
-
-        <section v-if="data?.entities.length">
-          <h2 class="mb-2 flex items-center gap-2 text-sm font-semibold text-text-strong">
-            <UsersIcon class="size-4" aria-hidden="true" />
-            <span>{{ t('trash.section_entities') }}</span>
-            <span class="text-xs font-normal text-muted">{{ data.entities.length }}</span>
-          </h2>
-          <ul class="divide-y divide-border-subtle">
-            <li v-for="ent in data.entities" :key="ent.id" class="flex items-center gap-3 py-2.5">
-              <div class="min-w-0 flex-1">
-                <p class="flex items-center gap-2 truncate text-sm font-medium text-text">
-                  <component :is="entityIconFor(ent.type)" class="size-4 text-muted" aria-hidden="true" />
-                  {{ ent.name }}
-                </p>
-                <p class="text-xs text-muted">{{ ent.type }} · deleted {{ formatDate(ent.deleted_at) }}</p>
-              </div>
-              <div class="flex shrink-0 gap-1">
-                <UiButton variant="secondary" size="sm" @click="restore('entities', ent.id)">
-                  <ArrowUturnLeftIcon class="size-4" aria-hidden="true" />
-                  {{ t('trash.restore') }}
-                </UiButton>
-                <UiButton variant="danger" size="sm" @click="purge('entities', ent.id)">
-                  <TrashIcon class="size-4" aria-hidden="true" />
-                  {{ t('trash.purge') }}
-                </UiButton>
-              </div>
-            </li>
-          </ul>
-        </section>
-
-        <section v-if="data?.actions.length">
-          <h2 class="mb-2 flex items-center gap-2 text-sm font-semibold text-text-strong">
-            <ClipboardDocumentCheckIcon class="size-4" aria-hidden="true" />
-            <span>{{ t('trash.section_actions') }}</span>
-            <span class="text-xs font-normal text-muted">{{ data.actions.length }}</span>
-          </h2>
-          <ul class="divide-y divide-border-subtle">
-            <li v-for="act in data.actions" :key="act.id" class="flex items-center gap-3 py-2.5">
-              <div class="min-w-0 flex-1">
-                <p class="truncate text-sm font-medium text-text">{{ act.title }}</p>
+    <div v-else class="grid gap-6">
+      <section
+        v-for="section in sections"
+        :key="section.key"
+        class="overflow-hidden rounded-card border border-border-default bg-surface-1 shadow-card"
+      >
+        <header class="flex items-center gap-2 border-b border-border-subtle bg-surface-2 px-4 py-2 sm:px-6">
+          <component :is="section.icon" class="size-4 text-muted" aria-hidden="true" />
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-muted">{{ section.title }}</h2>
+          <span class="text-xs text-muted">{{ section.rows.length }}</span>
+        </header>
+        <table class="min-w-full divide-y divide-border-subtle">
+          <tbody class="divide-y divide-border-subtle">
+            <tr v-for="row in section.rows" :key="row.id" class="transition-colors hover:bg-surface-2">
+              <td class="w-10 py-2 pl-4 pr-2 align-middle sm:pl-6">
+                <component :is="row.icon" class="size-4 text-muted" aria-hidden="true" />
+              </td>
+              <td class="px-2 py-2 align-middle text-sm">
+                <p class="truncate font-medium text-text">{{ row.title }}</p>
                 <p class="text-xs text-muted">
-                  <span v-if="act.document_title">from {{ act.document_title }} · </span>
-                  deleted {{ formatDate(act.deleted_at) }}
+                  {{ row.meta }}
+                  <span
+                    :class="['ml-1', expiresIn(row.deletedAt).urgent ? 'text-warning' : 'text-muted-soft']"
+                  >· {{ expiresIn(row.deletedAt).label }}</span>
                 </p>
-              </div>
-              <div class="flex shrink-0 gap-1">
-                <UiButton variant="secondary" size="sm" @click="restore('actions', act.id)">
-                  <ArrowUturnLeftIcon class="size-4" aria-hidden="true" />
-                  {{ t('trash.restore') }}
-                </UiButton>
-                <UiButton variant="danger" size="sm" @click="purge('actions', act.id)">
-                  <TrashIcon class="size-4" aria-hidden="true" />
-                  {{ t('trash.purge') }}
-                </UiButton>
-              </div>
-            </li>
-          </ul>
-        </section>
-
-        <section v-if="data?.comments.length">
-          <h2 class="mb-2 flex items-center gap-2 text-sm font-semibold text-text-strong">
-            <ChatBubbleLeftIcon class="size-4" aria-hidden="true" />
-            <span>{{ t('trash.section_comments') }}</span>
-            <span class="text-xs font-normal text-muted">{{ data.comments.length }}</span>
-          </h2>
-          <ul class="divide-y divide-border-subtle">
-            <li v-for="cmt in data.comments" :key="cmt.id" class="flex items-center gap-3 py-2.5">
-              <div class="min-w-0 flex-1">
-                <p class="truncate text-sm text-text">{{ cmt.body.slice(0, 140) }}{{ cmt.body.length > 140 ? '…' : '' }}</p>
-                <p class="text-xs text-muted">
-                  <span v-if="cmt.entity_name">on {{ cmt.entity_name }} · </span>
-                  deleted {{ formatDate(cmt.deleted_at) }}
-                </p>
-              </div>
-              <div class="flex shrink-0 gap-1">
-                <UiButton variant="secondary" size="sm" @click="restore('comments', cmt.id)">
-                  <ArrowUturnLeftIcon class="size-4" aria-hidden="true" />
-                  {{ t('trash.restore') }}
-                </UiButton>
-                <UiButton variant="danger" size="sm" @click="purge('comments', cmt.id)">
-                  <TrashIcon class="size-4" aria-hidden="true" />
-                  {{ t('trash.purge') }}
-                </UiButton>
-              </div>
-            </li>
-          </ul>
-        </section>
-      </div>
-    </section>
+              </td>
+              <td class="whitespace-nowrap py-2 pl-3 pr-4 text-right align-middle text-sm sm:pr-6">
+                <button
+                  type="button"
+                  class="font-medium text-accent hover:text-accent-strong"
+                  @click="restore(section.key, row.id)"
+                >{{ t('trash.restore') }}</button>
+                <span class="mx-2 text-muted-soft">·</span>
+                <button
+                  type="button"
+                  class="font-medium text-danger hover:text-danger"
+                  @click="purge(section.key, row.id)"
+                >{{ t('trash.purge') }}</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
   </main>
 </template>

@@ -116,8 +116,7 @@ function formatDate(value: string | null | undefined, fallback = '') {
             </th>
             <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.name') }}</th>
             <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('captures.title') }}</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.open') }}</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.done') }}</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.open_actions') }}</th>
             <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('people.last_seen') }}</th>
           </tr>
         </thead>
@@ -139,7 +138,6 @@ function formatDate(value: string | null | undefined, fallback = '') {
             </td>
             <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-text-soft">{{ p.document_count || '—' }}</td>
             <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-text-soft">{{ p.actions_open || '—' }}</td>
-            <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-muted">{{ p.actions_done || '—' }}</td>
             <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-muted">{{ p.last_seen ? formatDate(p.last_seen) : '—' }}</td>
           </tr>
         </tbody>

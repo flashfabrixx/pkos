@@ -73,6 +73,7 @@
     "next": "Next",
     "submit": "Submit",
     "select_all": "Select all",
+    "open_actions": "Open actions",
     "name": "Name",
     "title": "Title",
     "description": "Description",
@@ -181,6 +182,7 @@
   "trash": {
     "title": "Trash",
     "eyebrow": "System",
+    "subtitle": "Items pending permanent deletion. Restore them or delete them forever.",
     "empty": "Trash is empty.",
     "section_captures": "Captures",
     "section_entities": "Entities",
@@ -188,7 +190,10 @@
     "section_comments": "Comments",
     "restore": "Restore",
     "purge": "Delete",
-    "confirm_purge": "Permanently delete this item? This cannot be undone."
+    "confirm_purge": "Permanently delete this item? This cannot be undone.",
+    "expires_in": "expires in {days} days",
+    "expires_tomorrow": "expires tomorrow",
+    "expires_today": "expires today"
   },
   "search": {
     "title": "Search knowledge",

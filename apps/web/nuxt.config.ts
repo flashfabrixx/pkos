@@ -78,7 +78,12 @@ export default defineNuxtConfig({
       '0 7 * * *': ['reminders:actions'],
       // Drain pending webhook deliveries every minute; rows with
       // next_attempt_at in the future are skipped.
-      '*/1 * * * *': ['webhook:retry']
+      '*/1 * * * *': ['webhook:retry'],
+      // Hard-delete trash items older than TRASH_RETENTION_DAYS. The
+      // soft-delete tables (documents, entities, action_items,
+      // comments) all carry deleted_at; this drops rows past the
+      // window so the trash doesn't grow unbounded.
+      '0 4 * * *': ['trash:purge']
     }
   },
   vite: {

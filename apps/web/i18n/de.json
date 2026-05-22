@@ -73,6 +73,7 @@
     "next": "Weiter",
     "submit": "Absenden",
     "select_all": "Alle auswählen",
+    "open_actions": "Offene Aufgaben",
     "name": "Name",
     "title": "Titel",
     "description": "Beschreibung",
@@ -181,6 +182,7 @@
   "trash": {
     "title": "Papierkorb",
     "eyebrow": "System",
+    "subtitle": "Elemente, die auf endgültiges Löschen warten. Wiederherstellen oder für immer löschen.",
     "empty": "Der Papierkorb ist leer.",
     "section_captures": "Captures",
     "section_entities": "Entitäten",
@@ -188,7 +190,10 @@
     "section_comments": "Kommentare",
     "restore": "Wiederherstellen",
     "purge": "Endgültig löschen",
-    "confirm_purge": "Dieses Element endgültig löschen? Das lässt sich nicht rückgängig machen."
+    "confirm_purge": "Dieses Element endgültig löschen? Das lässt sich nicht rückgängig machen.",
+    "expires_in": "läuft in {days} Tagen ab",
+    "expires_tomorrow": "läuft morgen ab",
+    "expires_today": "läuft heute ab"
   },
   "search": {
     "title": "Wissen durchsuchen",
