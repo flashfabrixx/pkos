@@ -246,6 +246,11 @@ We model components on **Tailwind Plus / Catalyst**. Keep variants as props, nev
 
 Tokens already invert through `:root[data-theme="dark"]` in `app.css`. **Do not write `dark:` variants** on individual utilities — that's how the two themes drift apart. If the only way to express the design is `dark:`, the missing piece is a semantic token; add it to `@theme` and the dark `:root` block together.
 
+### Interactive affordances
+
+- **Cursor:** every interactive element shows `cursor: pointer`. The base layer in `app.css` already covers `button`, `[role="button"]`, `[role="tab"]`, `[role="menuitem"]`, and `summary`. For anything else that takes a click (a clickable `<tr>`, a clickable `<div>` without a role), add `cursor-pointer` explicitly. Disabled controls keep the not-allowed cursor — don't override.
+- Native `<a>` links inherit pointer from the UA stylesheet — don't add it manually.
+
 ### Accessibility (non-negotiable)
 
 - Every interactive element has a visible focus ring: `focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent`. Don't remove it.

@@ -248,6 +248,19 @@
     color: inherit;
   }
 
+  /* Tailwind v4 ships `cursor: default` on <button>; we want pointer
+   * on every interactive element. Native links (<a>) already get
+   * pointer from the UA stylesheet so they're not listed here. The
+   * :not(:disabled) guard keeps disabled controls showing the
+   * not-allowed cursor instead. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"],
+  [role="menuitem"],
+  summary {
+    cursor: pointer;
+  }
+
   /* The interactive elements above keep `color: inherit` so utility
    * classes like `text-text-soft` cascade in. Native focus rings are
    * suppressed in favor of explicit `focus-visible:outline-accent` set
