@@ -68,7 +68,7 @@ const candidateOptions = computed(() => [
 </script>
 
 <template>
-  <main v-if="dept" class="mx-auto grid max-w-5xl gap-4 p-5">
+  <main v-if="dept" class="mx-auto grid max-w-6xl gap-4 p-5 md:grid-cols-[minmax(0,1fr)_320px]">
     <section class="space-y-6 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
       <header>
         <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">{{ t('departments.eyebrow') }}</p>
@@ -164,6 +164,15 @@ const candidateOptions = computed(() => [
         </form>
       </UiDialog>
     </section>
+
+    <EntityRelationsAside
+      :items="{
+        people: (data?.people || []).map((m) => ({ id: m.id, name: m.name })),
+        projects: (data?.projects || []).map((m) => ({ id: m.id, name: m.name })),
+        tags: []
+      }"
+      mode="readonly"
+    />
   </main>
   <main v-else-if="pending" class="mx-auto max-w-5xl p-5">
     <p class="text-sm text-muted">{{ t('common.loading') }}</p>
