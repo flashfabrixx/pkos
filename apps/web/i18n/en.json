@@ -31,7 +31,12 @@
     "empty_title": "No threads yet",
     "empty_hint": "Start a new thread to chat with your captures.",
     "empty_chat_title": "Start the conversation",
-    "empty_chat_hint": "Your message will be answered with citations from PKOS."
+    "empty_chat_hint": "Your message will be answered with citations from PKOS.",
+    "save_as_document": "Save as document",
+    "save_hint": "Persist this answer as a PKOS document linked back to the source captures.",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "derived_from": "Derived from thread"
   },
   "common": {
     "loading": "Loading…",

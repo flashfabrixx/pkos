@@ -3,6 +3,7 @@ import {
   ChatBubbleLeftRightIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  DocumentArrowDownIcon,
   PaperAirplaneIcon,
   TrashIcon
 } from '@heroicons/vue/24/outline'
@@ -56,6 +57,8 @@ const messages = ref<MessageRow[]>([])
 const expandedSources = ref<Set<string>>(new Set())
 const draft = ref('')
 const sending = ref(false)
+const savingMessageId = ref<string | null>(null)
+const savedMessageIds = ref<Set<string>>(new Set())
 const scroller = ref<HTMLElement | null>(null)
 const inputEl = ref<HTMLTextAreaElement | null>(null)
 
@@ -208,6 +211,27 @@ function handleStreamEvent(name: string, payload: any, assistantIndex: number) {
   }
 }
 
+async function saveMessageAsDocument(msg: MessageRow) {
+  if (!thread.value || !msg.id || savingMessageId.value === msg.id) return
+  savingMessageId.value = msg.id
+  try {
+    const r = await $fetch<{ documentId: string }>(
+      `/api/threads/${thread.value.id}/messages/${msg.id}/save`,
+      { method: 'POST' }
+    )
+    savedMessageIds.value.add(msg.id)
+    // Brief confirmation + open the new document in a fresh tab so the
+    // user does not lose the thread context.
+    if (typeof window !== 'undefined') {
+      window.open(`/documents/${r.documentId}`, '_blank', 'noopener')
+    }
+  } catch (error) {
+    console.error('Failed to save message as document', error)
+  } finally {
+    savingMessageId.value = null
+  }
+}
+
 function onEnterKey(event: KeyboardEvent) {
   if (event.shiftKey) return
   event.preventDefault()
@@ -271,7 +295,7 @@ function modelLabel(model: string | null | undefined): string {
               <span>{{ msg.content }}</span>
               <span v-if="msg.streaming" class="inline-block size-2 translate-y-[-1px] animate-pulse rounded-full bg-accent ml-1" aria-hidden="true" />
             </div>
-            <div v-if="msg.role === 'assistant' && (msg.sources?.length || msg.model)" class="flex flex-wrap items-center gap-2 text-xs text-muted">
+            <div v-if="msg.role === 'assistant' && !msg.streaming" class="flex flex-wrap items-center gap-2 text-xs text-muted">
               <button
                 v-if="msg.sources && msg.sources.length"
                 type="button"
@@ -282,6 +306,21 @@ function modelLabel(model: string | null | undefined): string {
                 <span>{{ msg.sources.length }} {{ msg.sources.length === 1 ? t('threads.source') : t('threads.sources') }}</span>
               </button>
               <span v-if="msg.model">{{ modelLabel(msg.model) }}</span>
+              <button
+                v-if="msg.id && !msg.id.startsWith('local-')"
+                type="button"
+                class="inline-flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-surface-2 hover:text-text"
+                :disabled="savingMessageId === msg.id"
+                :title="t('threads.save_hint')"
+                @click="saveMessageAsDocument(msg)"
+              >
+                <DocumentArrowDownIcon class="size-3" aria-hidden="true" />
+                <span>
+                  <template v-if="savedMessageIds.has(msg.id)">{{ t('threads.saved') }}</template>
+                  <template v-else-if="savingMessageId === msg.id">{{ t('threads.saving') }}</template>
+                  <template v-else>{{ t('threads.save_as_document') }}</template>
+                </span>
+              </button>
             </div>
             <div
               v-if="msg.role === 'assistant' && expandedSources.has(msg.id || `idx-${i}`) && msg.sources?.length"
