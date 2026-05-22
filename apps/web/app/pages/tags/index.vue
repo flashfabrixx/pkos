@@ -131,7 +131,7 @@ function formatDate(value: string | null | undefined, fallback = '') {
           </tr>
         </tbody>
       </table>
-      <div ref="sentinelRef" class="py-2 text-center" aria-hidden="true">
+      <div ref="sentinelRef" :class="loadingMore ? 'py-2 text-center' : ''" aria-hidden="true">
         <span v-if="loadingMore" class="text-xs text-muted">{{ t('common.loading') }}</span>
       </div>
     </div>
