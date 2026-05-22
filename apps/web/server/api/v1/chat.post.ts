@@ -2,7 +2,8 @@ import { createError, readBody } from 'h3'
 import { z } from 'zod'
 import { requireAuthOrApiKey } from '../../utils/auth'
 import { chatCompletion } from '../../utils/chat'
-import { runHybridSearch, type SearchHit } from '../../utils/search'
+import { chatSystemPrompt, chatUserPrompt } from '../../utils/chat-prompts'
+import { runHybridSearch } from '../../utils/search'
 
 const messageSchema = z.object({
   role: z.enum(['system', 'user', 'assistant']),
@@ -51,8 +52,8 @@ export default defineEventHandler(async (event) => {
   const sources = search.results.slice(0, topK ?? DEFAULT_TOP_K)
 
   const completion = await chatCompletion({
-    system: systemPrompt(),
-    user: userPrompt(question, sources),
+    system: chatSystemPrompt(),
+    user: chatUserPrompt(question, sources),
     history
   })
 
@@ -71,25 +72,3 @@ export default defineEventHandler(async (event) => {
   }
 })
 
-function systemPrompt() {
-  return [
-    'You answer questions strictly from the provided sources. Cite each',
-    'claim by appending the matching [doc-N] tag from the sources block.',
-    'If the sources do not contain an answer, say so plainly. Reply in the',
-    "user's language. Keep answers tight: 1-4 short sentences unless the",
-    'user explicitly asks for detail. No filler, no apologies.'
-  ].join(' ')
-}
-
-function userPrompt(question: string, sources: SearchHit[]) {
-  if (!sources.length) {
-    return `Question:\n${question}\n\nSources:\n(no matches)\n\nAnswer:`
-  }
-  const block = sources
-    .map((row, i) => {
-      const head = [row.title, row.captured_at ? `(${row.captured_at})` : null].filter(Boolean).join(' ')
-      return `[doc-${i + 1}] ${head}\n${row.excerpt}`
-    })
-    .join('\n\n')
-  return `Question:\n${question}\n\nSources:\n${block}\n\nAnswer:`
-}

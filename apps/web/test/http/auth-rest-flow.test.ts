@@ -18,7 +18,7 @@ d('auth + REST v1 end-to-end', () => {
       headers: { 'content-type': 'application/json', origin: nuxt.baseUrl },
       body: '{}'
     })
-  }, 120_000)
+  }, 300_000)
 
   afterAll(async () => {
     await nuxt?.stop()

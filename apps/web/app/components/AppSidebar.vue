@@ -2,6 +2,7 @@
 import {
   BuildingOffice2Icon,
   ChartBarSquareIcon,
+  ChatBubbleLeftRightIcon,
   Cog6ToothIcon,
   FolderIcon,
   HashtagIcon,
@@ -33,6 +34,7 @@ const navItems = computed(() => [
   { to: '/', label: t('nav.capture'), icon: PencilSquareIcon },
   { to: '/documents', label: t('nav.captures'), icon: InboxIcon },
   { to: '/actions', label: t('nav.actions'), icon: QueueListIcon, badge: () => openActions.value },
+  { to: '/threads', label: t('nav.threads'), icon: ChatBubbleLeftRightIcon },
   { to: '/people', label: t('nav.people'), icon: UsersIcon },
   { to: '/departments', label: t('nav.departments'), icon: BuildingOffice2Icon },
   { to: '/projects', label: t('nav.projects'), icon: FolderIcon },

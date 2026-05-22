@@ -64,7 +64,10 @@ export async function startNuxtServer(databaseUrl: string): Promise<NuxtServerCo
   child.stderr.on('data', sink)
 
   const baseUrl = `http://127.0.0.1:${port}`
-  const deadline = Date.now() + 120_000
+  // Nuxt dev boot on CI runners can take 60-150s once the suite grows;
+  // give the readiness probe a generous ceiling so single-fork serial
+  // boots don't flake.
+  const deadline = Date.now() + 240_000
   let ready = false
   while (Date.now() < deadline) {
     try {
