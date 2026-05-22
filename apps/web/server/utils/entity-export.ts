@@ -120,16 +120,21 @@ async function loadDocuments(client: pg.PoolClient | pg.Pool, entityId: string) 
 }
 
 async function loadActionItems(client: pg.PoolClient | pg.Pool, entityId: string, type: SupportedEntityType) {
-  // For people, action_items.person_id is the strong link. For other
-  // types, fall back to "any action item in a document that mentions
-  // this entity". Open items come first, then done, both by recency.
+  // Surface every action that's relevant to the entity, then mark the
+  // strongest links. For a person, "direct" means a.person_id matches
+  // (assigned to them); for any entity, an action also surfaces if its
+  // document mentions the entity. Direct hits sort first within each
+  // status bucket.
   const sql = type === 'person'
     ? `SELECT a.id, a.title, a.status, a.due_date::text AS due_date,
-              d.title AS document_title, true AS direct
+              d.title AS document_title, (a.person_id = $1) AS direct
        FROM action_items a
        JOIN documents d ON d.id = a.document_id
-       WHERE a.person_id = $1 AND a.deleted_at IS NULL AND d.deleted_at IS NULL
+       WHERE a.deleted_at IS NULL AND d.deleted_at IS NULL
+         AND (a.person_id = $1
+              OR a.document_id IN (SELECT document_id FROM entity_mentions WHERE entity_id = $1))
        ORDER BY (a.status = 'open') DESC,
+                (a.person_id = $1) DESC,
                 a.due_date NULLS LAST,
                 a.created_at DESC
        LIMIT $2`
