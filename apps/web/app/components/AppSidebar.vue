@@ -45,7 +45,13 @@ interface NavItem {
 }
 
 const navItems = computed<NavItem[]>(() => [
-  { to: '/threads', label: t('nav.threads'), icon: ChatBubbleLeftRightIcon },
+  {
+    to: '/threads',
+    label: t('nav.threads'),
+    icon: ChatBubbleLeftRightIcon,
+    createHref: '/threads?new=1',
+    createLabel: t('threads.new')
+  },
   { to: '/actions', label: t('nav.actions'), icon: QueueListIcon, badge: () => openActions.value },
   {
     to: '/documents',
@@ -68,7 +74,13 @@ const navItems = computed<NavItem[]>(() => [
     createHref: '/departments?new=1',
     createLabel: t('departments.add')
   },
-  { to: '/projects', label: t('nav.projects'), icon: FolderIcon },
+  {
+    to: '/projects',
+    label: t('nav.projects'),
+    icon: FolderIcon,
+    createHref: '/projects?new=1',
+    createLabel: t('projects.add')
+  },
   {
     to: '/tags',
     label: t('nav.tags'),
