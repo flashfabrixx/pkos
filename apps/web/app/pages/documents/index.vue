@@ -5,6 +5,7 @@ import {
   PlusIcon
 } from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
+import { sourceTypeIcon } from '~/utils/source-type'
 import { useInfiniteList } from '~/composables/useInfiniteList'
 
 const { t } = useI18n()
@@ -67,21 +68,30 @@ function formatDate(value: string | null | undefined, fallback = '') {
       <table v-else class="min-w-full divide-y divide-border-subtle">
         <thead class="bg-surface-2">
           <tr>
-            <th scope="col" class="w-full py-2 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wider text-muted sm:pl-6">{{ t('common.title') }}</th>
-            <th scope="col" class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.type') }}</th>
+            <th scope="col" class="w-10 py-2 pl-4 pr-2 sm:pl-6">
+              <span class="sr-only">{{ t('common.type') }}</span>
+            </th>
+            <th scope="col" class="w-full py-2 pr-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.title') }}</th>
             <th scope="col" class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('captures.captured_at') }}</th>
             <th scope="col" class="whitespace-nowrap px-3 py-2 pr-4 text-left text-xs font-semibold uppercase tracking-wider text-muted sm:pr-6">{{ t('captures.status') }}</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-border-subtle">
           <tr v-for="doc in documents" :key="doc.id" class="transition-colors hover:bg-surface-2">
-            <td class="max-w-0 py-2 pl-4 pr-3 sm:pl-6">
+            <td class="py-2 pl-4 pr-2 align-middle sm:pl-6">
+              <component
+                :is="sourceTypeIcon(doc.source_type)"
+                class="size-4 text-muted"
+                aria-hidden="true"
+              />
+              <span class="sr-only">{{ doc.source_type }}</span>
+            </td>
+            <td class="max-w-0 py-2 pr-3">
               <NuxtLink :to="`/documents/${doc.id}`" class="block truncate text-sm font-medium text-text hover:text-accent">{{ doc.title }}</NuxtLink>
               <p v-if="doc.summary" class="mt-0.5 line-clamp-1 text-xs text-muted">
                 {{ doc.summary.slice(0, 180) }}{{ doc.summary.length > 180 ? '…' : '' }}
               </p>
             </td>
-            <td class="whitespace-nowrap px-3 py-2 text-sm text-text-soft">{{ doc.source_type }}</td>
             <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-text-soft">{{ formatDate(doc.captured_at || doc.created_at) }}</td>
             <td class="whitespace-nowrap px-3 py-2 pr-4 text-sm sm:pr-6">
               <UiBadge v-if="isProcessing(doc)" variant="warning">
