@@ -264,6 +264,15 @@
     "ip": "IP",
     "meta": "Meta"
   },
+  "reviews": {
+    "headline": "I'm not sure about 1 thing | I'm not sure about {n} things",
+    "skip": "Skip",
+    "entity_match": {
+      "question": "Is \"{extracted}\" the same as \"{candidate}\"?",
+      "confirm": "Same entity",
+      "reject": "Keep separate"
+    }
+  },
   "relations": {
     "people": "People",
     "projects": "Projects",
