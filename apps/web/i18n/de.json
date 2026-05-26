@@ -72,6 +72,8 @@
     "close": "Schließen",
     "next": "Weiter",
     "submit": "Absenden",
+    "select_all": "Alle auswählen",
+    "open_actions": "Offene Aufgaben",
     "name": "Name",
     "title": "Titel",
     "description": "Beschreibung",
@@ -103,6 +105,9 @@
   "captures": {
     "title": "Captures",
     "eyebrow": "Inbox",
+    "subtitle": "Alles, was du aufgenommen hast — Meetings, Voice-Notes, Reflexionen. Startpunkt für Suche und Threads.",
+    "captured_at": "Aufgenommen",
+    "status": "Status",
     "empty": "Noch keine Captures.",
     "processing": "Wird verarbeitet",
     "failed": "Verarbeitung fehlgeschlagen",
@@ -131,14 +136,18 @@
   "people": {
     "title": "Personen",
     "eyebrow": "Verzeichnis",
+    "subtitle": "Personen, die in deinen Captures auftauchen. Eingang zu Briefings, offenen Actions und gemeinsamer Historie.",
     "empty": "Noch keine Personen erfasst.",
     "add": "Person hinzufügen",
     "select": "Auswählen",
-    "merge": "Zusammenführen"
+    "merge": "Zusammenführen",
+    "last_seen": "Zuletzt gesehen"
   },
   "departments": {
     "title": "Abteilungen",
     "eyebrow": "Organisation",
+    "subtitle": "Organisatorische Gruppen — bündeln Personen und Projekte zu einem Team-Kontext.",
+    "parent": "Übergeordnet",
     "empty": "Noch keine Abteilungen.",
     "add": "Abteilung hinzufügen",
     "subdepartments": "Unter-Abteilungen",
@@ -153,14 +162,18 @@
   "projects": {
     "title": "Projekte",
     "eyebrow": "Verzeichnis",
+    "subtitle": "Vorhaben, die sich durch deine Captures ziehen. Übersicht über laufende Arbeit, Actions und Beteiligte.",
     "empty": "Noch keine Projekte.",
     "add": "Projekt hinzufügen"
   },
   "tags": {
     "title": "Tags",
     "eyebrow": "Verzeichnis",
+    "subtitle": "Themen-Cluster über Captures hinweg. Pivot-Punkt für thematische Suche und Briefings.",
     "empty": "Noch keine Tags.",
-    "add": "Tag hinzufügen"
+    "add": "Tag hinzufügen",
+    "usage": "Nutzung",
+    "last_used": "Zuletzt verwendet"
   },
   "graph": {
     "title": "Wissensgraph",
@@ -169,6 +182,7 @@
   "trash": {
     "title": "Papierkorb",
     "eyebrow": "System",
+    "subtitle": "Elemente, die auf endgültiges Löschen warten. Wiederherstellen oder für immer löschen.",
     "empty": "Der Papierkorb ist leer.",
     "section_captures": "Captures",
     "section_entities": "Entitäten",
@@ -176,7 +190,10 @@
     "section_comments": "Kommentare",
     "restore": "Wiederherstellen",
     "purge": "Endgültig löschen",
-    "confirm_purge": "Dieses Element endgültig löschen? Das lässt sich nicht rückgängig machen."
+    "confirm_purge": "Dieses Element endgültig löschen? Das lässt sich nicht rückgängig machen.",
+    "expires_in": "läuft in {days} Tagen ab",
+    "expires_tomorrow": "läuft morgen ab",
+    "expires_today": "läuft heute ab"
   },
   "search": {
     "title": "Wissen durchsuchen",

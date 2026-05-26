@@ -2,6 +2,61 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Behavioral guidelines
+
+Behavioral defaults to reduce common LLM coding mistakes. These bias toward caution over speed — for trivial tasks, use judgment.
+
+### 1. Think before coding
+
+Don't assume. Don't hide confusion. Surface tradeoffs.
+
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them — don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
+
+### 2. Simplicity first
+
+Minimum code that solves the problem. Nothing speculative.
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+
+### 3. Surgical changes
+
+Touch only what you must. Clean up only your own mess.
+
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it — don't delete it.
+
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+
+Every changed line should trace directly to the user's request.
+
+### 4. Goal-driven execution
+
+Define success criteria. Loop until verified.
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan with explicit verification at each step. Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+These guidelines are working if: fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
 ## Project shape
 
 PKOS is a self-hosted, **single-user** Private Knowledge Operating System: ingests text / file / IMAP / web-clipped content, runs it through an extractor + embedding pipeline, and exposes it via hybrid search, an entity graph, action board, and a versioned REST API.
@@ -190,6 +245,11 @@ We model components on **Tailwind Plus / Catalyst**. Keep variants as props, nev
 ### Dark mode
 
 Tokens already invert through `:root[data-theme="dark"]` in `app.css`. **Do not write `dark:` variants** on individual utilities — that's how the two themes drift apart. If the only way to express the design is `dark:`, the missing piece is a semantic token; add it to `@theme` and the dark `:root` block together.
+
+### Interactive affordances
+
+- **Cursor:** every interactive element shows `cursor: pointer`. The base layer in `app.css` already covers `button`, `[role="button"]`, `[role="tab"]`, `[role="menuitem"]`, and `summary`. For anything else that takes a click (a clickable `<tr>`, a clickable `<div>` without a role), add `cursor-pointer` explicitly. Disabled controls keep the not-allowed cursor — don't override.
+- Native `<a>` links inherit pointer from the UA stylesheet — don't add it manually.
 
 ### Accessibility (non-negotiable)
 

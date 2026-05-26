@@ -33,16 +33,18 @@ function isActive(path: string) {
 
 <template>
   <div>
-    <h1 class="sr-only">{{ t('settings.title') }}</h1>
-
-    <!-- Secondary navigation as underlined tabs. The strip's border-b
-         doubles as the divider between sub-nav and content. -->
-    <header class="sticky top-0 z-10 border-b border-border-default bg-app/95 backdrop-blur supports-[backdrop-filter]:bg-app/80">
+    <!-- Page header consistent with other top-level views: title above
+         the secondary navigation, both sticky so the tab strip stays
+         reachable while scrolling. -->
+    <div class="sticky top-0 z-10 border-b border-border-default bg-app/95 backdrop-blur supports-[backdrop-filter]:bg-app/80">
+      <div class="mx-auto max-w-7xl px-4 pt-5 sm:px-6 lg:px-8">
+        <h1 class="text-xl font-semibold tracking-tight text-text-strong">{{ t('settings.title') }}</h1>
+      </div>
       <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <ul
           role="list"
           class="-mb-px flex gap-x-6 overflow-x-auto whitespace-nowrap text-sm font-medium"
-          aria-label="Settings"
+          :aria-label="t('settings.title')"
         >
           <li v-for="item in navItems" :key="item.to">
             <NuxtLink
@@ -66,7 +68,7 @@ function isActive(path: string) {
           </li>
         </ul>
       </nav>
-    </header>
+    </div>
 
     <!-- Section stack. Each child <SettingsSection> renders its own
          grid (title left on page bg, content card right). -->

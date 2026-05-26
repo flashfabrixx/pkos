@@ -8,7 +8,7 @@ withDefaults(defineProps<{
 </script>
 
 <template>
-  <section class="mx-auto grid max-w-7xl grid-cols-1 gap-x-8 gap-y-6 px-4 py-12 sm:px-6 md:grid-cols-3 lg:px-8">
+  <section class="mx-auto grid max-w-7xl grid-cols-1 gap-x-8 gap-y-4 px-4 py-6 sm:px-6 md:grid-cols-3 lg:px-8">
     <!-- Left column: title + description sit on the page background
          (bg-app), establishing the contrast with the card on the right. -->
     <div class="md:pr-4">
