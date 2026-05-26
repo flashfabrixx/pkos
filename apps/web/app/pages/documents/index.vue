@@ -68,7 +68,7 @@ function formatDate(value: string | null | undefined, fallback = '') {
       <table v-else class="min-w-full divide-y divide-border-subtle">
         <thead class="bg-surface-2">
           <tr>
-            <th scope="col" class="w-10 py-2 pl-4 pr-2 sm:pl-6">
+            <th scope="col" class="w-9 py-2 pl-3 pr-1 text-center sm:pl-4">
               <span class="sr-only">{{ t('common.type') }}</span>
             </th>
             <th scope="col" class="w-full py-2 pr-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.title') }}</th>
@@ -78,10 +78,10 @@ function formatDate(value: string | null | undefined, fallback = '') {
         </thead>
         <tbody class="divide-y divide-border-subtle">
           <tr v-for="doc in documents" :key="doc.id" class="transition-colors hover:bg-surface-2">
-            <td class="py-2 pl-4 pr-2 align-middle sm:pl-6">
+            <td class="py-2 pl-3 pr-1 text-center align-middle sm:pl-4">
               <component
                 :is="sourceTypeIcon(doc.source_type)"
-                class="size-4 text-muted"
+                class="mx-auto size-4 text-muted"
                 aria-hidden="true"
               />
               <span class="sr-only">{{ doc.source_type }}</span>
