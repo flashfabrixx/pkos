@@ -65,6 +65,10 @@ const visibleTags = computed(() => filterSelf(props.items.tags, 'tag'))
 
 <template>
   <aside class="space-y-6 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
+    <p
+      v-if="mode === 'readonly'"
+      class="text-[11px] font-medium uppercase tracking-wider text-muted"
+    >{{ t('relations.eyebrow') }}</p>
     <section class="space-y-2">
       <div class="flex items-center gap-2 border-b border-border-subtle pb-1.5 text-sm font-semibold text-text-strong">
         <UsersIcon class="size-4 text-muted" aria-hidden="true" />

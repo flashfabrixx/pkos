@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { FolderIcon } from '@heroicons/vue/24/outline'
-import { colorFor } from '~/utils/hash-color'
-
 interface ActionRow {
   id: string
   title: string
@@ -44,8 +41,6 @@ watch(
   { immediate: true }
 )
 
-const projectColor = computed(() => colorFor(project.value?.name))
-
 async function toggleAction(action: ActionRow) {
   const previous = action.status
   const next = previous === 'done' ? 'open' : 'done'
@@ -73,14 +68,6 @@ async function toggleAction(action: ActionRow) {
     @update:entity="refresh"
     @update:comments="(value) => comments = value"
   >
-    <template #avatar>
-      <span
-        class="inline-flex size-12 shrink-0 items-center justify-center rounded-card"
-        :style="{ background: projectColor.bg, color: projectColor.fg }"
-      >
-        <FolderIcon class="size-6" aria-hidden="true" />
-      </span>
-    </template>
     <template #sections>
       <EntityDocumentList :documents="documents" title="Documents" />
       <EntityActionList

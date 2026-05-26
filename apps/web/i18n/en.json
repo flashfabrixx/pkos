@@ -274,6 +274,7 @@
     }
   },
   "relations": {
+    "eyebrow": "Connected via captures",
     "people": "People",
     "projects": "Projects",
     "tags": "Tags",
