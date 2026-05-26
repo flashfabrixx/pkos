@@ -58,10 +58,10 @@ onMounted(() => {
       <table v-else class="min-w-full divide-y divide-border-subtle">
         <thead class="bg-surface-2">
           <tr>
-            <th scope="col" class="py-2 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wider text-muted sm:pl-6">{{ t('common.name') }}</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('departments.parent') }}</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('departments.members_title') }}</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('departments.projects_title') }}</th>
+            <th scope="col" class="w-full py-2 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wider text-muted sm:pl-6">{{ t('common.name') }}</th>
+            <th scope="col" class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('departments.parent') }}</th>
+            <th scope="col" class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('departments.members_title') }}</th>
+            <th scope="col" class="whitespace-nowrap px-3 py-2 pr-4 text-left text-xs font-semibold uppercase tracking-wider text-muted sm:pr-6">{{ t('departments.projects_title') }}</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-border-subtle">
@@ -74,7 +74,7 @@ onMounted(() => {
               <span v-else>—</span>
             </td>
             <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-text-soft">{{ d.members_count || '—' }}</td>
-            <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-text-soft">{{ d.projects_count || '—' }}</td>
+            <td class="whitespace-nowrap px-3 py-2 pr-4 text-sm tabular-nums text-text-soft sm:pr-6">{{ d.projects_count || '—' }}</td>
           </tr>
         </tbody>
       </table>

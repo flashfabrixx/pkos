@@ -67,10 +67,10 @@ function formatDate(value: string | null | undefined, fallback = '') {
       <table v-else class="min-w-full divide-y divide-border-subtle">
         <thead class="bg-surface-2">
           <tr>
-            <th scope="col" class="py-2 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wider text-muted sm:pl-6">{{ t('common.title') }}</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.type') }}</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('captures.captured_at') }}</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('captures.status') }}</th>
+            <th scope="col" class="w-full py-2 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wider text-muted sm:pl-6">{{ t('common.title') }}</th>
+            <th scope="col" class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.type') }}</th>
+            <th scope="col" class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('captures.captured_at') }}</th>
+            <th scope="col" class="whitespace-nowrap px-3 py-2 pr-4 text-left text-xs font-semibold uppercase tracking-wider text-muted sm:pr-6">{{ t('captures.status') }}</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-border-subtle">
@@ -83,7 +83,7 @@ function formatDate(value: string | null | undefined, fallback = '') {
             </td>
             <td class="whitespace-nowrap px-3 py-2 text-sm text-text-soft">{{ doc.source_type }}</td>
             <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-text-soft">{{ formatDate(doc.captured_at || doc.created_at) }}</td>
-            <td class="whitespace-nowrap px-3 py-2 text-sm">
+            <td class="whitespace-nowrap px-3 py-2 pr-4 text-sm sm:pr-6">
               <UiBadge v-if="isProcessing(doc)" variant="warning">
                 <ArrowPathIcon class="size-3.5 animate-spin" aria-hidden="true" />
                 <span>{{ t('captures.processing') }}</span>
