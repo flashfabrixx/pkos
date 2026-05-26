@@ -523,7 +523,9 @@ const confidentialityBadge = computed(() => {
       @deleted="handleDrawerDelete"
     />
     <main v-if="document" class="mx-auto grid max-w-[1280px] gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <section class="space-y-6 rounded-card border border-border-default bg-surface-1 p-6 shadow-card">
+      <section class="space-y-4">
+        <CaptureReviewWizard :document-id="document.id" @resolved="refresh" />
+        <div class="space-y-6 rounded-card border border-border-default bg-surface-1 p-6 shadow-card">
         <header class="space-y-3">
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0 flex-1">
@@ -998,6 +1000,7 @@ const confidentialityBadge = computed(() => {
             </summary>
             <pre class="mt-3 overflow-auto whitespace-pre-wrap rounded-card bg-surface-2 p-3 font-mono text-xs leading-relaxed text-text">{{ document.raw_text }}</pre>
           </details>
+        </div>
         </div>
       </section>
 

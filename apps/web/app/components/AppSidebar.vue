@@ -31,6 +31,12 @@ const { data } = await useFetch<{ actions: Array<{ id: string }> }>('/api/action
 })
 const openActions = computed(() => data.value?.actions.length || 0)
 
+const { data: reviewCountData } = await useFetch<{ count: number }>('/api/reviews', {
+  query: { count: '1' },
+  server: false
+})
+const openReviews = computed(() => reviewCountData.value?.count || 0)
+
 function openCommandPalette() {
   open.value = true
 }
@@ -71,6 +77,7 @@ const navGroups = computed<NavItem[][]>(() => [
       to: '/documents',
       label: t('nav.captures'),
       icon: InboxIcon,
+      badge: () => openReviews.value,
       createHref: '/',
       createLabel: t('nav.capture')
     }

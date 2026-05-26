@@ -1,5 +1,6 @@
 import type pg from 'pg'
 import type { EntityType, ExtractedKnowledge, RelationType } from '@pkos/core'
+import { emitEntityMatchReview, findFuzzyMatch } from './capture-reviews'
 import { embedTexts, vectorToPg } from './embedding'
 import { recordActivity } from './entity-activity'
 
@@ -7,6 +8,8 @@ interface EntityRef {
   id: string
   type: EntityType
   name: string
+  /** True only for the call that inserted the row (vs. upsert hit). */
+  wasInserted: boolean
 }
 
 export async function upsertEntity(client: pg.PoolClient, type: EntityType, name: string, metadata: Record<string, unknown> = {}) {
@@ -43,7 +46,34 @@ export async function upsertEntity(client: pg.PoolClient, type: EntityType, name
     }
   }
 
-  return { id: row.id, type, name: name.trim() } satisfies EntityRef
+  return { id: row.id, type, name: name.trim(), wasInserted: row.was_inserted } satisfies EntityRef
+}
+
+/**
+ * For each newly created entity of a review-eligible type, check
+ * whether an existing entity fuzzy-matches its canonical name in the
+ * "unsure" range. When yes, park an entity_match review so the user
+ * can decide whether they're the same. Non-blocking: the capture
+ * processing continues with both entities present.
+ */
+const REVIEWABLE_TYPES = new Set<EntityType>(['person', 'project', 'tag'])
+
+async function emitReviewsForNewEntities(
+  client: pg.PoolClient,
+  documentId: string,
+  newEntities: EntityRef[]
+) {
+  for (const entity of newEntities) {
+    if (!entity.wasInserted) continue
+    if (!REVIEWABLE_TYPES.has(entity.type)) continue
+    const candidate = await findFuzzyMatch(client, entity.type, canonicalize(entity.name))
+    if (!candidate) continue
+    await emitEntityMatchReview(client, {
+      documentId,
+      newEntity: { id: entity.id, name: entity.name, type: entity.type },
+      candidate
+    })
+  }
 }
 
 function describeEntity(type: EntityType, name: string, metadata: Record<string, unknown>): string {
@@ -109,6 +139,8 @@ export async function writeKnowledgeGraph(
   const insights = await upsertEntities(client, 'insight', extracted.insights)
   const questions = await upsertEntities(client, 'question', extracted.openQuestions)
   const tags = await upsertEntities(client, 'tag', extracted.tags)
+
+  await emitReviewsForNewEntities(client, documentId, [...people, ...projects, ...tags])
 
   const allMentioned = [...people, ...projects, ...decisions, ...insights, ...questions, ...tags]
   for (const entity of allMentioned) {

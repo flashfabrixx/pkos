@@ -264,6 +264,15 @@
     "ip": "IP",
     "meta": "Meta"
   },
+  "reviews": {
+    "headline": "Ich bin mir bei 1 Sache nicht sicher | Ich bin mir bei {n} Sachen nicht sicher",
+    "skip": "Überspringen",
+    "entity_match": {
+      "question": "Ist „{extracted}\" dieselbe wie „{candidate}\"?",
+      "confirm": "Gleiche Entität",
+      "reject": "Getrennt lassen"
+    }
+  },
   "relations": {
     "people": "Personen",
     "projects": "Projekte",
