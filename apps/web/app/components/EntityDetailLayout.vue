@@ -683,12 +683,13 @@ function activityLabel(a: ActivityRow): string {
                   </button>
                 </div>
               </div>
-              <!-- Activity row: small bullet + one-liner. -->
-              <div v-else-if="entry.activity" class="flex items-start gap-3">
-                <span class="mt-1.5 size-2 shrink-0 rounded-full bg-accent" aria-hidden="true"></span>
+              <!-- Activity row: visibly smaller than comments so the
+                   discussion stays the dominant signal in this card. -->
+              <div v-else-if="entry.activity" class="flex items-start gap-2.5 px-1 py-0.5">
+                <span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-muted-soft" aria-hidden="true"></span>
                 <div class="min-w-0 flex-1">
-                  <p class="text-sm text-text">{{ activityLabel(entry.activity) }}</p>
-                  <p class="text-xs text-muted">
+                  <p class="text-xs text-text-soft">{{ activityLabel(entry.activity) }}</p>
+                  <p class="text-[11px] text-muted">
                     <span>{{ relativeTime(entry.activity.occurred_at) }}</span>
                     <NuxtLink
                       v-if="entry.activity.source_document_id"
