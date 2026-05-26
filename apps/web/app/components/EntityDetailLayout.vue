@@ -385,18 +385,24 @@ async function deleteEntity() {
   }
 }
 
+// Labels are stand-alone past-tense statements, capitalised. The
+// page header already names the subject — repeating it on every
+// activity row would be noise.
 const ACTIVITY_LABEL: Record<string, (a: ActivityRow) => string> = {
-  created: () => 'was created',
-  mentioned_in_document: (a) => `mentioned in ${a.source_document_title || 'a document'}`,
-  assigned_to_action: (a) => `assigned to "${a.payload?.action_title || 'an action'}"`,
-  unassigned_from_action: (a) => `unassigned from "${a.payload?.action_title || 'an action'}"`,
-  linked_to_project: () => 'linked to a project',
-  unlinked_from_project: () => 'unlinked from a project',
-  renamed: (a) => `renamed from "${a.payload?.from}" to "${a.payload?.to}"`,
-  description_updated: () => 'description updated',
-  commented: () => 'received a comment',
-  merged_into: () => 'merged into another entity',
-  received_merge_from: (a) => `merged with ${(a.payload?.merged?.length || 0)} duplicate(s)`
+  created: () => 'Created',
+  mentioned_in_document: (a) => `Mentioned in "${a.source_document_title || 'a document'}"`,
+  assigned_to_action: (a) => `Assigned to action "${a.payload?.action_title || 'an action'}"`,
+  unassigned_from_action: (a) => `Unassigned from action "${a.payload?.action_title || 'an action'}"`,
+  linked_to_project: () => 'Linked to a project',
+  unlinked_from_project: () => 'Unlinked from a project',
+  renamed: (a) => `Renamed from "${a.payload?.from}" to "${a.payload?.to}"`,
+  description_updated: () => 'Description updated',
+  commented: () => 'Comment posted',
+  merged_into: () => 'Merged into another entity',
+  received_merge_from: (a) => {
+    const n = Number(a.payload?.merged?.length || 0)
+    return `Merged with ${n} duplicate${n === 1 ? '' : 's'}`
+  }
 }
 
 function activityLabel(a: ActivityRow): string {
