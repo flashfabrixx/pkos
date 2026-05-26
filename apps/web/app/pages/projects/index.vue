@@ -107,10 +107,10 @@ function formatDate(value: string | null | undefined, fallback = '') {
                 @change="toggleAll"
               />
             </th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.name') }}</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('captures.title') }}</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.open_actions') }}</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('people.last_seen') }}</th>
+            <th scope="col" class="w-full px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.name') }}</th>
+            <th scope="col" class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('captures.title') }}</th>
+            <th scope="col" class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.open_actions') }}</th>
+            <th scope="col" class="whitespace-nowrap px-3 py-2 pr-4 text-left text-xs font-semibold uppercase tracking-wider text-muted sm:pr-6">{{ t('people.last_seen') }}</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-border-subtle">
@@ -131,7 +131,7 @@ function formatDate(value: string | null | undefined, fallback = '') {
             </td>
             <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-text-soft">{{ p.document_count || '—' }}</td>
             <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-text-soft">{{ p.actions_open || '—' }}</td>
-            <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-muted">{{ p.last_seen ? formatDate(p.last_seen) : '—' }}</td>
+            <td class="whitespace-nowrap px-3 py-2 pr-4 text-sm tabular-nums text-muted sm:pr-6">{{ p.last_seen ? formatDate(p.last_seen) : '—' }}</td>
           </tr>
         </tbody>
       </table>

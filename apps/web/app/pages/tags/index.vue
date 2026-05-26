@@ -105,9 +105,9 @@ function formatDate(value: string | null | undefined, fallback = '') {
                 @change="toggleAll"
               />
             </th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.name') }}</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('tags.usage') }}</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('tags.last_used') }}</th>
+            <th scope="col" class="w-full px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('common.name') }}</th>
+            <th scope="col" class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">{{ t('tags.usage') }}</th>
+            <th scope="col" class="whitespace-nowrap px-3 py-2 pr-4 text-left text-xs font-semibold uppercase tracking-wider text-muted sm:pr-6">{{ t('tags.last_used') }}</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-border-subtle">
@@ -127,7 +127,7 @@ function formatDate(value: string | null | undefined, fallback = '') {
               <NuxtLink :to="`/tags/${tag.id}`" class="font-medium text-text hover:text-accent">#{{ tag.name }}</NuxtLink>
             </td>
             <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-text-soft">{{ tag.document_count || '—' }}</td>
-            <td class="whitespace-nowrap px-3 py-2 text-sm tabular-nums text-muted">{{ tag.last_seen ? formatDate(tag.last_seen) : '—' }}</td>
+            <td class="whitespace-nowrap px-3 py-2 pr-4 text-sm tabular-nums text-muted sm:pr-6">{{ tag.last_seen ? formatDate(tag.last_seen) : '—' }}</td>
           </tr>
         </tbody>
       </table>
