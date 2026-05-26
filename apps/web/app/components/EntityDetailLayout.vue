@@ -182,8 +182,22 @@ async function refreshSummary() {
 }
 
 // ---------- Comments / Activity tabs ----------
-const activityTab = ref<'comments' | 'activity'>('comments')
+const activityTab = ref<'comments' | 'all'>('comments')
 const activities = computed<ActivityRow[]>(() => props.activities || [])
+
+interface TimelineEntry {
+  kind: 'comment' | 'activity'
+  at: string
+  comment?: CommentRow
+  activity?: ActivityRow
+}
+
+const timeline = computed<TimelineEntry[]>(() => {
+  const entries: TimelineEntry[] = []
+  for (const comment of props.comments) entries.push({ kind: 'comment', at: comment.created_at, comment })
+  for (const activity of activities.value) entries.push({ kind: 'activity', at: activity.occurred_at, activity })
+  return entries.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+})
 
 const draftCommentBody = ref('')
 const postingComment = ref(false)
@@ -371,18 +385,24 @@ async function deleteEntity() {
   }
 }
 
+// Labels are stand-alone past-tense statements, capitalised. The
+// page header already names the subject — repeating it on every
+// activity row would be noise.
 const ACTIVITY_LABEL: Record<string, (a: ActivityRow) => string> = {
-  created: () => 'was created',
-  mentioned_in_document: (a) => `mentioned in ${a.source_document_title || 'a document'}`,
-  assigned_to_action: (a) => `assigned to "${a.payload?.action_title || 'an action'}"`,
-  unassigned_from_action: (a) => `unassigned from "${a.payload?.action_title || 'an action'}"`,
-  linked_to_project: () => 'linked to a project',
-  unlinked_from_project: () => 'unlinked from a project',
-  renamed: (a) => `renamed from "${a.payload?.from}" to "${a.payload?.to}"`,
-  description_updated: () => 'description updated',
-  commented: () => 'received a comment',
-  merged_into: () => 'merged into another entity',
-  received_merge_from: (a) => `merged with ${(a.payload?.merged?.length || 0)} duplicate(s)`
+  created: () => 'Created',
+  mentioned_in_document: (a) => `Mentioned in "${a.source_document_title || 'a document'}"`,
+  assigned_to_action: (a) => `Assigned to action "${a.payload?.action_title || 'an action'}"`,
+  unassigned_from_action: (a) => `Unassigned from action "${a.payload?.action_title || 'an action'}"`,
+  linked_to_project: () => 'Linked to a project',
+  unlinked_from_project: () => 'Unlinked from a project',
+  renamed: (a) => `Renamed from "${a.payload?.from}" to "${a.payload?.to}"`,
+  description_updated: () => 'Description updated',
+  commented: () => 'Comment posted',
+  merged_into: () => 'Merged into another entity',
+  received_merge_from: (a) => {
+    const n = Number(a.payload?.merged?.length || 0)
+    return `Merged with ${n} duplicate${n === 1 ? '' : 's'}`
+  }
 }
 
 function activityLabel(a: ActivityRow): string {
@@ -393,10 +413,10 @@ function activityLabel(a: ActivityRow): string {
 
 <template>
   <main class="mx-auto grid max-w-[1280px] gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-    <section class="space-y-6 rounded-card border border-border-default bg-surface-1 p-6 shadow-card">
+    <div class="space-y-4">
+      <!-- Header sits on page bg with no card chrome. Title gets to breathe. -->
       <header class="space-y-3">
         <div class="flex items-start gap-3">
-          <slot name="avatar" />
           <div class="min-w-0 flex-1">
             <p class="text-[11px] font-extrabold uppercase tracking-wider text-muted">{{ eyebrow }}</p>
             <button
@@ -513,30 +533,8 @@ function activityLabel(a: ActivityRow): string {
         </div>
       </header>
 
-      <section v-if="summary || summaryState !== 'absent'" class="space-y-2 rounded-card border border-border-subtle bg-surface-2 p-4">
-        <div class="flex items-center gap-2">
-          <SparklesIcon class="size-5 text-warning" aria-hidden="true" />
-          <h2 class="text-sm font-semibold text-text-strong">Summary</h2>
-          <UiBadge v-if="summaryState === 'stale'" variant="warning">stale</UiBadge>
-          <UiBadge v-if="summaryState === 'generating'" variant="accent">refreshing…</UiBadge>
-          <UiBadge v-if="summaryState === 'failed'" variant="danger">failed</UiBadge>
-          <button
-            v-if="summaryState !== 'generating'"
-            type="button"
-            class="ml-auto inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-text-soft transition-colors hover:bg-surface-3 hover:text-text disabled:cursor-not-allowed disabled:opacity-60"
-            :disabled="summaryWorking"
-            @click="refreshSummary"
-          >
-            <ArrowPathIcon class="size-3.5" :class="summaryWorking && 'animate-spin'" aria-hidden="true" />
-            <span>{{ summary ? 'Refresh' : 'Generate' }}</span>
-          </button>
-        </div>
-        <p v-if="summary" class="text-sm leading-relaxed text-text">{{ summary }}</p>
-        <p v-else class="text-sm text-muted">No summary yet — click Generate to build one from the captured context.</p>
-        <p v-if="summaryUpdatedAt" class="text-xs text-muted">Updated {{ relativeTime(summaryUpdatedAt) }}</p>
-      </section>
-
-      <section class="space-y-2">
+      <!-- Description: manual narrative, inline-editable. -->
+      <section class="space-y-2 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
         <h2 class="text-sm font-semibold text-text-strong">Description</h2>
         <button
           v-if="!editingDescription"
@@ -561,11 +559,48 @@ function activityLabel(a: ActivityRow): string {
         />
       </section>
 
-      <EntityFacts :entity-id="entity.id" :entity-kind="kind" />
+      <!-- Summary: LLM-generated context roundup. Hidden when there is
+           no summary AND no summary state at all (legacy entities). -->
+      <section
+        v-if="summary || summaryState !== 'absent'"
+        class="space-y-2 rounded-card border border-border-default bg-surface-1 p-5 shadow-card"
+      >
+        <div class="flex items-center gap-2">
+          <SparklesIcon class="size-5 text-warning" aria-hidden="true" />
+          <h2 class="text-sm font-semibold text-text-strong">Summary</h2>
+          <UiBadge v-if="summaryState === 'stale'" variant="warning">stale</UiBadge>
+          <UiBadge v-if="summaryState === 'generating'" variant="accent">refreshing…</UiBadge>
+          <UiBadge v-if="summaryState === 'failed'" variant="danger">failed</UiBadge>
+          <button
+            v-if="summaryState !== 'generating'"
+            type="button"
+            class="ml-auto inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-text-soft transition-colors hover:bg-surface-3 hover:text-text disabled:cursor-not-allowed disabled:opacity-60"
+            :disabled="summaryWorking"
+            @click="refreshSummary"
+          >
+            <ArrowPathIcon class="size-3.5" :class="summaryWorking && 'animate-spin'" aria-hidden="true" />
+            <span>{{ summary ? 'Refresh' : 'Generate' }}</span>
+          </button>
+        </div>
+        <p v-if="summary" class="text-sm leading-relaxed text-text">{{ summary }}</p>
+        <p v-else class="text-sm text-muted">No summary yet — click Generate to build one from the captured context.</p>
+        <p v-if="summaryUpdatedAt" class="text-xs text-muted">Updated {{ relativeTime(summaryUpdatedAt) }}</p>
+      </section>
 
-      <slot name="sections" />
+      <!-- Facts: curated bullet points the user maintains. -->
+      <section class="rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
+        <EntityFacts :entity-id="entity.id" :entity-kind="kind" />
+      </section>
 
-      <section class="space-y-3">
+      <!-- Derived content (documents, actions, etc.) — supplied by
+           the consuming page via the sections slot. -->
+      <section class="space-y-6 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
+        <slot name="sections" />
+      </section>
+
+      <!-- Discussion + system log share one card with tab nav so the
+           page footer stays focused. -->
+      <section class="space-y-3 rounded-card border border-border-default bg-surface-1 p-5 shadow-card">
         <div class="flex items-center gap-1 border-b border-border-subtle">
           <button
             type="button"
@@ -585,15 +620,15 @@ function activityLabel(a: ActivityRow): string {
             type="button"
             :class="[
               'inline-flex items-center gap-2 border-b-2 px-3 py-2 text-sm font-medium transition-colors',
-              activityTab === 'activity'
+              activityTab === 'all'
                 ? 'border-accent text-accent'
                 : 'border-transparent text-text-soft hover:text-text'
             ]"
-            @click="activityTab = 'activity'"
+            @click="activityTab = 'all'"
           >
             <ClockIcon class="size-4" aria-hidden="true" />
-            <span>Activity</span>
-            <span v-if="activities.length" class="text-xs text-muted">{{ activities.length }}</span>
+            <span>All activity</span>
+            <span v-if="timeline.length" class="text-xs text-muted">{{ timeline.length }}</span>
           </button>
         </div>
 
@@ -633,27 +668,66 @@ function activityLabel(a: ActivityRow): string {
           </div>
         </div>
 
-        <div v-else>
-          <ol v-if="activities.length" class="space-y-3">
-            <li v-for="activity in activities" :key="activity.id" class="flex items-start gap-3">
-              <span class="mt-1.5 size-2 shrink-0 rounded-full bg-accent" aria-hidden="true"></span>
-              <div class="min-w-0 flex-1">
-                <p class="text-sm text-text">{{ activityLabel(activity) }}</p>
-                <p class="text-xs text-muted">
-                  <span>{{ relativeTime(activity.occurred_at) }}</span>
-                  <NuxtLink
-                    v-if="activity.source_document_id"
-                    :to="`/documents/${activity.source_document_id}`"
-                    class="text-accent hover:underline"
-                  >· {{ activity.source_document_title }}</NuxtLink>
-                </p>
+        <div v-else class="space-y-3">
+          <ol v-if="timeline.length" class="space-y-3">
+            <li v-for="entry in timeline" :key="`${entry.kind}-${entry.comment?.id || entry.activity?.id}`">
+              <!-- Comment row: heavier card to mirror discussion weight. -->
+              <div
+                v-if="entry.kind === 'comment' && entry.comment"
+                class="rounded-card border border-border-subtle bg-surface-2 p-3"
+              >
+                <p class="whitespace-pre-wrap text-sm text-text">{{ entry.comment.body }}</p>
+                <div class="mt-2 flex items-center justify-between text-xs text-muted">
+                  <span>{{ formatDate(entry.comment.created_at) }}</span>
+                  <button
+                    type="button"
+                    class="inline-flex size-7 items-center justify-center rounded-md text-muted-soft hover:bg-danger-soft hover:text-danger"
+                    title="Delete comment"
+                    @click="deleteComment(entry.comment)"
+                  >
+                    <TrashIcon class="size-3.5" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+              <!-- Activity row: visibly smaller than comments so the
+                   discussion stays the dominant signal in this card. -->
+              <div v-else-if="entry.activity" class="flex items-start gap-2.5 px-1 py-0.5">
+                <span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-muted-soft" aria-hidden="true"></span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs text-text-soft">{{ activityLabel(entry.activity) }}</p>
+                  <p class="text-[11px] text-muted">
+                    <span>{{ relativeTime(entry.activity.occurred_at) }}</span>
+                    <NuxtLink
+                      v-if="entry.activity.source_document_id"
+                      :to="`/documents/${entry.activity.source_document_id}`"
+                      class="text-accent hover:underline"
+                    >· {{ entry.activity.source_document_title }}</NuxtLink>
+                  </p>
+                </div>
               </div>
             </li>
           </ol>
           <p v-else class="text-sm text-muted">No activity recorded yet.</p>
+          <div class="space-y-2 border-t border-border-subtle pt-3">
+            <UiTextarea
+              v-model="draftCommentBody"
+              :rows="2"
+              :placeholder="commentPlaceholder"
+              @keydown="handleCommentKey"
+            />
+            <div class="flex items-center justify-between text-xs text-muted">
+              <span>Cmd/Ctrl+Enter to post</span>
+              <UiButton
+                size="sm"
+                :disabled="!draftCommentBody.trim()"
+                :loading="postingComment"
+                @click="postComment"
+              >{{ postingComment ? 'Posting…' : 'Post' }}</UiButton>
+            </div>
+          </div>
         </div>
       </section>
-    </section>
+    </div>
 
     <div class="space-y-6">
       <EntityRelationsAside

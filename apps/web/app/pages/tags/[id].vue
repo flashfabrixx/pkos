@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { HashtagIcon } from '@heroicons/vue/24/outline'
-import { colorFor } from '~/utils/hash-color'
-
 interface CommentRow {
   id: string
   entity_id: string
@@ -28,7 +25,6 @@ watch(
   { immediate: true }
 )
 
-const tagColor = computed(() => colorFor(tag.value?.name))
 </script>
 
 <template>
@@ -45,14 +41,6 @@ const tagColor = computed(() => colorFor(tag.value?.name))
     @update:entity="refresh"
     @update:comments="(value) => comments = value"
   >
-    <template #avatar>
-      <span
-        class="inline-flex size-12 shrink-0 items-center justify-center rounded-card"
-        :style="{ background: tagColor.bg, color: tagColor.fg }"
-      >
-        <HashtagIcon class="size-6" aria-hidden="true" />
-      </span>
-    </template>
     <template #sections>
       <EntityDocumentList :documents="documents" title="Tagged documents" />
     </template>

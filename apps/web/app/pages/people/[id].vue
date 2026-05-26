@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { colorFor } from '~/utils/hash-color'
-
 interface ActionRow {
   id: string
   title: string
@@ -43,13 +41,6 @@ watch(
   { immediate: true }
 )
 
-const initials = computed(() => {
-  if (!person.value?.name) return '?'
-  const parts = person.value.name.trim().split(/\s+/)
-  return ((parts[0]?.[0] || '') + (parts.length > 1 ? parts[parts.length - 1]![0] : '')).toUpperCase()
-})
-const avatarColor = computed(() => colorFor(person.value?.name))
-
 async function toggleAction(action: ActionRow) {
   const previous = action.status
   const next = previous === 'done' ? 'open' : 'done'
@@ -77,12 +68,6 @@ async function toggleAction(action: ActionRow) {
     @update:entity="refresh"
     @update:comments="(value) => comments = value"
   >
-    <template #avatar>
-      <span
-        class="inline-flex size-12 shrink-0 items-center justify-center rounded-full text-lg font-bold"
-        :style="{ background: avatarColor.bg, color: avatarColor.fg }"
-      >{{ initials }}</span>
-    </template>
     <template #sections>
       <EntityDocumentList :documents="documents" title="Mentioned in" />
       <EntityActionList
