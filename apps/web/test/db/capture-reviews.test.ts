@@ -16,8 +16,8 @@ describe('capture_reviews (migration 0026)', () => {
   it('cascades when the parent document is deleted', async () => {
     await withTx(ctx, async (client) => {
       const doc = await client.query<{ id: string }>(
-        `INSERT INTO documents (title, source_type, raw_text, status, language, confidentiality)
-         VALUES ('t', 'reflection', '', 'processed', 'en', 'private') RETURNING id`
+        `INSERT INTO documents (title, source_type, raw_text)
+         VALUES ('t', 'reflection', '') RETURNING id`
       )
       const did = doc.rows[0]!.id
       await client.query(
@@ -38,9 +38,9 @@ describe('capture_reviews (migration 0026)', () => {
       await client.query(
         `INSERT INTO entities (type, name, canonical_name) VALUES ('person', 'Anna Mueller', 'anna-mueller')`
       )
-      // "anna" (4 chars) vs "anna-mueller" — trigram sim should land
-      // in the unsure window.
-      const m = await findFuzzyMatch(client, 'person', 'anna')
+      // "anna-muller" (missing 'e') vs "anna-mueller" — typical
+      // umlaut/transliteration drift, lands in the unsure window.
+      const m = await findFuzzyMatch(client, 'person', 'anna-muller')
       expect(m).toBeTruthy()
       expect(m?.canonical_name).toBe('anna-mueller')
       expect(m?.similarity).toBeGreaterThanOrEqual(0.4)
@@ -61,8 +61,8 @@ describe('capture_reviews (migration 0026)', () => {
   it('emitEntityMatchReview is idempotent for the same (new, candidate) pair', async () => {
     await withTx(ctx, async (client) => {
       const doc = await client.query<{ id: string }>(
-        `INSERT INTO documents (title, source_type, raw_text, status, language, confidentiality)
-         VALUES ('t2', 'reflection', '', 'processed', 'en', 'private') RETURNING id`
+        `INSERT INTO documents (title, source_type, raw_text)
+         VALUES ('t2', 'reflection', '') RETURNING id`
       )
       const did = doc.rows[0]!.id
       const a = await client.query<{ id: string }>(
