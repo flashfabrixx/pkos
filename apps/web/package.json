@@ -18,7 +18,7 @@
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",
     "franc-min": "^6.2.0",
-    "imapflow": "^1.0.183",
+    "imapflow": "^1.3.5",
     "mailparser": "^3.7.2",
     "mammoth": "^1.12.0",
     "nodemailer": "^8.0.7",
