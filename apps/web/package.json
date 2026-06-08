@@ -32,12 +32,12 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@types/node": "^25.9.0",
+    "@types/node": "^25.9.2",
     "@types/nodemailer": "^8.0.0",
     "@types/pg": "^8.16.0",
-    "@vue/test-utils": "^2.4.10",
-    "happy-dom": "^20.9.0",
+    "@vue/test-utils": "^2.4.11",
+    "happy-dom": "^20.10.2",
     "typescript": "^5.9.3",
-    "vue-tsc": "^3.3.0"
+    "vue-tsc": "^3.3.4"
   }
 }
