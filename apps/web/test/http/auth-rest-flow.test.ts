@@ -181,6 +181,40 @@ d('auth + REST v1 end-to-end', () => {
     expect(empty.status).toBe(400)
   }, 60_000)
 
+  it('accepts a Bearer POST without Origin/Referer (server-to-server clients)', async () => {
+    const cookie = await login()
+    const key = await createKey(cookie, ['captures:write'])
+    // Deliberately no `origin` header — curl/n8n HTTP nodes never send one.
+    const r = await fetch(`${nuxt.baseUrl}/api/v1/captures`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${key.plaintext}` },
+      body: JSON.stringify({
+        sourceType: 'reflection',
+        rawText: 'Server-to-server capture posted without an Origin header.',
+        capturedAt: new Date().toISOString().slice(0, 10),
+        confidentiality: 'private'
+      })
+    })
+    expect(r.status).toBe(200)
+    const body = await r.json() as { status: string }
+    expect(body.status).toBe('processed')
+  }, 60_000)
+
+  it('still rejects a cookie-style POST without Origin/Referer with 403', async () => {
+    const cookie = await login()
+    const r = await fetch(`${nuxt.baseUrl}/api/v1/captures`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({
+        sourceType: 'reflection',
+        rawText: 'This cross-site-style request must keep failing the CSRF check.',
+        capturedAt: new Date().toISOString().slice(0, 10),
+        confidentiality: 'private'
+      })
+    })
+    expect(r.status).toBe(403)
+  })
+
   it('rejects a revoked API key with 401', async () => {
     const cookie = await login()
     const createRes = await fetch(`${nuxt.baseUrl}/api/settings/api-keys`, {

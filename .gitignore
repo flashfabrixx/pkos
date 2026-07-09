@@ -16,3 +16,4 @@ vault/
 # Tooling working dirs
 .claude/
 .claudine/
+node-compile-cache/

@@ -5,6 +5,15 @@ keyed by the sprint batch from [roadmap-v1.md](./roadmap-v1.md).
 
 ## Unreleased
 
+### API fixes
+- Bearer-authenticated requests (API keys) are no longer rejected by the
+  CSRF Origin/Referer middleware. Server-to-server clients such as curl
+  and n8n send no `Origin` header, so every documented `POST /api/v1/*`
+  call failed with 403 "Missing Origin and Referer" before the key was
+  verified. CSRF protection is unchanged for cookie-authenticated
+  requests (a browser cannot attach an `Authorization` header cross-site
+  without a CORS preflight the server never approves).
+
 ### Departments
 - New `department` entity type with optional hierarchy (`parent_id`)
   and a `department_memberships` table for both person and project

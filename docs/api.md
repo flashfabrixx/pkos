@@ -21,6 +21,11 @@ requested explicitly.
 
 A key can be revoked at any time; subsequent requests get HTTP 401.
 
+Requests that authenticate with a Bearer key are exempt from the CSRF
+Origin/Referer check, so server-to-server clients (curl, n8n, cron
+jobs) can send state-changing requests without browser headers.
+Cookie-authenticated requests keep the CSRF requirement.
+
 ## Endpoints
 
 ### `POST /api/v1/captures`

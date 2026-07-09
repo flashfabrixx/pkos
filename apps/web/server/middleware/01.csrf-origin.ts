@@ -13,6 +13,14 @@ export default defineEventHandler((event) => {
   const method = getMethod(event)
   if (SAFE_METHODS.has(method)) return
 
+  // Bearer-authenticated requests (API keys used by server-to-server
+  // clients like curl or n8n) carry no Origin/Referer and don't ride on
+  // the session cookie. A browser can't attach an Authorization header
+  // cross-site without a CORS preflight we never approve, so CSRF does
+  // not apply — the key itself is verified downstream in auth.ts.
+  const authorization = getRequestHeader(event, 'authorization') || ''
+  if (authorization.startsWith('Bearer ')) return
+
   // Auth + 2FA login endpoints must work for fresh first-time browser visits
   // where the Origin matches host anyway — we still verify it.
   const host = getRequestHeader(event, 'host') || ''
