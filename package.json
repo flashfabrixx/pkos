@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "franc-min": "^6.2.0",
-    "pg": "^8.21.0",
+    "pg": "^8.22.0",
     "tar": "^7.4.3"
   },
   "devDependencies": {
